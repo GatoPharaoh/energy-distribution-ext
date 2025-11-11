@@ -17,7 +17,6 @@ const appearanceOptionsConfigStruct = object({
 
 const energyUnitsOptionsConfigStruct = object({
   [EnergyUnitsOptions.Units_Mode]: optional(string()),
-  [EnergyUnitsOptions.Wh_Display_Precision]: optional(integer()),
   [EnergyUnitsOptions.Kwh_Display_Precision]: optional(integer()),
   [EnergyUnitsOptions.Mwh_Display_Precision]: optional(integer()),
   [EnergyUnitsOptions.Wh_Kwh_Threshold]: optional(number()),

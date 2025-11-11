@@ -127,6 +127,8 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
     },
     [AppearanceOptions.Energy_Units]: {
       [EnergyUnitsOptions.Units_Mode]: UnitDisplayMode.After_Space,
+      [EnergyUnitsOptions.Kwh_Display_Precision]: DefaultValues.KilowattHourDecimals,
+      [EnergyUnitsOptions.Mwh_Display_Precision]: DefaultValues.MegawattHourDecimals,
       [EnergyUnitsOptions.Wh_Kwh_Threshold]: DefaultValues.WhkWhThreshold,
       [EnergyUnitsOptions.Kwh_Mwh_Threshold]: DefaultValues.KwhMwhThreshold
     },

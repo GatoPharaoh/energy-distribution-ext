@@ -86,7 +86,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _wattToKiloThreshold!: Decimal;
   private _megaWattDecimals!: number | undefined;
   private _kiloWattDecimals!: number | undefined;
-  private _wattDecimals!: number | undefined;
   private _energyUnitMode!: UnitDisplayMode;
   private _showZeroStates: boolean = true;
 
@@ -141,7 +140,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     this._wattToKiloThreshold = new Decimal(energyUnitsConfig?.[EnergyUnitsOptions.Wh_Kwh_Threshold] || DefaultValues.WhkWhThreshold);
     this._megaWattDecimals = energyUnitsConfig?.[EnergyUnitsOptions.Mwh_Display_Precision];
     this._kiloWattDecimals = energyUnitsConfig?.[EnergyUnitsOptions.Kwh_Display_Precision];
-    this._wattDecimals = energyUnitsConfig?.[EnergyUnitsOptions.Wh_Display_Precision];
   }
 
   //================================================================================================================================================================================//
@@ -551,7 +549,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       decimals = this._kiloWattDecimals || getDisplayPrecisionForEnergyState(valueAsNumber);
       units = "kWh";
     } else {
-      decimals = this._wattDecimals || getDisplayPrecisionForEnergyState(valueAsNumber);
+      decimals = 0;
       units = "Wh";
     }
 
@@ -606,7 +604,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         ? energyUnitsConfig?.[EnergyUnitsOptions.Mwh_Display_Precision]
         : isKWh
           ? energyUnitsConfig?.[EnergyUnitsOptions.Kwh_Display_Precision]
-          : energyUnitsConfig?.[EnergyUnitsOptions.Wh_Display_Precision];
+          : 0;
 
       if (isMWh) {
         valueAsNumber = valueAsNumber.dividedBy(1000000);

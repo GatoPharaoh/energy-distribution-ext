@@ -41,7 +41,6 @@ export enum AppearanceOptions {
 
 export enum EnergyUnitsOptions {
   Units_Mode = "units_mode",
-  Wh_Display_Precision = "wh_display_precision",
   Kwh_Display_Precision = "kwh_display_precision",
   Mwh_Display_Precision = "mwh_display_precision",
   Wh_Kwh_Threshold = "wh_kwh_threshold",
@@ -139,7 +138,6 @@ export interface AppearanceOptionsConfig {
 
 export interface EnergyUnitsConfig {
   [EnergyUnitsOptions.Units_Mode]?: UnitDisplayMode;
-  [EnergyUnitsOptions.Wh_Display_Precision]?: number;
   [EnergyUnitsOptions.Kwh_Display_Precision]?: number;
   [EnergyUnitsOptions.Mwh_Display_Precision]?: number;
   [EnergyUnitsOptions.Wh_Kwh_Threshold]?: number;

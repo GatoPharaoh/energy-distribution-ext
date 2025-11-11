@@ -137,10 +137,6 @@ function energyUnitsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, s
       type: 'grid',
       schema: [
         {
-          name: EnergyUnitsOptions.Wh_Display_Precision,
-          selector: { number: { mode: 'box', min: 0, max: 5, step: 1 } }
-        },
-        {
           name: EnergyUnitsOptions.Kwh_Display_Precision,
           selector: { number: { mode: 'box', min: 0, max: 5, step: 1 } }
         },
