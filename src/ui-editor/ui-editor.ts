@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, TemplateResult, CSSResultGroup } from '
 import { customElement, property, state } from 'lit/decorators.js';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { assert } from 'superstruct';
-import { DeviceConfig, EditorPages, EnergyFlowCardExtConfig, EntitiesOptions, EntityOptions, isValidPrimaryEntity, isValidSecondaryEntity } from '@/config';
+import { EditorPages, EnergyFlowCardExtConfig, EntitiesOptions, EntityOptions, HomeConfig, isValidPrimaryEntity, isValidSecondaryEntity } from '@/config';
 import { appearanceSchema, generalConfigSchema } from './schema';
 import { localize } from '@/localize/localize';
 import { gridSchema } from './schema/grid';
@@ -16,75 +16,138 @@ import "./components/devices-editor";
 import { CARD_NAME } from '@/const';
 import { cardConfigStruct } from '@/config/validation';
 import { computeHelperCallback, computeLabelCallback } from '.';
-import { mdiChevronRight, mdiCheckCircle } from '@mdi/js';
+import { mdiChevronRight, mdiCheckCircle, mdiAlert, mdiAlertOctagon } from '@mdi/js';
 import { getDefaultLowCarbonConfig, cleanupConfig, getDefaultAppearanceConfig, getDefaultGridConfig, getDefaultGasConfig, getDefaultSolarConfig, getDefaultBatteryConfig, getDefaultHomeConfig, getCo2SignalEntity } from '@/config/config';
 
 export const EDITOR_ELEMENT_NAME = CARD_NAME + "-editor";
 
-const showIconForSingleValueNode = (config: any) => config?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids]?.length;
-const showIconForDualValueNode = (config: any) => config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids]?.length || config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids]?.length;
+function getStatusIcon(hass: HomeAssistant, config: any): string | undefined {
+  let primaryEntityCount: number = 0;
+  let secondaryEntityCount: number = 0;
+  let validEntityCount: number = 0;
+  let invalidEntityCount: number = 0;
+
+  if (config?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids]) {
+    config?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids].forEach(entityId => {
+      primaryEntityCount++;
+
+      if (isValidPrimaryEntity(hass, entityId)) {
+        validEntityCount++;
+      } else {
+        invalidEntityCount++;
+      }
+    });
+  }
+
+  if (config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids]) {
+    config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids].forEach(entityId => {
+      primaryEntityCount++;
+
+      if (isValidPrimaryEntity(hass, entityId)) {
+        validEntityCount++;
+      } else {
+        invalidEntityCount++;
+      }
+    });
+  }
+
+  if (config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids]) {
+    config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids].forEach(entityId => {
+      primaryEntityCount++;
+
+      if (isValidPrimaryEntity(hass, entityId)) {
+        validEntityCount++;
+      } else {
+        invalidEntityCount++;
+      }
+    });
+  }
+
+  if (config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id]) {
+    secondaryEntityCount++;
+
+    if (isValidSecondaryEntity(hass, config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id])) {
+      validEntityCount++;
+    }
+  }
+
+  if (primaryEntityCount === 0 && secondaryEntityCount === 0) {
+    return undefined;
+  }
+
+  if (primaryEntityCount > 0 && invalidEntityCount === primaryEntityCount) {
+    return mdiAlertOctagon;
+  }
+
+  if (validEntityCount === primaryEntityCount + secondaryEntityCount) {
+    return mdiCheckCircle;
+  }
+
+  return mdiAlert;
+}
 
 const CONFIG_PAGES: {
   page: EditorPages;
   icon: string;
   schema?;
   createConfig?;
-  showIcon?;
+  statusIcon?;
 }[] = [
     {
       page: EditorPages.Appearance,
       icon: "mdi:cog",
       schema: appearanceSchema,
       createConfig: getDefaultAppearanceConfig,
-      showIcon: () => false
+      statusIcon: () => false
     },
     {
       page: EditorPages.Grid,
       icon: "mdi:transmission-tower",
       schema: gridSchema,
       createConfig: getDefaultGridConfig,
-      showIcon: (config: EnergyFlowCardExtConfig) => showIconForDualValueNode(config?.[EditorPages.Grid])
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant) => getStatusIcon(hass, config?.[EditorPages.Grid])
     },
     {
       page: EditorPages.Gas,
       icon: "mdi:fire",
       schema: gasSchema,
       createConfig: getDefaultGasConfig,
-      showIcon: (config: EnergyFlowCardExtConfig) => showIconForSingleValueNode(config?.[EditorPages.Gas])
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant) => getStatusIcon(hass, config?.[EditorPages.Gas])
     },
     {
       page: EditorPages.Solar,
       icon: "mdi:solar-power",
       schema: solarSchema,
       createConfig: getDefaultSolarConfig,
-      showIcon: (config: EnergyFlowCardExtConfig) => showIconForSingleValueNode(config?.[EditorPages.Solar])
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant) => getStatusIcon(hass, config?.[EditorPages.Solar])
     },
     {
       page: EditorPages.Battery,
       icon: "mdi:battery-high",
       schema: batterySchema,
       createConfig: getDefaultBatteryConfig,
-      showIcon: (config: EnergyFlowCardExtConfig) => showIconForDualValueNode(config?.[EditorPages.Battery])
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant) => getStatusIcon(hass, config?.[EditorPages.Battery])
     },
     {
       page: EditorPages.Low_Carbon,
       icon: "mdi:leaf",
       schema: lowCarbonSchema,
       createConfig: getDefaultLowCarbonConfig,
-      showIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant) => getCo2SignalEntity(hass) !== undefined
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant) => getStatusIcon(hass, config?.[EditorPages.Low_Carbon]) || (getCo2SignalEntity(hass) !== undefined ? mdiCheckCircle : undefined)
     },
     {
       page: EditorPages.Home,
       icon: "mdi:home",
       schema: homeSchema,
       createConfig: getDefaultHomeConfig,
-      showIcon: () => false
+      statusIcon: (config: HomeConfig, hass: HomeAssistant) => getStatusIcon(hass, config?.[EditorPages.Home])
     },
     {
       page: EditorPages.Devices,
       icon: "mdi:devices",
       createConfig: () => { },
-      showIcon: (config: EnergyFlowCardExtConfig) => config?.[EditorPages.Devices]?.map(device => device[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids]?.length).find(length => length)
+      // TODO get the icon for each Device and take the worst-case for display
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant) => config?.[EditorPages.Devices]?.map(device => device[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids]?.length).find(length => length) ? mdiCheckCircle : undefined
     }
   ];
 
@@ -166,20 +229,22 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
   }
 
   private _renderPageLinks = (): TemplateResult[] => {
-    return CONFIG_PAGES.map(page => this._renderPageLink(page.page, page.icon, page.showIcon(this._config, this.hass)));
+    return CONFIG_PAGES.map(page => this._renderPageLink(page.page, page.icon, page.statusIcon(this._config, this.hass)));
   };
 
-  private _renderPageLink = (page: EditorPages, icon: string, showIcon: boolean): TemplateResult => {
+  private _renderPageLink = (page: EditorPages, icon: string, statusIcon: string | undefined): TemplateResult => {
     if (!page) {
       return html``;
     }
+
+    const statusIconClass: string = statusIcon === mdiCheckCircle ? "page-checkmark" : statusIcon === mdiAlert ? "page-alert" : "page-error";
 
     return html`
       <ha-control-button class="page-link" @click=${() => this._openPage(page)}>
         <ha-icon class="page-icon" .icon=${icon}></ha-icon>
         <div class="page-label">
           ${localize(`editor.${page}`)}
-          ${showIcon ? html`<ha-svg-icon class="page-checkmark" .path=${mdiCheckCircle}></ha-svg-icon>` : ``}
+          ${statusIcon ? html`<ha-svg-icon class="${statusIconClass}" .path=${statusIcon}></ha-svg-icon>` : ``}
         </div>
         <ha-svg-icon .path=${mdiChevronRight}></ha-svg-icon>
       </ha-control-button>
@@ -223,7 +288,7 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
 
       }
 
-      this._validateSecondaryEntity(EntitiesOptions.Entities, config?.[this._currentConfigPage]?.[EntityOptions.Entity_Id], errors);
+      this._validateSecondaryEntity(EntitiesOptions.Secondary_Info, config?.[this._currentConfigPage]?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id], errors);
     }
 
     return errors;
@@ -238,7 +303,7 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
       if (!entityId || entityId === "") {
         error += localize("editor.missing_entity") + "\n";
       } else if (!isValidPrimaryEntity(this.hass, entityId)) {
-        error += "'" + entityId + "' " + localize("editor.invalid_primary_entity") + "\n";
+        error += "'" + (this.hass.states[entityId]?.attributes?.friendly_name || entityId) + "' " + localize("editor.invalid_primary_entity") + "\n";
       }
     });
 
@@ -250,10 +315,14 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
   private _validateSecondaryEntity(label: string, entityId: string, errors: object): void {
     delete errors[label];
 
+    if (entityId === undefined) {
+      return;
+    }
+
     if (!entityId || entityId === "") {
       errors[label] = localize("editor.missing_entity");
     } else if (!isValidSecondaryEntity(this.hass, entityId)) {
-      errors[label] = "'" + entityId + "' " + localize("editor.invalid_secondary_entity");
+      errors[label] = "'" + (this.hass.states[entityId]?.attributes?.friendly_name || entityId) + "' " + localize("editor.invalid_secondary_entity");
     }
   }
 
@@ -290,6 +359,16 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
         .page-checkmark {
           padding-left: 1rem;
           color: green;
+        }
+
+        .page-alert {
+          padding-left: 1rem;
+          color: orange;
+        }
+
+        .page-error {
+          padding-left: 1rem;
+          color: red;
         }
       `
     ];

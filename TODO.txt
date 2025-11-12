@@ -1,14 +1,6 @@
 BUGS
 ----
 
-Entity-validation:
-  - icon:
-    - green: all entities are valid
-    - yellow: at least one primary entity is valid and at least one other (primary/secondary) entity is invalid
-    - red: all primary entities are invalid
-    - nothing: no primary entities are defined at all
-
-
 Decimals:
   - add flag to 'always show dps' (per-entity)
     - or perhaps just auto-detect currencies?
@@ -39,6 +31,15 @@ Low-carbon and Secondary values being mis-coloured, needs to take into account t
 
 Power-outage is calculating its state up-front, rather than live as-needed (see GridState)
 
+ - October 28th is showing zeroes for solar and both battery values, and Unknown for the house
+    - the house is Unknown because the only two non-zero values (for the grid) result in a net -ve: exports are greater than imports
+    - looks like the final stat for the day has a state (and change) of zero, which is causing the 'fix the change' code to generate a -ve change equal to the final non-zero state...
+    - special handling of the 2300-0000 stat will be needed here, probably the simplest approach is to assume it will be valid and not do the 'fix'
+        - could do a Math.max(0, delta), but make sure this only applies to the primaries, as secondaries can go -ve
+        - also worth bearing in mind: this final stat is the 'reset'...but what if the 'state' and 'change' were genuinely non-zero here?
+    - why only this date?  Can't be the clock change, otherwise at least the 27th would also have been affected
+    - the three sensors are also being reported as 'misconfigured resetting', which wasn't the case previously
+ - apparently not converting 1000Wh to 1kWh
 
 
 
@@ -73,3 +74,16 @@ README and CHANGELOG updates
 
 Test localisation by disabling EN and EN-GB and checking that all strings revert to their keys
   - also check that there aren't any redundant keys!
+
+
+ - for energy secondaries, decide if their unit settings should override the global or vice versa
+ - see how much of the render setup can be moved out to setConfig()
+ - for the Home node, perhaps have the option to show Gas and Electric as separate figures?
+    - this would allow the Gas to be added to the circle without it overpowering the value
+    - could even display all three figures, if the circle were made larger
+    - producing devices are expected to be electric, not gas, so they won't be a problem
+    - each value will require an icon (same idea as the secondaries, use the icons from Grid/Gas)
+    - the 'include in calculation' could be moved onto Home, rather than being per-device
+        - separate options for 'electric' and 'gas'?
+            - 'electric' is probably just whether to include Devices
+            - 'gas' would be 'hidden', 'displayed', 'include in total'...or something

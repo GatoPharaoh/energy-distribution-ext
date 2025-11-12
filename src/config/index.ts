@@ -254,11 +254,10 @@ export interface SecondaryInfoConfig {
 };
 
 
-const PRIMARY_STATE_CLASSES: string[] = ["total", "total_increasing"];
-const SECONDARY_STATE_CLASSES: string[] = ["total", "total_increasing", "measurement"];
+const isTotalisingEntity = (hass: HomeAssistant, entityId: string = ""): boolean => ["total", "total_increasing"].includes(hass.states[entityId]?.attributes?.state_class || "");
 
-export const isValidPrimaryEntity = (hass: HomeAssistant, entityId: string = ""): boolean => PRIMARY_STATE_CLASSES.includes(hass.states[entityId]?.attributes?.state_class || "") && hass.states[entityId]?.attributes?.device_class === DEVICE_CLASS_ENERGY;
-export const isValidSecondaryEntity = (hass: HomeAssistant, entityId: string = ""): boolean => SECONDARY_STATE_CLASSES.includes(hass.states[entityId]?.attributes?.state_class || "");
+export const isValidPrimaryEntity = (hass: HomeAssistant, entityId: string = ""): boolean => isTotalisingEntity(hass, entityId) && hass.states[entityId]?.attributes?.device_class === DEVICE_CLASS_ENERGY;
+export const isValidSecondaryEntity = (hass: HomeAssistant, entityId: string = ""): boolean => isTotalisingEntity(hass, entityId);
 
 export const filterPrimaryEntities = (hass: HomeAssistant, entityIds: string[] = []): string[] => entityIds.filter(entityId => isValidPrimaryEntity(hass, entityId));
 export const filterSecondaryEntity = (hass: HomeAssistant, entityId: string = ""): string[] => isValidSecondaryEntity(hass, entityId) ? [entityId] : [];
