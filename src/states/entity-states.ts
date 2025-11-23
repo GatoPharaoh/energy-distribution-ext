@@ -58,7 +58,7 @@ export class EntityStates {
     this.solar = new SolarState(hass, config?.[EditorPages.Solar]);
     this.devices = config?.[EditorPages.Devices]?.flatMap(device => new DeviceState(hass, device)) || [];
 
-    this._populateEntityArrays(config);
+    this._populateEntityArrays();
     this._inferEntityModes();
     this._subscribe(config);
   }
@@ -595,7 +595,7 @@ export class EntityStates {
 
   //================================================================================================================================================================================//
 
-  private _populateEntityArrays(config: EnergyFlowCardExtConfig): void {
+  private _populateEntityArrays(): void {
     this._primaryEntityIds = [];
     this._secondaryEntityIds = [];
 
@@ -671,7 +671,14 @@ export class EntityStates {
           } else {
             // the 'change' values coming back from statistics are not always correct, so recalculate them from the state-diffs
             const state: number = stat.state || 0;
-            stat.change = state - lastState;
+            const change: number = state - lastState;
+
+            if (this._entityModes.get(entity) === EntityMode.Totalising) {
+              stat.change = change;
+            } else {
+              stat.change = Math.max(0, change);
+            }
+
             lastState = state;
           }
         });

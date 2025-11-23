@@ -3,7 +3,10 @@ BUGS
 
 OOTB behaviour/appearance should match the built-in card:
   - check colour settings
-    - eg, the battery-grid line may be purple at all times in HASS
+    - the grid circle should be blue
+    - the battery circle should be red
+    - the battery-grid line colour is unclear: Oct 19 shows blue here but purple in HASS
+    - looks like the low-carbon line isn't animated in HASS (don't care, though!)
 
 Decimals:
   - add flag to 'always show dps' (per-entity)
@@ -13,7 +16,7 @@ Low-carbon:
   - needs its own rendering code
   - lock decimals to 1dp for percentage
 
-
+Investigate why two dot radii are needed - one for the main flows and one for the low-carbon/gas/etc!
 
 Intermittent problem where the stats are received multiple times
   - may be related to a browser page reload after switching between tabs?
@@ -27,23 +30,9 @@ Reinstate the -ve coords for the lines, they are required so that the dots don't
 Home value still getting the wrong colour - usually 'low-carbon'
   - the circle gets it wrong at midnight, too
 
-The 'loading...' flag doesn't seem to be getting cleared reliably
-  - possibly now fixed
-  - should, however, display the circles but with 'Unknown' for their values
-
 Low-carbon and Secondary values being mis-coloured, needs to take into account the relevant setting
 
 Power-outage is calculating its state up-front, rather than live as-needed (see GridState)
-
- - October 28th is showing zeroes for solar and both battery values, and Unknown for the house
-    - the house is Unknown because the only two non-zero values (for the grid) result in a net -ve: exports are greater than imports
-    - looks like the final stat for the day has a state (and change) of zero, which is causing the 'fix the change' code to generate a -ve change equal to the final non-zero state...
-    - special handling of the 2300-0000 stat will be needed here, probably the simplest approach is to assume it will be valid and not do the 'fix'
-        - could do a Math.max(0, delta), but make sure this only applies to the primaries, as secondaries can go -ve
-        - also worth bearing in mind: this final stat is the 'reset'...but what if the 'state' and 'change' were genuinely non-zero here?
-    - why only this date?  Can't be the clock change, otherwise at least the 27th would also have been affected
-    - the three sensors are also being reported as 'misconfigured resetting', which wasn't the case previously
- - apparently not converting 1000Wh to 1kWh
 
 
 
@@ -81,6 +70,8 @@ GENERAL
 -------
 
 README and CHANGELOG updates
+
+Rename to 'Energy Distribution Extended' (energy-distribution-ext) for consistency with the built-in card
 
 Test localisation by disabling EN and EN-GB and checking that all strings revert to their keys
   - also check that there aren't any redundant keys!

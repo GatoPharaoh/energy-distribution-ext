@@ -3,7 +3,7 @@ import { localize } from '@/localize/localize';
 export enum DefaultValues {
   // EnergyUnits
   KilowattHourDecimals = 2,
-  MegawattHourDecimals = 2,
+  MegawattHourDecimals = 1,
   WhkWhThreshold = 1000,
   KwhMwhThreshold = 1000,
 
