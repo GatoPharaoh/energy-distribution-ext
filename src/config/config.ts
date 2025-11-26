@@ -153,7 +153,7 @@ export function getDefaultGridConfig(hass: HomeAssistant, requireEntity: boolean
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Circle]: ColourMode.Largest_Value,
+      [ColourOptions.Circle]: ColourMode.Larger_Value,
       [ColourOptions.Values]: ColourMode.Default,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour
     },
@@ -206,7 +206,7 @@ export function getDefaultBatteryConfig(hass: HomeAssistant, requireEntity: bool
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Circle]: ColourMode.Largest_Value,
+      [ColourOptions.Circle]: ColourMode.Larger_Value,
       [ColourOptions.Values]: ColourMode.Default,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour
     },

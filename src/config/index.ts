@@ -101,8 +101,7 @@ export enum OverridesOptions {
 };
 
 export enum SecondaryInfoOptions {
-  Icon = "icon",
-  Template = "template"
+  Icon = "secondary_icon"
 }
 
 export enum DeviceOptions {
@@ -255,7 +254,6 @@ export interface SecondaryInfoConfig {
   [EntityOptions.Zero_Threshold]?: number;
   [EntityOptions.Display_Precision]?: number;
   [SecondaryInfoOptions.Icon]?: string;
-  [SecondaryInfoOptions.Template]?: string;
 };
 
 

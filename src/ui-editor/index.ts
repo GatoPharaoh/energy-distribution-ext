@@ -1,6 +1,6 @@
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
-import { EntitiesOptions, EntityOptions, isValidPrimaryEntity, isValidSecondaryEntity } from "../config";
+import { EntitiesOptions, EntityOptions, isValidPrimaryEntity, isValidSecondaryEntity } from "@/config";
 
 export const computeLabelCallback = (schema: any) => localize(`editor.${schema?.name}`);
 export const computeHelperCallback = (schema: any): string => localize(`editor.${schema?.name}#helptext`, "");
@@ -20,7 +20,6 @@ export function getStatusIcon(hass: HomeAssistant, config: any): Status {
   let secondaryEntityCount: number = 0;
   let validPrimaryEntityCount: number = 0;
   let invalidPrimaryEntityCount: number = 0;
-  let validSecondaryEntityCount: number = 0;
   let invalidSecondaryEntityCount: number = 0;
 
   if (config?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids]) {
@@ -62,9 +61,7 @@ export function getStatusIcon(hass: HomeAssistant, config: any): Status {
   if (config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id]) {
     secondaryEntityCount++;
 
-    if (isValidSecondaryEntity(hass, config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id])) {
-      validSecondaryEntityCount++;
-    } else {
+    if (!isValidSecondaryEntity(hass, config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id])) {
       invalidSecondaryEntityCount++;
     }
   }

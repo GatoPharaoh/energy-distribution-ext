@@ -99,7 +99,7 @@
     "colour_of_circle": "Circle",
 
     "secondary_info": "Secondary Info",
-    "template": "Template",
+    "secondary_icon": "Icon",
 
     "missing_entity": "Entity must be specified",
     "invalid_primary_entity": "is not an energy sensor of type Total or Total_Increasing",
@@ -117,7 +117,7 @@
     "none": "Do not color",
     "default": "Default",
     "circle": "Same as circle",
-    "largest_value": "Largest value",
+    "larger_value": "Larger value",
     "import": "Import",
     "export": "Export",
     "export_sources": "Export sources",

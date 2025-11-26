@@ -5,7 +5,11 @@ import { HomeAssistant } from "custom-card-helpers";
 
 export class GasState extends SingleValueState {
   config?: GasConfig;
-  state: number;
+
+  state: {
+    import: number;
+  };
+
 
   public constructor(hass: HomeAssistant, config: GasConfig | undefined) {
     super(
@@ -16,6 +20,9 @@ export class GasState extends SingleValueState {
     );
 
     this.config = config;
-    this.state = 0;
+
+    this.state = {
+      import: 0
+    };
   }
 }

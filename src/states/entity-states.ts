@@ -67,7 +67,7 @@ export class EntityStates {
       batteryImport: this.battery.state.import,
       batteryExport: this.battery.state.export,
       batterySecondary: this.battery.secondary.state,
-      gasImport: this.gas.state,
+      gasImport: this.gas.state.import,
       gasSecondary: this.gas.secondary.state,
       gridImport: this.grid.state.import,
       gridExport: this.grid.state.export,
@@ -229,6 +229,8 @@ export class EntityStates {
     states.flows.gridToHome += flowDeltas.gridToHome;
     states.flows.solarToHome += flowDeltas.solarToHome;
 
+    states.gasImport += this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.gas.mainEntities);
+
     const highCarbonDelta: number = this.lowCarbon.isPresent ? gridImportDelta * Number(this.hass.states[this.lowCarbon.firstMainEntity!].state) / 100 : 0;
     states.highCarbon += highCarbonDelta;
 
@@ -381,11 +383,11 @@ export class EntityStates {
     let batteryExport: number = 0;
 
     combinedStats.forEach(entry => {
-      const sp: number = this._getStates(entry, this.solar.mainEntities);
-      const bi: number = this._getStates(entry, this.battery.mainEntities);
-      const be: number = this._getStates(entry, this.battery.returnEntities);
-      const gi: number = this._getStates(entry, this.grid.mainEntities);
-      const ge: number = this._getStates(entry, this.grid.returnEntities);
+      const sp: number = this._getFlowEntityStates(entry, this.solar.mainEntities);
+      const bi: number = this._getFlowEntityStates(entry, this.battery.mainEntities);
+      const be: number = this._getFlowEntityStates(entry, this.battery.returnEntities);
+      const gi: number = this._getFlowEntityStates(entry, this.grid.mainEntities);
+      const ge: number = this._getFlowEntityStates(entry, this.grid.returnEntities);
       const flows: Flows = this._calculateFlows(sp, bi, be, gi, ge);
 
       solarToHome += flows.solarToHome;
@@ -455,6 +457,12 @@ export class EntityStates {
     } else {
       this.home.state.fromSolar = 0;
     }
+
+    if (this.gas.isPresent) {
+      this.gas.state.import = this._getDirectEntityStates(this.gas.config, this.gas.mainEntities);
+    } else {
+      this.gas.state.import = 0;
+    }
   }
 
   //================================================================================================================================================================================//
@@ -480,15 +488,7 @@ export class EntityStates {
       return;
     }
 
-    const entityId: string = state.secondary.firstMainEntity!;
-    const entityStats: StatisticValue[] = this._secondaryStatistics![entityId];
-
-    if (entityStats.length > 0) {
-      const stateObj: HassEntity = this.hass.states[entityId];
-      const units: string | undefined = state.secondary.config?.[EntitiesOptions.Entities]?.[EntityOptions.Units] || stateObj.attributes.unit_of_measurement;
-      const secondaryState: number = entityStats.map(stat => stat.change || 0).reduce((result, change) => result + change, 0) || 0;
-      state.secondary.state = this._toWattHours(units, secondaryState);
-    }
+    state.secondary.state = this._getEntityStates(this._secondaryStatistics!, state.secondary.firstMainEntity!, state.secondary.config?.[EntitiesOptions.Entities]?.[EntityOptions.Units]);
   }
 
   //================================================================================================================================================================================//
@@ -516,7 +516,7 @@ export class EntityStates {
 
   //================================================================================================================================================================================//
 
-  private _getStates(entry: Map<string, number>, entityIds: string[] | undefined = []): number {
+  private _getFlowEntityStates(entry: Map<string, number>, entityIds: string[] | undefined = []): number {
     if (!entityIds.length) {
       return 0;
     }
@@ -528,6 +528,32 @@ export class EntityStates {
     );
 
     return stateSum;
+  }
+
+  //================================================================================================================================================================================//
+
+  private _getDirectEntityStates(config: any, entityIds: string[] | undefined = []): number {
+    const configUnits: string | undefined = config?.[EntitiesOptions.Entities]?.[EntityOptions.Units];
+    let stateSum: number = 0;
+
+    entityIds.forEach(entityId => {
+      stateSum += this._getEntityStates(this._primaryStatistics!, entityId, configUnits || this.hass.states[entityId].attributes.unit_of_measurement);
+    });
+
+    return stateSum;
+  }
+
+  //================================================================================================================================================================================//
+
+  private _getEntityStates(statistics: Statistics, entityId: string, units: string | undefined): number {
+    const entityStats: StatisticValue[] = statistics[entityId];
+
+    if (entityStats.length > 0) {
+      const secondaryState: number = entityStats.map(stat => stat.change || 0).reduce((result, change) => result + change, 0) || 0;
+      return this._toWattHours(units || this.hass.states[entityId].attributes.unit_of_measurement, secondaryState);
+    }
+
+    return 0;
   }
 
   //================================================================================================================================================================================//

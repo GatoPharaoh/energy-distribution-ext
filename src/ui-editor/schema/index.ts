@@ -2,6 +2,8 @@ import { AppearanceOptions, ColourOptions, EnergyUnitsOptions, EntitiesOptions, 
 import { ColourMode, DisplayMode, DotsMode, InactiveLinesMode, UnitPosition, UnitPrefixes } from '@/enums';
 import { DEVICE_CLASS_ENERGY } from '@/const';
 
+//================================================================================================================================================================================//
+
 export function generalConfigSchema(config: EnergyFlowCardExtConfig | undefined) {
   return [
     {
@@ -25,6 +27,8 @@ export function generalConfigSchema(config: EnergyFlowCardExtConfig | undefined)
   ];
 }
 
+//================================================================================================================================================================================//
+
 export function appearanceSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: AppearanceConfig | undefined) {
   return [
     {
@@ -44,6 +48,8 @@ export function appearanceSchema(config: EnergyFlowCardExtConfig | undefined, sc
     }
   ];
 }
+
+//================================================================================================================================================================================//
 
 function appearanceOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: AppearanceOptionsConfig | undefined): any[] {
   return [
@@ -91,6 +97,8 @@ function appearanceOptionsSchema(config: EnergyFlowCardExtConfig | undefined, sc
   ];
 }
 
+//================================================================================================================================================================================//
+
 function energyUnitsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: EnergyUnitsConfig | undefined): any[] {
   return [
     {
@@ -131,6 +139,8 @@ function energyUnitsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, s
   ];
 }
 
+//================================================================================================================================================================================//
+
 function dynamicEnergyUnitsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: EnergyUnitsConfig | undefined): {} {
   if (schemaConfig?.[EnergyUnitsOptions.Unit_Prefixes] === UnitPrefixes.HASS) {
     return {};
@@ -161,6 +171,8 @@ function dynamicEnergyUnitsOptionsSchema(config: EnergyFlowCardExtConfig | undef
   };
 }
 
+//================================================================================================================================================================================//
+
 function flowsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: FlowsConfig | undefined): any[] {
   return [
     {
@@ -189,6 +201,8 @@ function flowsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaC
     dynamicFlowsOptionsSchema(config, schemaConfig)
   ];
 }
+
+//================================================================================================================================================================================//
 
 function dynamicFlowsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: FlowsConfig | undefined): {} {
   if (schemaConfig?.[FlowsOptions.Animation] !== DotsMode.Dynamic) {
@@ -222,6 +236,8 @@ function dynamicFlowsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, 
   };
 }
 
+//================================================================================================================================================================================//
+
 export function nodeConfigSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: NodeConfig | undefined, entitySchema: any[] | undefined): any[] {
   let result: Array<any> = [];
 
@@ -249,6 +265,8 @@ export function nodeConfigSchema(config: EnergyFlowCardExtConfig | undefined, sc
   return result;
 };
 
+//================================================================================================================================================================================//
+
 export function singleValueNodeSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: SingleValueNodeConfig | undefined): any[] {
   return [
     {
@@ -261,63 +279,71 @@ export function singleValueNodeSchema(config: EnergyFlowCardExtConfig | undefine
         }
       ]
     },
-    {
-      name: EntitiesOptions.Colours,
-      type: 'expandable',
-      schema: [
-        {
-          type: 'grid',
-          schema: [
-            {
-              name: ColourOptions.Circle,
-              required: true,
-              selector: {
-                select: {
-                  mode: 'dropdown',
-                  options: [
-                    ColourMode.getItem(ColourMode.Default),
-                    ColourMode.getItem(ColourMode.Custom)
-                  ]
-                }
-              }
-            },
-            {
-              name: ColourOptions.Value,
-              required: true,
-              selector: {
-                select: {
-                  mode: 'dropdown',
-                  options: [
-                    ColourMode.getItem(ColourMode.Do_Not_Colour),
-                    ColourMode.getItem(ColourMode.Default),
-                    ColourMode.getItem(ColourMode.Circle),
-                    ColourMode.getItem(ColourMode.Custom)
-                  ]
-                }
-              }
-            },
-            {
-              name: ColourOptions.Icon,
-              required: true,
-              selector: {
-                select: {
-                  mode: 'dropdown',
-                  options: [
-                    ColourMode.getItem(ColourMode.Do_Not_Colour),
-                    ColourMode.getItem(ColourMode.Default),
-                    ColourMode.getItem(ColourMode.Circle),
-                    ColourMode.getItem(ColourMode.Custom)
-                  ]
-                }
-              }
-            },
-            singleValueColourPickerSchema(config, schemaConfig?.[EntitiesOptions.Colours])
-          ]
-        }
-      ]
-    }
+    singleValueColourSchema(config, schemaConfig)
   ];
 }
+
+//================================================================================================================================================================================//
+
+export function singleValueColourSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: SingleValueNodeConfig | undefined): {} {
+  return {
+    name: EntitiesOptions.Colours,
+    type: 'expandable',
+    schema: [
+      {
+        type: 'grid',
+        schema: [
+          {
+            name: ColourOptions.Circle,
+            required: true,
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  ColourMode.getItem(ColourMode.Default),
+                  ColourMode.getItem(ColourMode.Custom)
+                ]
+              }
+            }
+          },
+          {
+            name: ColourOptions.Value,
+            required: true,
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  ColourMode.getItem(ColourMode.Do_Not_Colour),
+                  ColourMode.getItem(ColourMode.Default),
+                  ColourMode.getItem(ColourMode.Circle),
+                  ColourMode.getItem(ColourMode.Custom)
+                ]
+              }
+            }
+          },
+          {
+            name: ColourOptions.Icon,
+            required: true,
+            selector: {
+              select: {
+                mode: 'dropdown',
+                options: [
+                  ColourMode.getItem(ColourMode.Do_Not_Colour),
+                  ColourMode.getItem(ColourMode.Default),
+                  ColourMode.getItem(ColourMode.Circle),
+                  ColourMode.getItem(ColourMode.Custom)
+                ]
+              }
+            }
+          },
+          singleValueColourPickerSchema(config, schemaConfig?.[EntitiesOptions.Colours])
+        ]
+      }
+    ]
+  };
+}
+
+//================================================================================================================================================================================//
 
 export function singleValueColourPickerSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: SingleValueColourConfig | undefined): {} {
   if (schemaConfig?.[ColourOptions.Circle] === ColourMode.Custom || schemaConfig?.[ColourOptions.Value] === ColourMode.Custom || schemaConfig?.[ColourOptions.Icon] === ColourMode.Custom) {
@@ -329,6 +355,8 @@ export function singleValueColourPickerSchema(config: EnergyFlowCardExtConfig | 
 
   return {};
 }
+
+//================================================================================================================================================================================//
 
 export function dualValueNodeSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: DualValueNodeConfig | undefined): any[] {
   return [
@@ -366,7 +394,7 @@ export function dualValueNodeSchema(config: EnergyFlowCardExtConfig | undefined,
                 select: {
                   mode: 'dropdown',
                   options: [
-                    ColourMode.getItem(ColourMode.Largest_Value),
+                    ColourMode.getItem(ColourMode.Larger_Value),
                     ColourMode.getItem(ColourMode.Import),
                     ColourMode.getItem(ColourMode.Export),
                     ColourMode.getItem(ColourMode.Export_Sources),
@@ -397,7 +425,7 @@ export function dualValueNodeSchema(config: EnergyFlowCardExtConfig | undefined,
                   mode: 'dropdown',
                   options: [
                     ColourMode.getItem(ColourMode.Do_Not_Colour),
-                    ColourMode.getItem(ColourMode.Largest_Value),
+                    ColourMode.getItem(ColourMode.Larger_Value),
                     ColourMode.getItem(ColourMode.Import),
                     ColourMode.getItem(ColourMode.Export),
                     ColourMode.getItem(ColourMode.Custom)
@@ -412,6 +440,8 @@ export function dualValueNodeSchema(config: EnergyFlowCardExtConfig | undefined,
     }
   ];
 }
+
+//================================================================================================================================================================================//
 
 function dualValueColourPickerSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: DualValueColourConfig | undefined): {} {
   if (schemaConfig?.[ColourOptions.Circle] === ColourMode.Custom || schemaConfig?.[ColourOptions.Icon] === ColourMode.Custom || schemaConfig?.[ColourOptions.Values] === ColourMode.Custom) {
@@ -433,6 +463,8 @@ function dualValueColourPickerSchema(config: EnergyFlowCardExtConfig | undefined
 
   return {};
 }
+
+//================================================================================================================================================================================//
 
 export function secondaryInfoSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: SecondaryInfoConfig | undefined): {} {
   return {
@@ -469,13 +501,11 @@ export function secondaryInfoSchema(config: EnergyFlowCardExtConfig | undefined,
         ]
       },
       {
-        name: [SecondaryInfoOptions.Template],
-        selector: { template: {} }
-      },
-      {
         name: [SecondaryInfoOptions.Icon],
         selector: { icon: {} }
       }
     ]
   };
 }
+
+//================================================================================================================================================================================//

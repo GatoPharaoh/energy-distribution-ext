@@ -7,12 +7,8 @@ OOTB behaviour/appearance should match the built-in card:
     - the battery circle should be red
     - the battery-grid line colour is unclear: Oct 19 shows blue here but purple in HASS
       - might the colour be based on the flow values rather than the grid-import/export totals?
-    - looks like the low-carbon line isn't animated in HASS (don't care, though!)
-  - units: only the electric nodes are compared to get the largest value - gas, for example, is independent of this
-    - so for here, the devices would also be done independently
 
 Low-carbon:
-  - needs its own rendering code
   - lock decimals to 1dp for percentage
 
 Investigate why two dot radii are needed - one for the main flows and one for the low-carbon/gas/etc!
@@ -25,9 +21,6 @@ Reinstate the -ve coords for the lines, they are required so that the dots don't
 
 Home value still getting the wrong colour - usually 'low-carbon'
   - the circle gets it wrong at midnight, too
-
-Low-carbon and Secondary values being mis-coloured, needs to take into account the relevant setting
-  - do we actually *want* to colour secondaries?  how would this be handled for the dual-value nodes?
 
 Power-outage is calculating its state up-front, rather than live as-needed (see GridState)
 
@@ -74,7 +67,6 @@ Test localisation by disabling EN and EN-GB and checking that all strings revert
   - also check that there aren't any redundant keys!
 
 
- - see how much of the render setup can be moved out to setConfig()
  - for the Home node, perhaps have the option to show Gas and Electric as separate figures?
     - this would allow the Gas to be added to the circle without it overpowering the value
     - could even display all three figures, if the circle were made larger
@@ -86,3 +78,5 @@ Test localisation by disabling EN and EN-GB and checking that all strings revert
             - 'gas' would be 'hidden', 'displayed', 'include in total'...or something
 
  May be able to remove pruneConfig() now
+
+ See if the 'state' values in the State objects can be made internal/private - they should not be accessed outside the EntityStates object

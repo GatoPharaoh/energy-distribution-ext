@@ -34,7 +34,7 @@ export enum ColourMode {
   Do_Not_Colour = "none",
   Default = "default",
   Circle = "circle",
-  Largest_Value = "largest_value",
+  Larger_Value = "larger_value",
   Import = "import",
   Export = "export",
   Export_Sources = "export_sources",

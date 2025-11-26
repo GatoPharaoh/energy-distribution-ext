@@ -71,8 +71,7 @@ const secondaryInfoConfigStruct = object({
   [EntityOptions.Unit_Position]: optional(string()),
   [EntityOptions.Zero_Threshold]: optional(number()),
   [EntityOptions.Display_Precision]: optional(number()),
-  [SecondaryInfoOptions.Icon]: optional(string()),
-  [SecondaryInfoOptions.Template]: optional(string())
+  [SecondaryInfoOptions.Icon]: optional(string())
 });
 
 const nodeConfig = {
