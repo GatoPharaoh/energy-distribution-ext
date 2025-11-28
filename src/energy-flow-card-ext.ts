@@ -415,17 +415,13 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         <div class="card-content" id=${CARD_NAME}>
 
         <!-- top row -->
-        ${lowCarbon.isPresent || solar.isPresent || gas.isPresent
-        ? html`
-          <div class="row">
-            ${this._config?.[EditorPages.Low_Carbon]?.[GlobalOptions.Options]?.[EntitiesOptions.Low_Carbon_Mode] === LowCarbonType.Percentage
-            ? this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbonPercentage, states.lowCarbonSecondary, "%")
-            : this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbon, states.lowCarbonSecondary)}
-            ${this._renderTopRowNode(solar, CssClass.Solar, states.solarImport, states.solarSecondary, electricUnits)}
-            ${this._renderTopRowNode(gas, CssClass.Gas, states.gasImport, states.gasSecondary)}
-          </div>
-        `
-        : ""}
+        <div class="row">
+          ${this._config?.[EditorPages.Low_Carbon]?.[GlobalOptions.Options]?.[EntitiesOptions.Low_Carbon_Mode] === LowCarbonType.Percentage
+        ? this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbonPercentage, states.lowCarbonSecondary, "%")
+        : this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbon, states.lowCarbonSecondary)}
+          ${this._renderTopRowNode(solar, CssClass.Solar, states.solarImport, states.solarSecondary, electricUnits)}
+          ${this._renderTopRowNode(gas, CssClass.Gas, states.gasImport, states.gasSecondary)}
+        </div>
 
         <!-- middle row -->
         <div class="row">
@@ -573,7 +569,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     if (state === 0 && !this._showZeroStates) {
-      return '';
+      return "";
     }
 
     const getDisplayPrecisionForEnergyState = (state: Decimal): number => state.lessThan(10) ? 2 : state.lessThan(100) ? 1 : 0;
@@ -585,24 +581,24 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       units = this._calculateEnergyUnits(stateAsDecimal);
     }
 
-    switch (units) {
-      case "MWh":
-        stateAsDecimal = stateAsDecimal.dividedBy(1000000);
-        decimals = this._megaWattDecimals;
-        break;
-
-      case "kWh":
-        stateAsDecimal = stateAsDecimal.dividedBy(1000);
-        decimals = this._kiloWattDecimals;
-        break;
-
-      default:
-        decimals = 0;
-        break;
-    }
-
-    if (this._energyUnitPrefixes === UnitPrefixes.HASS) {
+    if (this._energyUnitPrefixes === UnitPrefixes.HASS || units === "%") {
       decimals = getDisplayPrecisionForEnergyState(stateAsDecimal);
+    } else {
+      switch (units) {
+        case "MWh":
+          stateAsDecimal = stateAsDecimal.dividedBy(1000000);
+          decimals = this._megaWattDecimals;
+          break;
+
+        case "kWh":
+          stateAsDecimal = stateAsDecimal.dividedBy(1000);
+          decimals = this._kiloWattDecimals;
+          break;
+
+        default:
+          decimals = 0;
+          break;
+      }
     }
 
     const formattedValue = formatNumber(stateAsDecimal.toDecimalPlaces(decimals).toString(), this.hass.locale);

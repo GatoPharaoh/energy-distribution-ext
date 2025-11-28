@@ -8,9 +8,6 @@ OOTB behaviour/appearance should match the built-in card:
     - the battery-grid line colour is unclear: Oct 19 shows blue here but purple in HASS
       - might the colour be based on the flow values rather than the grid-import/export totals?
 
-Low-carbon:
-  - lock decimals to 1dp for percentage
-
 Investigate why two dot radii are needed - one for the main flows and one for the low-carbon/gas/etc!
 
 The 'multi entity' picker is sizing itself to the full width of its entity's name, should be constrained
@@ -48,11 +45,6 @@ Might need to support a vertical layout
   - either dynamic, based on available width and the number of Nodes to draw, or user-controlled
   - basically rotate right by 90
 
-Perhaps support images?
-  - eg have the Inverter shown in the middle?
-  - what about the Battery?
-    - might look odd
-    - how to display the values?
 
 
 
