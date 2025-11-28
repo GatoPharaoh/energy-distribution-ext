@@ -615,7 +615,7 @@ export class EntityStates {
     this._primaryEntityIds = [];
     this._secondaryEntityIds = [];
 
-    [this.battery, this.gas, this.grid, this.home, this.solar, ...this.devices].forEach(state => {
+    [this.battery, this.gas, this.grid, this.home, this.lowCarbon, this.solar, ...this.devices].forEach(state => {
       this._primaryEntityIds.push(...state.mainEntities);
 
       if (state["returnEntities"]) {

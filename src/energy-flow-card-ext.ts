@@ -13,12 +13,12 @@ import { SecondaryInfoState } from "@/states/secondary-info";
 import { States, Flows, State } from "@/states";
 import { EntityStates } from "@/states/entity-states";
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
-import { ColourMode, DisplayMode, DotsMode, EntityType, LowCarbonType, InactiveLinesMode, DefaultValues, UnitPosition, UnitPrefixes } from "@/enums";
+import { ColourMode, DisplayMode, DotsMode, EntityType, LowCarbonType, InactiveLinesMode, DefaultValues, UnitPosition, UnitPrefixes, CssClass } from "@/enums";
 import { HomeState } from "@/states/home";
 import { LowCarbonState } from "./states/low-carbon";
 import { ValueState } from "@/states/state";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
-import { CARD_NAME, CSS_CLASS_GAS, CSS_CLASS_LOW_CARBON, CSS_CLASS_SOLAR, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY } from "@/const";
+import { CARD_NAME, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY } from "@/const";
 import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, PowerOutageOptions, OverridesOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig } from "@/config";
 import { renderDot, renderLine, setSingleValueNodeStyles } from "@/ui-helpers";
 import { GasState } from "@/states/gas";
@@ -140,9 +140,9 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     this._megaWattDecimals = energyUnitsConfig?.[EnergyUnitsOptions.Mwh_Display_Precision] ?? DefaultValues.MegawattHourDecimals;
     this._kiloWattDecimals = energyUnitsConfig?.[EnergyUnitsOptions.Kwh_Display_Precision] ?? DefaultValues.KilowattHourDecimals;
 
-    setSingleValueNodeStyles(this._config?.[EditorPages.Low_Carbon]!, CSS_CLASS_LOW_CARBON, this.style);
-    setSingleValueNodeStyles(this._config?.[EditorPages.Solar]!, CSS_CLASS_SOLAR, this.style);
-    setSingleValueNodeStyles(this._config?.[EditorPages.Gas]!, CSS_CLASS_GAS, this.style);
+    setSingleValueNodeStyles(this._config?.[EditorPages.Low_Carbon]!, CssClass.LowCarbon, this.style);
+    setSingleValueNodeStyles(this._config?.[EditorPages.Solar]!, CssClass.Solar, this.style);
+    setSingleValueNodeStyles(this._config?.[EditorPages.Gas]!, CssClass.Gas, this.style);
   }
 
   //================================================================================================================================================================================//
@@ -415,19 +415,15 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         <div class="card-content" id=${CARD_NAME}>
 
         <!-- top row -->
-        ${lowCarbon.isPresent || solar.isPresent
+        ${lowCarbon.isPresent || solar.isPresent || gas.isPresent
         ? html`
           <div class="row">
-
-            ${this._renderTopRowCircle(lowCarbon, CSS_CLASS_LOW_CARBON, states.lowCarbon, states.lowCarbonSecondary)}
-
-            <!-- top middle -->
-            ${this._renderTopRowCircle(solar, CSS_CLASS_SOLAR, states.solarImport, states.solarSecondary, electricUnits)}
-
-            <!-- top right - Gas -->
-            ${this._renderTopRowCircle(gas, CSS_CLASS_GAS, states.gasImport, states.gasSecondary)}
-
-        </div>
+            ${this._config?.[EditorPages.Low_Carbon]?.[GlobalOptions.Options]?.[EntitiesOptions.Low_Carbon_Mode] === LowCarbonType.Percentage
+            ? this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbonPercentage, states.lowCarbonSecondary, "%")
+            : this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbon, states.lowCarbonSecondary)}
+            ${this._renderTopRowNode(solar, CssClass.Solar, states.solarImport, states.solarSecondary, electricUnits)}
+            ${this._renderTopRowNode(gas, CssClass.Gas, states.gasImport, states.gasSecondary)}
+          </div>
         `
         : ""}
 
@@ -481,7 +477,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       </div>
 
       <!-- dashboard link -->
-      ${this._config.appearance?.options?.dashboard_link
+      ${this._config?.[EditorPages.Appearance]?.[GlobalOptions.Options]?.[AppearanceOptions.Dashboard_Link]
         ? html`
           <div class="card-actions">
             <a href=${this._config?.[EditorPages.Appearance]?.[GlobalOptions.Options]?.[AppearanceOptions.Dashboard_Link]}>
@@ -498,7 +494,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _renderTopRowCircle(state: ValueState, cssClass:string, primaryState: number, secondaryState: number, energyUnits: string | undefined = undefined): TemplateResult {
+  private _renderTopRowNode(state: ValueState, cssClass: string, primaryState: number, secondaryState: number, energyUnits: string | undefined = undefined): TemplateResult {
     if (!state.isPresent) {
       return html`<div class="spacer"></div>`;
     }
@@ -601,7 +597,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         break;
 
       default:
-        decimals = 0
+        decimals = 0;
         break;
     }
 
@@ -741,7 +737,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
             ${homeSolarCircumference
         ? svg`
             <circle
-              class="${CSS_CLASS_SOLAR}"
+              class="${CssClass.Solar}"
               cx="40"
               cy="40"
               r="38"
@@ -769,7 +765,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           ${homeLowCarbonCircumference
         ? svg`
             <circle
-              class="${CSS_CLASS_LOW_CARBON}"
+              class="${CssClass.LowCarbon}"
               cx="40"
               cy="40"
               r="38"
@@ -939,8 +935,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         ? html`
         <div class=${this._getLineCssClasses()}>
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-home-flow">
-            ${renderLine(CSS_CLASS_SOLAR, path)}
-            ${value != 0 ? html`${renderDot(DOT_SIZE_STANDARD, CSS_CLASS_SOLAR, animDuration)}` : ""}
+            ${renderLine(CssClass.Solar, path)}
+            ${value != 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.Solar, animDuration)}` : ""}
           </svg>
         </div>
         `

@@ -1,13 +1,12 @@
 import { svg, TemplateResult } from "lit";
-import { ColourOptions, EntitiesOptions, SingleValueNodeConfig, SolarConfig } from "@/config";
-import { ColourMode } from "@/enums";
+import { ColourOptions, EntitiesOptions, SingleValueNodeConfig } from "@/config";
+import { ColourMode, CssClass } from "@/enums";
+import { STYLE_ENERGY_NON_FOSSIL_COLOR, STYLE_PRIMARY_TEXT_COLOR } from "@/const";
 
 //================================================================================================================================================================================//
 
 export const renderLine = (id: string, path: string, cssClass: string | undefined = undefined): TemplateResult => {
-  return svg`
-      <path id="${id}" class="${cssClass || id}" d="${path}" vector-effect="non-scaling-stroke"/>
-      `;
+  return svg`<path id="${id}" class="${cssClass || id}" d="${path}" vector-effect="non-scaling-stroke"/>`;
 };
 
 //================================================================================================================================================================================//
@@ -24,15 +23,16 @@ export const renderDot = (size: number, cssClass: string, duration: number, reve
 
 //================================================================================================================================================================================//
 
-export function setSingleValueNodeStyles(config: SingleValueNodeConfig, name: string, style: CSSStyleDeclaration): void {
+export function setSingleValueNodeStyles(config: SingleValueNodeConfig, cssClass: CssClass, style: CSSStyleDeclaration): void {
+  const energyColour: string = `var(--energy-${cssClass}-color)`;
   const customColour: string | undefined = convertColourListToHex(config?.[EntitiesOptions.Colours]?.[ColourOptions.Custom_Colour]);
-  const circleColour: string = config?.[EntitiesOptions.Colours]?.[ColourOptions.Circle] === ColourMode.Custom && customColour ? customColour : `var(--energy-${name}-color)`;
+  const circleColour: string = config?.[EntitiesOptions.Colours]?.[ColourOptions.Circle] === ColourMode.Custom && customColour ? customColour : energyColour;
   let textColour: string;
   let iconColour: string;
 
   switch (config?.[EntitiesOptions.Colours]?.[ColourOptions.Value]) {
     case ColourMode.Default:
-      textColour = `var(--energy-${name}-color)`;
+      textColour = energyColour;
       break;
 
     case ColourMode.Circle:
@@ -40,17 +40,17 @@ export function setSingleValueNodeStyles(config: SingleValueNodeConfig, name: st
       break;
 
     case ColourMode.Custom:
-      textColour = customColour ?? "var(--primary-text-color)";
+      textColour = customColour ?? STYLE_PRIMARY_TEXT_COLOR;
       break;
 
     default:
-      textColour = "var(--primary-text-color)";
+      textColour = STYLE_PRIMARY_TEXT_COLOR;
       break;
   }
 
   switch (config?.[EntitiesOptions.Colours]?.[ColourOptions.Icon]) {
     case ColourMode.Default:
-      iconColour = `var(--energy-${name}-color)`;
+      iconColour = energyColour;
       break;
 
     case ColourMode.Circle:
@@ -58,17 +58,17 @@ export function setSingleValueNodeStyles(config: SingleValueNodeConfig, name: st
       break;
 
     case ColourMode.Custom:
-      iconColour = customColour ?? "var(--primary-text-color)";
+      iconColour = customColour ?? STYLE_PRIMARY_TEXT_COLOR;
       break;
 
     default:
-      iconColour = name === "non-fossil" ? "var(--energy-non-fossil-color)" : "var(--primary-text-color)";
+      iconColour = cssClass === CssClass.LowCarbon ? STYLE_ENERGY_NON_FOSSIL_COLOR : STYLE_PRIMARY_TEXT_COLOR;
       break;
   }
 
-  style.setProperty(`--text-${name}-color`, textColour);
-  style.setProperty(`--icon-${name}-color`, iconColour);
-  style.setProperty(`--circle-${name}-color`, circleColour);
+  style.setProperty(`--text-${cssClass}-color`, textColour);
+  style.setProperty(`--icon-${cssClass}-color`, iconColour);
+  style.setProperty(`--circle-${cssClass}-color`, circleColour);
 }
 
 //================================================================================================================================================================================//

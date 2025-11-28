@@ -1,5 +1,12 @@
 import { localize } from '@/localize/localize';
 
+export enum CssClass {
+  Gas = "gas",
+  // for some reason HASS calls its css classes 'non-fossil'
+  LowCarbon = "non-fossil",
+  Solar = "solar"
+}
+
 export enum DefaultValues {
   // EnergyUnits
   KilowattHourDecimals = 2,
