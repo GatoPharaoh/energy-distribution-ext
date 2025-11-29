@@ -98,27 +98,36 @@ export class EntityStates {
 
     states.home = states.batteryImport + states.gridImport + states.solarImport - states.batteryExport - states.gridExport;
     states.lowCarbon = states.gridImport - states.highCarbon;
-    states.lowCarbonPercentage = (states.lowCarbon / states.gridImport) * 100;
+    states.lowCarbonPercentage = (states.lowCarbon / states.gridImport) * 100 || 0;
 
     // The net energy in the system is (imports-exports), but as the entities may not be updated in sync with each other it is possible that the flows to the home will
     // not add up to the same value.  When this happens, while we still want to return the net energy for display, we need to rescale the flows so that the animation and
     // circles will look sensible.
     const toHome: number = states.flows.batteryToHome + states.flows.gridToHome + states.flows.solarToHome;
     let scale: number = states.home / toHome;
-    states.flows.batteryToHome *= scale;
-    states.flows.gridToHome *= scale;
-    states.flows.solarToHome *= scale;
+
+    if (scale > 0) {
+      states.flows.batteryToHome *= scale;
+      states.flows.gridToHome *= scale;
+      states.flows.solarToHome *= scale;
+    }
 
     // and similar for the exports
     const toGrid: number = states.flows.batteryToGrid + states.flows.solarToGrid;
-    scale = states.gridExport / toGrid;
-    states.flows.batteryToGrid *= scale;
-    states.flows.solarToGrid *= scale;
+    scale = states.gridExport / toGrid || 0;
+
+    if (scale > 0) {
+      states.flows.batteryToGrid *= scale;
+      states.flows.solarToGrid *= scale;
+    }
 
     const toBattery: number = states.flows.gridToBattery + states.flows.solarToBattery;
-    scale = states.batteryExport / toBattery;
-    states.flows.gridToBattery *= scale;
-    states.flows.solarToBattery *= scale;
+    scale = states.batteryExport / toBattery || 0;
+
+    if (scale > 0) {
+      states.flows.gridToBattery *= scale;
+      states.flows.solarToBattery *= scale;
+    }
 
     states.largestElectricValue = Math.max(
       states.batteryImport,

@@ -8,11 +8,16 @@ export enum EnergyUnits {
 
 export enum CssClass {
   Battery = "battery",
+  BatteryExport = "battery-export",
+  BatteryImport = "battery-import",
   Gas = "gas",
   Grid = "grid",
+  GridExport = "grid-export",
+  GridImport = "grid-import",
   // for some reason HASS calls its css classes 'non-fossil'
   LowCarbon = "non-fossil",
-  Solar = "solar"
+  Solar = "solar",
+  Unknown = "unknown"
 }
 
 export enum Orientation {

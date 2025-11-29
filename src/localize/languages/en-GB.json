@@ -7,6 +7,7 @@
     "colours": "Colours",
     "custom_colour": "Custom colour",
     "import_colour": "Import colour",
-    "export_colour": "Export colour"
+    "export_colour": "Export colour",
+    "use_hass_colours": "Use HASS colours"
   }
 }

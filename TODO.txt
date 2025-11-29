@@ -1,10 +1,19 @@
 BUGS
 ----
 
-OOTB behaviour/appearance should match the built-in card:
-  - check colour settings
-    - the battery-grid line colour is unclear: Oct 19 shows blue here but purple in HASS
-      - might the colour be based on the flow values rather than the grid-import/export totals?
+If no battery Export entities are set, this should be treated as a warning
+
+Grid and Battery nodes not displayed if only Export entities are present; should be visible so long as at least one entity of either type is set
+
+With Grid as export-only, the solar->grid flow-line is white and has no dot
+
+With Battery as export-only, the solar->battery and grid->battery lines are not shown
+
+If no battery is present, the flow-lines are drawn in the wrong place
+
+If no grid is present, low-carbon should not be shown
+
+Should be possible to hide low-carbon even if it has a config
 
 Investigate why two dot radii are needed - one for the main flows and one for the low-carbon/gas/etc!
 
@@ -21,6 +30,8 @@ Power-outage is calculating its state up-front, rather than live as-needed (see 
 
 FEATURES
 --------
+
+Make the colour of the grid->home line and dot either larger-value or (for the line) dashed by proportion of high/low-carbon
 
 More modes:
     - current month

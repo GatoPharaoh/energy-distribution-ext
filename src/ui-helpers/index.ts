@@ -1,12 +1,13 @@
 import { svg, TemplateResult } from "lit";
-import { ColourOptions, DualValueNodeConfig, EntitiesOptions, SingleValueNodeConfig } from "@/config";
+import { ColourOptions, DualValueNodeConfig, EntitiesOptions, EntityOptions, HomeConfig, SingleValueNodeConfig } from "@/config";
 import { ColourMode, CssClass } from "@/enums";
-import { STYLE_ENERGY_BATTERY_EXPORT, STYLE_ENERGY_BATTERY_IMPORT, STYLE_ENERGY_GRID_EXPORT, STYLE_ENERGY_GRID_IMPORT, STYLE_ENERGY_NON_FOSSIL_COLOR, STYLE_PRIMARY_TEXT_COLOR } from "@/const";
+import { STYLE_ENERGY_BATTERY_EXPORT_COLOR, STYLE_ENERGY_BATTERY_IMPORT_COLOR, STYLE_ENERGY_GAS_COLOR, STYLE_ENERGY_GRID_EXPORT_COLOR, STYLE_ENERGY_GRID_IMPORT_COLOR, STYLE_ENERGY_NON_FOSSIL_COLOR, STYLE_ENERGY_SOLAR_COLOR, STYLE_PRIMARY_TEXT_COLOR } from "@/const";
+import { Flows, States } from "../states";
 
 //================================================================================================================================================================================//
 
-export const renderLine = (id: string, path: string, cssClass: string | undefined = undefined): TemplateResult => {
-  return svg`<path id="${id}" class="${cssClass || id}" d="${path}" vector-effect="non-scaling-stroke"/>`;
+export const renderLine = (id: string, path: string): TemplateResult => {
+  return svg`<path id="${id}" class="${id}" d="${path}" vector-effect="non-scaling-stroke"/>`;
 };
 
 //================================================================================================================================================================================//
@@ -20,6 +21,168 @@ export const renderDot = (size: number, cssClass: string, duration: number, reve
       </circle>
       `;
 };
+
+//================================================================================================================================================================================//
+
+export function setHomeNodeStaticStyles(config: HomeConfig, style: CSSStyleDeclaration): void {
+  const customColour: string = convertColourListToHex(config?.[EntitiesOptions.Colours]?.[ColourOptions.Custom_Colour]);
+  let circleColour;
+  let iconColour;
+  let textColour;
+
+  switch (config?.[EntitiesOptions.Colours]?.[ColourOptions.Circle]) {
+    case ColourMode.Solar:
+      circleColour = STYLE_ENERGY_SOLAR_COLOR;
+      break;
+
+    case ColourMode.High_Carbon:
+      circleColour = STYLE_ENERGY_GRID_IMPORT_COLOR;
+      break;
+
+    case ColourMode.Low_Carbon:
+      circleColour = STYLE_ENERGY_NON_FOSSIL_COLOR;
+      break;
+
+    case ColourMode.Battery:
+      circleColour = STYLE_ENERGY_BATTERY_IMPORT_COLOR;
+      break;
+
+    case ColourMode.Gas:
+      circleColour = STYLE_ENERGY_GAS_COLOR;
+      break;
+
+    case ColourMode.Custom:
+      circleColour = customColour;
+      break;
+
+    default:
+      circleColour = STYLE_PRIMARY_TEXT_COLOR;
+      break;
+  }
+
+  switch (config?.[EntitiesOptions.Colours]?.[ColourOptions.Icon]) {
+    case ColourMode.Solar:
+      iconColour = STYLE_ENERGY_SOLAR_COLOR;
+      break;
+
+    case ColourMode.High_Carbon:
+      iconColour = STYLE_ENERGY_GRID_IMPORT_COLOR;
+      break;
+
+    case ColourMode.Low_Carbon:
+      iconColour = STYLE_ENERGY_NON_FOSSIL_COLOR;
+      break;
+
+    case ColourMode.Battery:
+      iconColour = STYLE_ENERGY_BATTERY_IMPORT_COLOR;
+      break;
+
+    case ColourMode.Gas:
+      iconColour = STYLE_ENERGY_GAS_COLOR;
+      break;
+
+    case ColourMode.Custom:
+      iconColour = customColour;
+      break;
+
+    default:
+      iconColour = STYLE_PRIMARY_TEXT_COLOR;
+      break;
+  }
+
+  switch (config?.[EntitiesOptions.Colours]?.[ColourOptions.Value]) {
+    case ColourMode.Solar:
+      textColour = STYLE_ENERGY_SOLAR_COLOR;
+      break;
+
+    case ColourMode.High_Carbon:
+      textColour = STYLE_ENERGY_GRID_IMPORT_COLOR;
+      break;
+
+    case ColourMode.Low_Carbon:
+      textColour = STYLE_ENERGY_NON_FOSSIL_COLOR;
+      break;
+
+    case ColourMode.Battery:
+      textColour = STYLE_ENERGY_BATTERY_IMPORT_COLOR;
+      break;
+
+    case ColourMode.Gas:
+      textColour = STYLE_ENERGY_GAS_COLOR;
+      break;
+
+    case ColourMode.Custom:
+      textColour = customColour;
+      break;
+
+    default:
+      textColour = STYLE_PRIMARY_TEXT_COLOR;
+      break;
+  }
+
+  style.setProperty("--circle-home-solar-color", circleColour);
+  style.setProperty("--circle-home-battery-color", circleColour);
+  style.setProperty("--circle-home-non-fossil-color", circleColour);
+  style.setProperty("--circle-home-grid-color", circleColour);
+  style.setProperty("--icon-home-color", iconColour);
+  style.setProperty("--text-home-color", textColour);
+}
+
+//================================================================================================================================================================================//
+
+export function setHomeNodeDynamicStyles(config: HomeConfig, states: States, style: CSSStyleDeclaration): void {
+  if (states.home <= 0) {
+    style.setProperty("--icon-home-color", STYLE_PRIMARY_TEXT_COLOR);
+    style.setProperty("--text-home-color", STYLE_PRIMARY_TEXT_COLOR);
+  } else {
+  const flows: Flows = states.flows;
+
+  const homeSources = {
+    battery: {
+      value: flows.batteryToHome,
+      colour: STYLE_ENERGY_BATTERY_IMPORT_COLOR
+    },
+    solar: {
+      value: flows.solarToHome,
+      colour: STYLE_ENERGY_SOLAR_COLOR
+    },
+    highCarbon: {
+      value: flows.gridToHome * (100 - states.lowCarbonPercentage) / 100,
+      colour: STYLE_ENERGY_GRID_IMPORT_COLOR
+    },
+    lowCarbon: {
+      value: flows.gridToHome * states.lowCarbonPercentage / 100,
+      colour: STYLE_ENERGY_NON_FOSSIL_COLOR
+    }
+  };
+
+    const homeLargestSource: string = Object.keys(homeSources).reduce((a, b) => homeSources[a].value > homeSources[b].value ? a : b);
+
+    switch (config?.[EntitiesOptions.Colours]?.[ColourOptions.Circle]) {
+      case ColourMode.Dynamic:
+        style.setProperty("--circle-home-solar-color", STYLE_ENERGY_SOLAR_COLOR);
+        style.setProperty("--circle-home-battery-color", STYLE_ENERGY_BATTERY_IMPORT_COLOR);
+        style.setProperty("--circle-home-non-fossil-color", STYLE_ENERGY_NON_FOSSIL_COLOR);
+        style.setProperty("--circle-home-grid-color", STYLE_ENERGY_GRID_IMPORT_COLOR);
+        break;
+
+      case ColourMode.Largest_Value:
+        style.setProperty("--circle-home-solar-color", homeSources[homeLargestSource].colour);
+        style.setProperty("--circle-home-battery-color", homeSources[homeLargestSource].colour);
+        style.setProperty("--circle-home-non-fossil-color", homeSources[homeLargestSource].colour);
+        style.setProperty("--circle-home-grid-color", homeSources[homeLargestSource].colour);
+        break;
+    }
+
+    if (config?.[EntitiesOptions.Colours]?.[ColourOptions.Icon] === ColourMode.Largest_Value) {
+      style.setProperty("--icon-home-color", homeSources[homeLargestSource].colour);
+    }
+
+    if (config?.[EntitiesOptions.Colours]?.[ColourOptions.Value] === ColourMode.Largest_Value) {
+      style.setProperty("--text-home-color", homeSources[homeLargestSource].colour);
+    }
+  }
+}
 
 //================================================================================================================================================================================//
 
@@ -40,7 +203,7 @@ export function setSingleValueNodeStyles(config: SingleValueNodeConfig, cssClass
       break;
 
     case ColourMode.Custom:
-      textColour = customColour ?? STYLE_PRIMARY_TEXT_COLOR;
+      textColour = customColour;
       break;
 
     default:
@@ -74,8 +237,8 @@ export function setSingleValueNodeStyles(config: SingleValueNodeConfig, cssClass
 //================================================================================================================================================================================//
 
 export function setDualValueNodeStaticStyles(config: DualValueNodeConfig, cssClass: CssClass, style: CSSStyleDeclaration): void {
-  const energyImportColour: string = cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_IMPORT : STYLE_ENERGY_GRID_IMPORT;
-  const energyExportColour: string = cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_EXPORT : STYLE_ENERGY_GRID_EXPORT;
+  const energyImportColour: string = cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_IMPORT_COLOR : STYLE_ENERGY_GRID_IMPORT_COLOR;
+  const energyExportColour: string = cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_EXPORT_COLOR : STYLE_ENERGY_GRID_EXPORT_COLOR;
   const customImportColour: string = convertColourListToHex(config?.[EntitiesOptions.Colours]?.[ColourOptions.Import_Colour]);
   const customExportColour: string = convertColourListToHex(config?.[EntitiesOptions.Colours]?.[ColourOptions.Export_Colour]);
   let circleColour: string;
@@ -194,7 +357,7 @@ const convertColourListToHex = (colourList: number[] | undefined = []): string =
 
 //================================================================================================================================================================================//
 
-const defaultImportColour = (cssClass: CssClass): string => cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_IMPORT : STYLE_ENERGY_GRID_IMPORT;
-const defaultExportColour = (cssClass: CssClass): string => cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_EXPORT : STYLE_ENERGY_GRID_EXPORT;
+const defaultImportColour = (cssClass: CssClass): string => cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_IMPORT_COLOR : STYLE_ENERGY_GRID_IMPORT_COLOR;
+const defaultExportColour = (cssClass: CssClass): string => cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_EXPORT_COLOR : STYLE_ENERGY_GRID_EXPORT_COLOR;
 
 //================================================================================================================================================================================//

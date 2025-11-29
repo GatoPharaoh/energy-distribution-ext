@@ -121,7 +121,6 @@ function setDefaultsRecursively(config: any, defaultConfig: any): void {
 export function getDefaultAppearanceConfig(): AppearanceConfig {
   return {
     [GlobalOptions.Options]: {
-      [AppearanceOptions.Inactive_Lines]: InactiveLinesMode.Normal,
       [AppearanceOptions.Show_Zero_States]: true
     },
     [AppearanceOptions.Energy_Units]: {
@@ -133,7 +132,10 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
       [EnergyUnitsOptions.Kwh_Mwh_Threshold]: DefaultValues.KwhMwhThreshold
     },
     [AppearanceOptions.Flows]: {
+      [FlowsOptions.Use_Hourly_Stats]: false,
+      [FlowsOptions.Use_HASS_Colours]: true,
       [FlowsOptions.Animation]: DotsMode.HASS,
+      [FlowsOptions.Inactive_Lines]: InactiveLinesMode.Normal,
       [FlowsOptions.Min_Rate]: DefaultValues.MinRate,
       [FlowsOptions.Max_Rate]: DefaultValues.MaxRate,
       [FlowsOptions.Min_Energy]: DefaultValues.MinEnergy,

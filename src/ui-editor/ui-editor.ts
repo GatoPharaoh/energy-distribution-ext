@@ -18,6 +18,8 @@ import { cardConfigStruct } from '@/config/validation';
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from '.';
 import { getDefaultLowCarbonConfig, cleanupConfig, getDefaultAppearanceConfig, getDefaultGridConfig, getDefaultGasConfig, getDefaultSolarConfig, getDefaultBatteryConfig, getDefaultHomeConfig, getCo2SignalEntity } from '@/config/config';
 
+//================================================================================================================================================================================//
+
 export const EDITOR_ELEMENT_NAME = CARD_NAME + "-editor";
 
 const CONFIG_PAGES: {
@@ -92,6 +94,8 @@ const CONFIG_PAGES: {
     }
   ];
 
+//================================================================================================================================================================================//
+
 @customElement(EDITOR_ELEMENT_NAME)
 export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -161,17 +165,25 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
     `;
   }
 
+  //================================================================================================================================================================================//
+
   private _openPage(page: EditorPages): void {
     this._currentConfigPage = page;
   }
+
+  //================================================================================================================================================================================//
 
   private _goBack(): void {
     this._currentConfigPage = null;
   }
 
+  //================================================================================================================================================================================//
+
   private _renderPageLinks = (): TemplateResult[] => {
     return CONFIG_PAGES.map(page => this._renderPageLink(page.page, page.icon, page.statusIcon(this._config, this.hass)));
   };
+
+  //================================================================================================================================================================================//
 
   private _renderPageLink = (page: EditorPages, icon: string, statusIcon: Status): TemplateResult => {
     if (!page) {
@@ -190,6 +202,8 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
     `;
   };
 
+  //================================================================================================================================================================================//
+
   private _valueChanged(ev: any): void {
     if (!this._config || !this.hass) {
       return;
@@ -206,6 +220,8 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
 
     fireEvent(this, 'config-changed', { config: cleanupConfig(this.hass, config) });
   }
+
+  //================================================================================================================================================================================//
 
   private _validateConfig(config: EnergyFlowCardExtConfig): {} {
     const errors: object = {};
@@ -233,6 +249,8 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
 
     return errors;
   }
+
+  //================================================================================================================================================================================//
 
   static get styles(): CSSResultGroup {
     return [

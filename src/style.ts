@@ -5,8 +5,6 @@ export const styles = css`
     --mdc-icon-size: 24px;
     --clickable-cursor: pointer;
 
-    --icon-home-color: var(--energy-grid-consumption-color, #488fc2);
-    --text-home-color: var(--primary-text-color);
     --lines-svg-not-flat-line-height: 106%;
     --lines-svg-not-flat-line-top: -3%;
     --lines-svg-flat-width: calc(100% - 160px);
@@ -25,18 +23,14 @@ export const styles = css`
   }
   .lines {
     position: absolute;
-    bottom: 0;
+    bottom: 100px;
     left: 0;
     width: 100%;
-    height: 146px;
+    height: 156px;
     display: flex;
     justify-content: center;
     padding: 0 16px 16px;
     box-sizing: border-box;
-  }
-  .lines.high {
-    bottom: 100px;
-    height: 156px;
   }
   .lines svg {
     width: var(--lines-svg-flat-width);
@@ -121,7 +115,6 @@ export const styles = css`
   }
 
   span.secondary-info {
-    color: var(--primary-text-color);
     font-size: 12px;
     max-width: 60px;
     text-overflow: ellipsis;
@@ -142,14 +135,6 @@ export const styles = css`
   .non-fossil ha-icon {
     color: var(--icon-non-fossil-color);
   }
-  circle.non-fossil,
-  path.non-fossil {
-    stroke: var(--circle-non-fossil-color);
-  }
-  circle.non-fossil {
-    stroke-width: 4;
-    fill: var(--circle-non-fossil-color);
-  }
 
   .circle-container.solar {
     margin: 0 4px;
@@ -164,14 +149,6 @@ export const styles = css`
   .solar ha-icon {
     color: var(--icon-solar-color);
   }
-  circle.solar,
-  path.solar {
-    stroke: var(--circle-solar-color);
-  }
-  circle.solar {
-    stroke-width: 4;
-    fill: var(--circle-solar-color);
-  }
 
   .gas .circle {
     border-color: var(--circle-gas-color);
@@ -181,14 +158,6 @@ export const styles = css`
   }
   .gas ha-icon {
     color: var(--icon-gas-color);
-  }
-  circle.gas,
-  path.gas {
-    stroke: var(--circle-gas-color);
-  }
-  circle.gas {
-    stroke-width: 4;
-    fill: var(--circle-gas-color);
   }
 
   .grid .circle {
@@ -211,25 +180,28 @@ export const styles = css`
   .grid .arrow-export {
     color: var(--text-grid-export-color);
   }
-  circle.return,
-  circle.battery-to-grid,
-  path.return {
-    stroke: var(--energy-grid-return-color);
+
+  .home .circle {
+    border-width: 0;
+    border-color: var(--primary-color);
   }
-  circle.grid,
-  circle.battery-from-grid,
-  path.grid {
-    stroke: var(--energy-grid-consumption-color);
+  .home .solar {
+    stroke: var(--circle-home-solar-color);
   }
-  circle.return,
-  circle.battery-to-grid {
-    stroke-width: 4;
-    fill: var(--energy-grid-return-color);
+  .home .battery {
+    stroke: var(--circle-home-battery-color);
   }
-  circle.grid,
-  circle.battery-from-grid {
-    stroke-width: 4;
-    fill: var(--energy-grid-consumption-color);
+  .home .non-fossil {
+    stroke: var(--circle-home-non-fossil-color);
+  }
+  .home .grid {
+    stroke: var(--circle-home-grid-color);
+  }
+  .home ha-icon {
+    color: var(--icon-home-color);
+  }
+  .home span:not(.label) {
+    color: var(--text-home-color);
   }
 
   .circle-container.battery {
@@ -256,53 +228,69 @@ export const styles = css`
   .battery .arrow-export {
     color: var(--text-battery-export-color);
   }
-  circle.battery,
-  path.battery,
-  circle.battery-home,
-  path.battery-home {
-    stroke: var(--energy-battery-out-color);
-  }
-  circle.battery-solar,
-  path.battery-solar {
-    stroke: var(--energy-battery-in-color);
-  }
-  circle.battery-home {
-    stroke-width: 4;
-    fill: var(--energy-battery-out-color);
-  }
-  circle.battery-solar {
-    stroke-width: 4;
-    fill: var(--energy-battery-in-color);
-  }
-  path.battery-from-grid {
-    stroke: var(--energy-grid-consumption-color);
-  }
-  path.battery-to-grid {
-    stroke: var(--energy-grid-return-color);
-  }
 
-  circle.home-unknown {
+  path.unknown {
     stroke: var(--primary-text-color);
   }
-  .home .circle {
-    border-width: 0;
-    border-color: var(--primary-color);
+  path.solar {
+    stroke: var(--circle-solar-color);
   }
-  .home .circle.border {
-    border-width: 2px;
+  path.grid-export {
+    stroke: var(--text-grid-export-color);
   }
-  .home ha-icon:not(.small) {
-    color: var(--icon-home-color);
+  path.grid-import {
+    stroke: var(--text-grid-import-color);
+  }
+  path.battery-export {
+    stroke: var(--text-battery-export-color);
+  }
+  path.battery-import {
+    stroke: var(--text-battery-import-color);
+  }
+
+  circle.unknown {
+    stroke: var(--primary-text-color);
+  }
+  circle.non-fossil {
+    fill: var(--circle-non-fossil-color);
+    stroke: var(--circle-non-fossil-color);
+    stroke-width: 4;
+  }
+  circle.solar {
+    fill: var(--circle-solar-color);
+    stroke: var(--circle-solar-color);
+    stroke-width: 4;
+  }
+  circle.gas {
+    fill: var(--circle-gas-color);
+    stroke: var(--circle-gas-color);
+    stroke-width: 4;
+  }
+  circle.grid-export {
+    fill: var(--text-grid-export-color);
+    stroke: var(--text-grid-export-color);
+    stroke-width: 4;
+  }
+  circle.grid-import {
+    fill: var(--text-grid-import-color);
+    stroke: var(--text-grid-import-color);
+    stroke-width: 4;
+  }
+  circle.battery-export {
+    fill: var(--text-battery-export-color);
+    stroke: var(--text-battery-export-color);
+    stroke-width: 4;
+  }
+  circle.battery-import {
+    fill: var(--text-battery-import-color);
+    stroke: var(--text-battery-import-color);
+    stroke-width: 4;
   }
 
   .circle svg circle {
     animation: rotate-in 0.6s ease-in;
     transition: stroke-dashoffset 0.4s, stroke-dasharray 0.4s;
     fill: none;
-  }
-
-  #home-circle {
-    color: var(--text-home-color);
   }
 
   @keyframes rotate-in {

@@ -15,13 +15,14 @@ import { EntityStates } from "@/states/entity-states";
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
 import { ColourMode, DisplayMode, DotsMode, EntityType, LowCarbonType, InactiveLinesMode, DefaultValues, UnitPosition, UnitPrefixes, CssClass, Orientation, EnergyUnits } from "@/enums";
 import { HomeState } from "@/states/home";
-import { LowCarbonState } from "./states/low-carbon";
+import { LowCarbonState } from "@/states/low-carbon";
 import { DualValueState, SingleValueState, ValueState } from "@/states/state";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
-import { CARD_NAME, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY, STYLE_ENERGY_BATTERY_IMPORT, STYLE_ENERGY_GRID_IMPORT, STYLE_ENERGY_NON_FOSSIL_COLOR, STYLE_PRIMARY_TEXT_COLOR } from "@/const";
+import { CARD_NAME, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY, STYLE_ENERGY_BATTERY_IMPORT_COLOR, STYLE_ENERGY_GAS_COLOR, STYLE_ENERGY_GRID_IMPORT_COLOR, STYLE_ENERGY_NON_FOSSIL_COLOR, STYLE_ENERGY_SOLAR_COLOR, STYLE_PRIMARY_TEXT_COLOR } from "@/const";
 import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, PowerOutageOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, DualValueNodeConfig } from "@/config";
-import { renderDot, renderLine, setDualValueNodeDynamicStyles, setDualValueNodeStaticStyles, setSingleValueNodeStyles } from "@/ui-helpers";
+import { renderDot, renderLine, setDualValueNodeDynamicStyles, setDualValueNodeStaticStyles, setHomeNodeDynamicStyles, setHomeNodeStaticStyles, setSingleValueNodeStyles } from "@/ui-helpers";
 import { GasState } from "@/states/gas";
+import { repeat } from "lit/directives/repeat.js";
 
 interface RegisterCardParams {
   type: string;
@@ -55,6 +56,7 @@ const CIRCLE_GAP: number = CIRCLE_CIRCUMFERENCE / 48;
 const CIRCLE_SEGMENT_MAX: number = CIRCLE_CIRCUMFERENCE / 2 - CIRCLE_GAP;
 const DOT_SIZE_STANDARD: number = 1;
 const DOT_SIZE_INDIVIDUAL: number = 2.4;
+const DASH_LENGTH: number = 25;
 
 //================================================================================================================================================================================//
 
@@ -91,6 +93,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _energyUnitPrefixes!: UnitPrefixes;
   private _energyUnitPosition!: UnitPosition;
   private _showZeroStates: boolean = true;
+  private _useHassColours: boolean = true;
 
   //================================================================================================================================================================================//
 
@@ -134,6 +137,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     this.resetSubscriptions();
 
     this._showZeroStates = this._config?.[EditorPages.Appearance]?.[GlobalOptions.Options]?.[AppearanceOptions.Show_Zero_States] ?? true;
+    this._useHassColours = this._config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Use_HASS_Colours] ?? true;
 
     const energyUnitsConfig: EnergyUnitsConfig = this._config?.[EditorPages.Appearance]?.[AppearanceOptions.Energy_Units]!;
     this._energyUnitPrefixes = energyUnitsConfig?.[EnergyUnitsOptions.Unit_Prefixes] || UnitPrefixes.HASS;
@@ -147,6 +151,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     setSingleValueNodeStyles(this._config?.[EditorPages.Solar]!, CssClass.Solar, this.style);
     setSingleValueNodeStyles(this._config?.[EditorPages.Gas]!, CssClass.Gas, this.style);
     setDualValueNodeStaticStyles(this._config?.[EditorPages.Grid]!, CssClass.Grid, this.style);
+    setHomeNodeStaticStyles(this._config?.[EditorPages.Home]!, this.style);
     setDualValueNodeStaticStyles(this._config?.[EditorPages.Battery]!, CssClass.Battery, this.style);
   }
 
@@ -180,17 +185,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const states: States = this._entityStates.getStates();
     const flows: Flows = states.flows;
     const electricUnits: string | undefined = this._energyUnitPrefixes === UnitPrefixes.HASS ? this._calculateEnergyUnits(new Decimal(states.largestElectricValue)) : undefined;
-    const totalHomeConsumption: number = Math.max(0, states.home);
-    const homeConsumptionError: boolean = states.home < 0;
-
-    // Calculate Circumference of Semi-Circles
-    // TODO: totalHomeConsumption may be zero by this point
-    const homeBatteryCircumference: number = CIRCLE_CIRCUMFERENCE * (flows.batteryToHome / totalHomeConsumption);
-    const homeSolarCircumference: number = CIRCLE_CIRCUMFERENCE * (flows.solarToHome / totalHomeConsumption);
-    const highCarbonConsumption: number = states.highCarbon * (flows.gridToHome / states.gridImport);
-    const homeHighCarbonCircumference: number = CIRCLE_CIRCUMFERENCE * (highCarbonConsumption / totalHomeConsumption);
-    const homeLowCarbonCircumference: number = CIRCLE_CIRCUMFERENCE - homeSolarCircumference - homeBatteryCircumference - homeHighCarbonCircumference;
-
     const totalLines = flows.solarToHome + flows.solarToGrid + flows.solarToBattery + flows.gridToHome + flows.gridToBattery + flows.batteryToHome + flows.batteryToGrid;
 
     const newDur = {
@@ -216,99 +210,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       this._previousDur[flowName] = newDur[flowName];
     });
 
-    const homeSources = {
-      battery: {
-        value: flows.batteryToHome,
-        color: STYLE_ENERGY_BATTERY_IMPORT
-      },
-      solar: {
-        value: flows.solarToHome,
-        color: "var(--energy-solar-color)"
-      },
-      grid: {
-        value: flows.gridToHome,
-        color: STYLE_ENERGY_GRID_IMPORT
-      },
-      gridNonFossil: {
-        value: states.lowCarbon,
-        color: STYLE_ENERGY_NON_FOSSIL_COLOR
-      }
-    };
-
-    let iconHomeColor;
-    let textHomeColor;
-
-    const homeLargestSource: string = Object.keys(homeSources).reduce((a, b) => homeSources[a].value > homeSources[b].value ? a : b);
-    const homeValueIsZero: boolean = homeSources[homeLargestSource].value == 0;
-
-    if (homeConsumptionError || homeValueIsZero) {
-      iconHomeColor = STYLE_PRIMARY_TEXT_COLOR;
-      textHomeColor = STYLE_PRIMARY_TEXT_COLOR;
-    } else {
-      switch (this._config?.[EditorPages.Home]?.[EntitiesOptions.Colours]?.[ColourOptions.Icon]) {
-        case ColourMode.Solar:
-          iconHomeColor = "var(--energy-solar-color)";
-          break;
-
-        case ColourMode.Battery:
-          iconHomeColor = STYLE_ENERGY_BATTERY_IMPORT;
-          break;
-
-        case ColourMode.High_Carbon:
-          iconHomeColor = STYLE_ENERGY_GRID_IMPORT;
-          break;
-
-        case ColourMode.Low_Carbon:
-          iconHomeColor = STYLE_ENERGY_NON_FOSSIL_COLOR;
-          break;
-
-        case ColourMode.Larger_Value:
-          iconHomeColor = homeSources[homeLargestSource].color;
-          break;
-
-        default:
-          iconHomeColor = STYLE_PRIMARY_TEXT_COLOR;
-          break;
-      }
-
-      switch (this._config?.[EditorPages.Home]?.[EntitiesOptions.Colours]?.[ColourOptions.Value]) {
-        case ColourMode.Solar:
-          textHomeColor = "var(--energy-solar-color)";
-          break;
-
-        case ColourMode.Battery:
-          textHomeColor = STYLE_ENERGY_BATTERY_IMPORT;
-          break;
-
-        case ColourMode.High_Carbon:
-          textHomeColor = STYLE_ENERGY_GRID_IMPORT;
-          break;
-
-        case ColourMode.Low_Carbon:
-          iconHomeColor = STYLE_ENERGY_NON_FOSSIL_COLOR;
-          break;
-
-        case ColourMode.Larger_Value:
-          textHomeColor = homeSources[homeLargestSource].color;
-          break;
-
-        default:
-          textHomeColor = STYLE_PRIMARY_TEXT_COLOR;
-          break;
-      }
-    }
-
-    this.style.setProperty("--icon-home-color", iconHomeColor);
-    this.style.setProperty("--text-home-color", textHomeColor);
-
-    let homeUsageToDisplay: string;
-
-    if (homeConsumptionError) {
-      homeUsageToDisplay = localize("common.unknown");
-    } else {
-      homeUsageToDisplay = (totalHomeConsumption !== 0 || this._showZeroStates) ? this._renderEnergyState(totalHomeConsumption, electricUnits) : "";
-    }
-
     // Adjust Curved Lines
     const isCardWideEnough = this._width > 420;
 
@@ -333,11 +234,18 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
         <!-- top row -->
         <div class="row">
+
+          <!-- top left -->
           ${this._config?.[EditorPages.Low_Carbon]?.[GlobalOptions.Options]?.[EntitiesOptions.Low_Carbon_Mode] === LowCarbonType.Percentage
         ? this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbonPercentage, states.lowCarbonSecondary, "%")
-        : this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbon, states.lowCarbonSecondary)}
+        : this._renderTopRowNode(lowCarbon, CssClass.LowCarbon, states.lowCarbon, states.lowCarbonSecondary, electricUnits)}
+
+          <!-- top middle -->
           ${this._renderTopRowNode(solar, CssClass.Solar, states.solarImport, states.solarSecondary, electricUnits)}
+
+          <!-- top right -->
           ${this._renderTopRowNode(gas, CssClass.Gas, states.gasImport, states.gasSecondary)}
+
         </div>
 
         <!-- middle row -->
@@ -347,35 +255,23 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           ${this._renderDualValueNode(this._config?.[EditorPages.Grid]!, grid, states, CssClass.Grid, Orientation.Horizontal, electricUnits)}
 
           <!-- middle right -->
-          ${this._renderHomeCircle(
-          homeSolarCircumference,
-          homeBatteryCircumference,
-          homeLowCarbonCircumference,
-          homeHighCarbonCircumference,
-          homeConsumptionError,
-          homeValueIsZero,
-          homeUsageToDisplay,
-          states.homeSecondary)}
+          ${this._renderHomeNode(states, electricUnits)}
 
         </div>
 
         <!-- bottom row -->
-        ${battery.isPresent
-        ? html`
-          <div class="row">
+        <div class="row">
 
-            <!-- bottom left -->
-            <div class="spacer"></div>
+          <!-- bottom left -->
+          <div class="spacer"></div>
 
-            <!-- bottom middle -->
-            ${this._renderDualValueNode(this._config?.[EditorPages.Battery]!, battery, states, CssClass.Battery, Orientation.Vertical, electricUnits)}
+          <!-- bottom middle -->
+          ${this._renderDualValueNode(this._config?.[EditorPages.Battery]!, battery, states, CssClass.Battery, Orientation.Vertical, electricUnits)}
 
-            <!-- bottom right -->
-            <div class="spacer"></div>
+          <!-- bottom right -->
+          <div class="spacer"></div>
 
-          </div>
-        `
-        : html`<div class="spacer"></div>`}
+        </div>
 
         <!-- connecting lines -->
         ${this._renderSolarToHomeLine(flows.solarToHome, newDur.solarToHome)}
@@ -471,47 +367,121 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
+  private _renderHomeNode = (states: States, energyUnits: string | undefined = undefined): TemplateResult => {
+    const state: HomeState = this._entityStates.home;
+    const flows: Flows = states.flows;
+
+    setHomeNodeDynamicStyles(this._config?.[EditorPages.Home]!, states, this.style);
+
+    const totalHomeConsumption: number = Math.max(0, states.home);
+    const highCarbonConsumption: number = states.highCarbon * (flows.gridToHome / states.gridImport);
+    const homeBatteryCircumference: number = CIRCLE_CIRCUMFERENCE * (flows.batteryToHome / totalHomeConsumption) || 0;
+    const homeSolarCircumference: number = CIRCLE_CIRCUMFERENCE * (flows.solarToHome / totalHomeConsumption) || 0;
+    const homeHighCarbonCircumference: number = CIRCLE_CIRCUMFERENCE * (highCarbonConsumption / totalHomeConsumption) || CIRCLE_CIRCUMFERENCE;
+    const homeLowCarbonCircumference: number = CIRCLE_CIRCUMFERENCE - homeSolarCircumference - homeBatteryCircumference - homeHighCarbonCircumference;
+
+    const segments: {
+      cssClass: CssClass;
+      length: number;
+      offset: number;
+    }[] = [
+        { cssClass: CssClass.Solar, length: homeSolarCircumference, offset: homeSolarCircumference - CIRCLE_CIRCUMFERENCE },
+        { cssClass: CssClass.Battery, length: homeBatteryCircumference, offset: homeBatteryCircumference + homeSolarCircumference - CIRCLE_CIRCUMFERENCE },
+        { cssClass: CssClass.LowCarbon, length: homeLowCarbonCircumference, offset: homeLowCarbonCircumference + homeBatteryCircumference + homeSolarCircumference - CIRCLE_CIRCUMFERENCE },
+        {
+          cssClass: this._useHassColours ? CssClass.GridImport : states.home > 0 ? CssClass.Grid : CssClass.Unknown,
+          length: homeHighCarbonCircumference,
+          offset: homeHighCarbonCircumference + homeLowCarbonCircumference + homeBatteryCircumference + homeSolarCircumference - CIRCLE_CIRCUMFERENCE
+        }
+      ];
+
+    return html`
+      <div class="circle-container home">
+        <div class="circle" @click=${this._handleClick(state.firstMainEntity)} @keyDown=${this._handleKeyDown(state.firstMainEntity)}>
+          <svg class="home-circle-sections">
+            ${repeat(
+      segments,
+      _ => undefined,
+      (_, index) => {
+        const length: number = segments[index].length;
+
+        return svg`
+          <circle
+            class="${segments[index].cssClass}"
+            cx = "40"
+            cy = "40"
+            r = "${CIRCLE_RADIUS}"
+            stroke-dasharray="${length} ${CIRCLE_CIRCUMFERENCE - length}"
+            stroke-dashoffset="${segments[index].offset}"
+            shape-rendering="geometricPrecision"
+          />
+        `;
+      }
+    )}
+          </svg>
+          ${this._renderSecondarySpan(state.secondary, states.homeSecondary)}
+          <ha-icon class="entity-icon" .icon=${state.icon}></ha-icon>
+          <span class="home">${states.home < 0 ? localize("common.unknown") : totalHomeConsumption !== 0 || this._showZeroStates ? this._renderEnergyState(totalHomeConsumption, energyUnits) : ""}</span>
+        </div>
+
+        <span class="label">${state.name}</span>
+      </div>
+    `;
+  };
+
+  //================================================================================================================================================================================//
+
   private _renderSegmentedCircle(states: States, cssClass: CssClass, orientation: Orientation): TemplateResult {
     const offset: number = CIRCLE_GAP / 2 + (orientation === Orientation.Horizontal ? 3 * CIRCLE_CIRCUMFERENCE / 4 : 0);
 
-    let segment1Length: number;
-    let segment2Length: number;
-    let segment3Length: number;
-    let segment4Length: number;
-    let segment5Length: number;
-    let segment1Css: string;
+    let segment1Length: number = CIRCLE_SEGMENT_MAX;
+    let segment2Length: number = 0;
+    let segment3Length: number = CIRCLE_SEGMENT_MAX;
+    let segment4Length: number = 0;
+    let segment5Length: number = 0;
+    let segment1Css: string = CssClass.Unknown;
     let segment2Css: string;
-    let segment3Css: string;
+    let segment3Css: string = CssClass.Unknown;
     let segment4Css: string;
 
     if (cssClass === CssClass.Battery) {
       const highCarbon: number = 1 - (states.lowCarbonPercentage / 100);
-      const totalExportEnergy: number = states.flows.gridToBattery + states.flows.solarToBattery;
-      segment1Length = CIRCLE_SEGMENT_MAX * states.flows.solarToBattery / totalExportEnergy;
-      segment2Length = CIRCLE_SEGMENT_MAX * states.flows.gridToBattery * highCarbon / totalExportEnergy;
-      segment5Length = CIRCLE_SEGMENT_MAX - segment1Length - segment2Length;
-      segment1Css = CssClass.Solar;
-      segment2Css = CssClass.Grid;
+      const totalExportEnergy: number = states.flows.solarToBattery + states.flows.gridToBattery;
+      segment2Css = CssClass.GridImport;
+
+      if (totalExportEnergy > 0) {
+        segment1Length = CIRCLE_SEGMENT_MAX * states.flows.solarToBattery / totalExportEnergy;
+        segment2Length = CIRCLE_SEGMENT_MAX * states.flows.gridToBattery * highCarbon / totalExportEnergy;
+        segment5Length = CIRCLE_SEGMENT_MAX - segment1Length - segment2Length;
+        segment1Css = CssClass.Solar;
+      }
 
       const totalImportEnergy: number = states.flows.batteryToGrid + states.flows.batteryToHome;
-      segment3Length = CIRCLE_SEGMENT_MAX * states.flows.batteryToGrid / totalImportEnergy;
-      segment4Length = CIRCLE_SEGMENT_MAX - segment3Length;
-      segment3Css = "return";
-      segment4Css = CssClass.Battery;
+      segment4Css = CssClass.BatteryImport;
+
+      if (totalImportEnergy > 0) {
+        segment3Length = CIRCLE_SEGMENT_MAX * states.flows.batteryToGrid / totalImportEnergy;
+        segment4Length = CIRCLE_SEGMENT_MAX - segment3Length;
+        segment3Css = CssClass.GridExport;
+      }
     } else {
       const totalImportEnergy: number = states.flows.gridToBattery + states.flows.gridToHome;
-      segment1Length = CIRCLE_SEGMENT_MAX * states.flows.gridToBattery / totalImportEnergy;
-      segment2Length = CIRCLE_SEGMENT_MAX * states.flows.gridToHome / totalImportEnergy;
-      segment5Length = CIRCLE_SEGMENT_MAX - segment1Length - segment2Length;
-      segment1Css = CssClass.Battery;
-      segment2Css = CssClass.Grid;
+      segment2Css = CssClass.GridImport;
+
+      if (totalImportEnergy > 0) {
+        segment1Length = CIRCLE_SEGMENT_MAX * states.flows.gridToBattery / totalImportEnergy;
+        segment2Length = CIRCLE_SEGMENT_MAX * states.flows.gridToHome / totalImportEnergy;
+        segment1Css = CssClass.BatteryExport;
+      }
 
       const totalExportEnergy: number = states.flows.batteryToGrid + states.flows.solarToGrid;
-      segment3Length = CIRCLE_SEGMENT_MAX * states.flows.batteryToGrid / totalExportEnergy;
-      segment4Length = CIRCLE_SEGMENT_MAX - segment3Length;
-      segment3Css = CssClass.Battery;
-      segment4Css = CssClass.Solar;
+      segment4Css = CssClass.BatteryImport;
 
+      if (totalExportEnergy > 0) {
+        segment3Length = CIRCLE_SEGMENT_MAX * states.flows.solarToGrid / totalExportEnergy;
+        segment4Length = CIRCLE_SEGMENT_MAX - segment3Length;
+        segment3Css = CssClass.Solar;
+      }
     }
 
     return svg`
@@ -520,7 +490,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           class="${segment1Css}"
           cx="40"
           cy="40"
-          r="38"
+          r="${CIRCLE_RADIUS}"
           stroke-dasharray="${segment1Length} ${CIRCLE_CIRCUMFERENCE - segment1Length}"
           stroke-dashoffset="-${offset}"
           shape-rendering="geometricPrecision"
@@ -529,7 +499,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           class="${segment2Css}"
           cx="40"
           cy="40"
-          r="38"
+          r="${CIRCLE_RADIUS}"
           stroke-dasharray="${segment2Length} ${CIRCLE_CIRCUMFERENCE - segment2Length}"
           stroke-dashoffset="-${offset + segment1Length}"
           shape-rendering="geometricPrecision"
@@ -538,7 +508,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           class="${CssClass.LowCarbon}"
           cx="40"
           cy="40"
-          r="38"
+          r="${CIRCLE_RADIUS}"
           stroke-dasharray="${segment5Length} ${CIRCLE_CIRCUMFERENCE - segment5Length}"
           stroke-dashoffset="-${offset + segment1Length + segment2Length}"
           shape-rendering="geometricPrecision"
@@ -547,7 +517,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           class="${segment3Css}"
           cx="40"
           cy="40"
-          r="38"
+          r="${CIRCLE_RADIUS}"
           stroke-dasharray="${segment3Length} ${CIRCLE_CIRCUMFERENCE - segment3Length}"
           stroke-dashoffset="-${offset + segment1Length + segment2Length + segment5Length + CIRCLE_GAP}"
           shape-rendering="geometricPrecision"
@@ -556,7 +526,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           class="${segment4Css}"
           cx="40"
           cy="40"
-          r="38"
+          r="${CIRCLE_RADIUS}"
           stroke-dasharray="${segment4Length} ${CIRCLE_CIRCUMFERENCE - segment4Length}"
           stroke-dashoffset="-${offset + segment1Length + segment2Length + segment5Length + CIRCLE_GAP + segment3Length}"
           shape-rendering="geometricPrecision"
@@ -747,7 +717,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _showLine = (energy: number): boolean => this._config?.[EditorPages.Appearance]?.[GlobalOptions.Options]?.[AppearanceOptions.Inactive_Lines] === InactiveLinesMode.Normal || energy > 0;
+  private _showLine = (energy: number): boolean => this._config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Inactive_Lines] === InactiveLinesMode.Normal || energy > 0;
 
   //================================================================================================================================================================================//
 
@@ -768,86 +738,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           ${this._renderState(secondary.config!, entityId, state)}
         </span>
       `;
-  };
-
-  //================================================================================================================================================================================//
-
-  private _renderHomeCircle = (
-    homeSolarCircumference: number,
-    homeBatteryCircumference: number,
-    homeLowCarbonCircumference: number,
-    homeHighCarbonCircumference: number,
-    homeConsumptionError: boolean,
-    homeValueIsZero: boolean,
-    homeUsageToDisplay: string,
-    homeSecondary: number
-  ): TemplateResult => {
-    const home: HomeState = this._entityStates.home;
-
-    return html`
-      <div class="circle-container home">
-        <div class="circle" @click=${this._handleClick(home.firstMainEntity)} @keyDown=${this._handleKeyDown(home.firstMainEntity)}>
-          <svg class="home-circle-sections">
-            ${homeSolarCircumference
-        ? svg`
-            <circle
-              class="${CssClass.Solar}"
-              cx="40"
-              cy="40"
-              r="38"
-              stroke-dasharray="${homeSolarCircumference} ${CIRCLE_CIRCUMFERENCE - homeSolarCircumference}"
-              stroke-dashoffset="-${CIRCLE_CIRCUMFERENCE - homeSolarCircumference}"
-              shape-rendering="geometricPrecision"
-            />
-            `
-        : ""}
-
-          ${homeBatteryCircumference
-        ? svg`
-            <circle
-              class="${CssClass.Battery}"
-              cx="40"
-              cy="40"
-              r="38"
-              stroke-dasharray="${homeBatteryCircumference} ${CIRCLE_CIRCUMFERENCE - homeBatteryCircumference}"
-              stroke-dashoffset="-${CIRCLE_CIRCUMFERENCE - homeBatteryCircumference - homeSolarCircumference}"
-              shape-rendering="geometricPrecision"
-            />
-            `
-        : ""}
-
-          ${homeLowCarbonCircumference
-        ? svg`
-            <circle
-              class="${CssClass.LowCarbon}"
-              cx="40"
-              cy="40"
-              r="38"
-              stroke-dasharray="${homeLowCarbonCircumference} ${CIRCLE_CIRCUMFERENCE - homeLowCarbonCircumference}"
-              stroke-dashoffset="-${CIRCLE_CIRCUMFERENCE - homeLowCarbonCircumference - homeBatteryCircumference - homeSolarCircumference}"
-              shape-rendering="geometricPrecision"
-            />
-            `
-        : ""}
-
-            <circle
-              class="${homeConsumptionError || homeValueIsZero ? `home-unknown` : CssClass.Grid}"
-              cx = "40"
-              cy = "40"
-              r = "38"
-              stroke-dasharray="${homeHighCarbonCircumference ?? CIRCLE_CIRCUMFERENCE - homeSolarCircumference - homeBatteryCircumference - homeLowCarbonCircumference} ${homeSolarCircumference + homeBatteryCircumference + homeLowCarbonCircumference}"
-              stroke-dashoffset="0"
-              shape-rendering="geometricPrecision"
-            />
-          </svg>
-          ${this._renderSecondarySpan(home.secondary, homeSecondary)}
-          <ha-icon class="entity-icon" .icon=${home.icon}></ha-icon>
-          ${homeUsageToDisplay}
-        </div>
-
-        <span class="label">${home.name}</span>
-      </div>
-    `;
   };
 
   //================================================================================================================================================================================//
@@ -941,121 +831,132 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   //================================================================================================================================================================================//
 
   private _renderSolarToHomeLine = (value: number, animDuration: number): TemplateResult => {
+    if (!this._entityStates.solar.isPresent || !this._showLine(value ?? 0)) {
+      return html``;
+    }
+
     const path: string = `M${this._entityStates.battery.isPresent ? 55 : 53},0 v${this._entityStates.grid.isPresent ? 15 : 17} c0,${this._entityStates.battery.isPresent ? "30 10,30 30,30" : "35 10,35 30,35"} h25`;
 
     return html`
-      ${this._entityStates.solar.isPresent && this._showLine(value ?? 0)
-        ? html`
-        <div class=${this._getLineCssClasses()}>
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-home-flow">
-            ${renderLine(CssClass.Solar, path)}
-            ${value != 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.Solar, animDuration)}` : ""}
-          </svg>
-        </div>
-        `
-        : ""
-      }
+      <div class="lines"}>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-home-flow">
+          ${renderLine(CssClass.Solar, path)}
+          ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.Solar, animDuration)}` : ""}
+        </svg>
+      </div>
     `;
   };
 
   //================================================================================================================================================================================//
 
   private _renderSolarToGridLine = (value: number, animDuration: number): TemplateResult => {
+    if (!this._entityStates.solar.isPresent || !this._entityStates.grid.firstReturnEntity || !this._showLine(value ?? 0)) {
+      return html``;
+    }
+
     const path: string = `M${this._entityStates.battery.isPresent ? 45 : 47},0 v15 c0,${this._entityStates.battery.isPresent ? "30 -10,30 -30,30" : "35 -10,35 -30,35"} h-20`;
 
     return html`
-      ${this._entityStates.grid.firstReturnEntity && this._entityStates.solar.isPresent && this._showLine(value ?? 0)
-        ? html`
-        <div class=${this._getLineCssClasses()}>
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-grid-flow">
-            ${renderLine("return", path)}
-            ${value != 0 ? html`${renderDot(DOT_SIZE_STANDARD, "return", animDuration)}` : ""}
-          </svg>
-        </div>
-        `
-        : ""}
+      <div class="lines">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-grid-flow">
+          ${renderLine(CssClass.GridExport, path)}
+          ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.GridExport, animDuration)}` : ""}
+        </svg>
+      </div>
     `;
   };
 
   //================================================================================================================================================================================//
 
   private _renderSolarToBatteryLine = (value: number, animDuration: number): TemplateResult => {
+    if (!this._entityStates.solar.isPresent || !this._entityStates.battery.isPresent || !this._showLine(value ?? 0)) {
+      return html``;
+    }
+
     return html`
-      ${this._entityStates.battery.isPresent && this._entityStates.solar.isPresent && this._showLine(value ?? 0)
-        ? html`
-        <div class=${this._getLineCssClasses()}>
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-battery-flow" class="flat-line">
-            ${renderLine("battery-solar", "M50,0 V100")}
-            ${value != 0 ? html`${renderDot(DOT_SIZE_STANDARD, "battery-solar", animDuration)}` : ""}
-          </svg>
-        </div>`
-        : ""}
-      `;
+      <div class="lines">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-battery-flow" class="flat-line">
+          ${renderLine(CssClass.BatteryExport, "M50,0 V100")}
+          ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.BatteryExport, animDuration)}` : ""}
+        </svg>
+      </div>
+    `;
   };
 
   //================================================================================================================================================================================//
 
   private _renderGridToHomeLine = (value: number, animDuration: number): TemplateResult => {
+    if (!this._entityStates.grid.isPresent || !this._showLine(value ?? 0)) {
+      return html``;
+    }
+
     const path: string = `M0,${this._entityStates.battery.isPresent ? 50 : this._entityStates.solar.isPresent ? 56 : 53} H100`;
 
     return html`
-      ${this._entityStates.grid.isPresent && this._showLine(value)
-        ? html`
-        <div class=${this._getLineCssClasses()}>
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="grid-home-flow" class="flat-line">
-            ${renderLine("grid", path)}
-            ${value != 0 ? html`${renderDot(DOT_SIZE_STANDARD, "grid", animDuration)}` : ""}
-          </svg>
-        </div>`
-        : ""}
-      `;
+      <div class="lines">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="grid-home-flow" class="flat-line">
+          ${renderLine(CssClass.GridImport, path)}
+          ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.GridImport, animDuration)}` : ""}
+        </svg>
+      </div>
+    `;
   };
 
   //================================================================================================================================================================================//
 
-  private _renderBatteryToHomeLine = (batteryToHome: number, animDuration: number): TemplateResult => {
+  private _renderBatteryToHomeLine = (value: number, animDuration: number): TemplateResult => {
+    if (!this._entityStates.battery.isPresent || !this._showLine(value ?? 0)) {
+      return html``;
+    }
+
     const path: string = `M55,100 v-${this._entityStates.grid.isPresent ? 15 : 17} c0,-30 10,-30 30,-30 h20`;
 
     return html`
-      ${this._entityStates.battery.isPresent && this._showLine(batteryToHome)
-        ? html`
-        <div class=${this._getLineCssClasses()}>
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="battery-home-flow">
-            ${renderLine("battery-home", path)}
-            ${batteryToHome != 0 ? html`${renderDot(DOT_SIZE_STANDARD, "battery-home", animDuration)}` : ""}
-          </svg>
-        </div>`
-        : ""}
-      `;
+      <div class="lines">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="battery-home-flow">
+          ${renderLine(CssClass.BatteryImport, path)}
+          ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.BatteryImport, animDuration)}` : ""}
+        </svg>
+      </div>
+    `;
   };
 
   //================================================================================================================================================================================//
 
   private _renderBatteryGridLine = (batteryToGrid: number, gridToBattery: number, animDurationBatteryToGrid: number, animDurationGridToBattery: number): TemplateResult => {
-    const cssClass: string = gridToBattery ? "battery-from-grid " : "" + batteryToGrid ? "battery-to-grid" : "";
+    if (!this._entityStates.grid.isPresent || !this._entityStates.battery.isPresent || !this._showLine(Math.max(gridToBattery, batteryToGrid) ?? 0)) {
+      return html``;
+    }
+
+    const path: string = "M45,100 v-15 c0,-30 -10,-30 -30,-30 h-20";
+    let cssGridToBattery: CssClass;
+    let cssBatteryToGrid: CssClass;
+    let cssGridToBatteryDot: CssClass = CssClass.BatteryExport;
+    let cssBatteryToGridDot: CssClass = CssClass.GridExport;
+
+    if (gridToBattery === 0 && batteryToGrid === 0) {
+      cssGridToBattery = cssBatteryToGrid = CssClass.Unknown;
+    } else if (this._useHassColours) {
+      cssGridToBattery = cssBatteryToGrid = batteryToGrid !== 0 ? CssClass.GridExport : CssClass.GridImport;
+      cssGridToBatteryDot = CssClass.GridImport;
+    } else if (gridToBattery === 0) {
+      cssGridToBattery = cssBatteryToGrid = CssClass.GridExport;
+    } else if (batteryToGrid === 0) {
+      cssGridToBattery = cssBatteryToGrid = CssClass.BatteryExport;
+    } else {
+      cssGridToBattery = CssClass.BatteryExport;
+      cssBatteryToGrid = CssClass.GridExport;
+    }
 
     return html`
-      ${this._entityStates.grid.isPresent && this._entityStates.battery.isPresent && this._showLine(Math.max(gridToBattery, batteryToGrid))
-        ? html`
-        <div class=${this._getLineCssClasses()}>
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="battery-grid-flow">
-            ${renderLine("battery-grid", "M45,100 v-15 c0,-30 -10,-30 -30,-30 h-20", cssClass)}
-            ${gridToBattery != 0 ? html`${renderDot(DOT_SIZE_STANDARD, "battery-from-grid", animDurationGridToBattery, true, "battery-grid")}` : ""}
-            ${batteryToGrid != 0 ? html`${renderDot(DOT_SIZE_STANDARD, "battery-to-grid", animDurationBatteryToGrid, false, "battery-grid")}` : ""}
-          </svg>
-        </div>`
-        : ""}
-      `;
-  };
-
-  //================================================================================================================================================================================//
-
-  private _getLineCssClasses = (): string => {
-    return "lines" +
-      (this._entityStates.battery.isPresent
-        ? " high"
-        //        : this._individual1.isPresent && this._individual2.isPresent
-        //        ? " individual1-individual2"
-        : "");
+      <div class="lines">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="battery-grid-flow">
+          <path id="grid-battery" class="${cssGridToBattery}" d="${path}" vector-effect="non-scaling-stroke" stroke-dasharray="${DASH_LENGTH}"/>
+          <path id="battery-grid" class="${cssBatteryToGrid}" d="${path}" vector-effect="non-scaling-stroke" stroke-dasharray="0 ${DASH_LENGTH} 0"/>
+          ${gridToBattery !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, cssGridToBatteryDot, animDurationGridToBattery, true, "grid-battery")}` : ""}
+          ${batteryToGrid !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, cssBatteryToGridDot, animDurationBatteryToGrid, false, "grid-battery")}` : ""}
+        </svg>
+      </div>
+  `;
   };
 }

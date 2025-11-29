@@ -9,7 +9,6 @@ const baseLovelaceCardConfigStruct = object({
 const appearanceOptionsConfigStruct = object({
   [AppearanceOptions.Dashboard_Link]: optional(string()),
   [AppearanceOptions.Dashboard_Link_Label]: optional(string()),
-  [AppearanceOptions.Inactive_Lines]: optional(string()),
   [AppearanceOptions.Show_Zero_States]: optional(boolean()),
   [AppearanceOptions.Clickable_Entities]: optional(boolean())
 });
@@ -25,7 +24,9 @@ const energyUnitsOptionsConfigStruct = object({
 
 const flowsOptionsConfigStruct = object({
   [FlowsOptions.Use_Hourly_Stats]: optional(boolean()),
+  [FlowsOptions.Use_HASS_Colours]: optional(boolean()),
   [FlowsOptions.Animation]: optional(string()),
+  [FlowsOptions.Inactive_Lines]: optional(string()),
   [FlowsOptions.Min_Rate]: optional(number()),
   [FlowsOptions.Max_Rate]: optional(number()),
   [FlowsOptions.Min_Energy]: optional(number()),

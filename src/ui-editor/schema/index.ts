@@ -73,26 +73,6 @@ function appearanceOptionsSchema(config: EnergyFlowCardExtConfig | undefined, sc
           selector: { boolean: {} }
         }
       ]
-    },
-    {
-      type: 'grid',
-      schema: [
-        {
-          name: AppearanceOptions.Inactive_Lines,
-          required: true,
-          selector: {
-            select: {
-              mode: 'dropdown',
-              options: [
-                InactiveLinesMode.getItem(InactiveLinesMode.Normal),
-                InactiveLinesMode.getItem(InactiveLinesMode.Dimmed),
-                InactiveLinesMode.getItem(InactiveLinesMode.Greyed),
-                InactiveLinesMode.getItem(InactiveLinesMode.Hidden)
-              ]
-            }
-          }
-        }
-      ]
     }
   ];
 }
@@ -181,6 +161,25 @@ function flowsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaC
         {
           name: FlowsOptions.Use_Hourly_Stats,
           selector: { boolean: {} }
+        },
+        {
+          name: FlowsOptions.Use_HASS_Colours,
+          selector: { boolean: {} }
+        },
+        {
+          name: FlowsOptions.Inactive_Lines,
+          required: true,
+          selector: {
+            select: {
+              mode: 'dropdown',
+              options: [
+                InactiveLinesMode.getItem(InactiveLinesMode.Normal),
+                InactiveLinesMode.getItem(InactiveLinesMode.Dimmed),
+                InactiveLinesMode.getItem(InactiveLinesMode.Greyed),
+                InactiveLinesMode.getItem(InactiveLinesMode.Hidden)
+              ]
+            }
+          }
         },
         {
           name: FlowsOptions.Animation,

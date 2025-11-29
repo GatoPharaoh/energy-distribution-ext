@@ -11,6 +11,8 @@ import { repeat } from "lit/directives/repeat.js";
 import { localize } from "@/localize/localize";
 import { cleanupConfig, getDefaultDeviceConfig } from '@/config/config';
 
+//================================================================================================================================================================================//
+
 const DEVICES_EDITOR_ELEMENT_NAME = CARD_NAME + "-devices-editor";
 
 @customElement(DEVICES_EDITOR_ELEMENT_NAME)
@@ -118,6 +120,8 @@ export class DevicesEditor extends LitElement {
     `;
   }
 
+  //================================================================================================================================================================================//
+
   private _validateConfig(config: DeviceConfig): {} {
     const errors: object = {};
     const secondaryEntityId: string | undefined = config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id];
@@ -131,7 +135,9 @@ export class DevicesEditor extends LitElement {
     return errors;
   }
 
-  private _getKey(config: DeviceConfig) {
+  //================================================================================================================================================================================//
+
+  private _getKey(config: DeviceConfig): string | undefined {
     if (!this._entityKeys.has(config)) {
       this._entityKeys.set(config, uuidv4());
     }
@@ -139,12 +145,16 @@ export class DevicesEditor extends LitElement {
     return this._entityKeys.get(config)!;
   }
 
+  //================================================================================================================================================================================//
+
   private async _addDevice(): Promise<void> {
     const newDevice: DeviceConfig = getDefaultDeviceConfig();
     const updatedDevices: DeviceConfig[] = this._devices!.concat(newDevice);
     this._editDevice(updatedDevices.length - 1);
     this._updateConfig(updatedDevices);
   }
+
+  //================================================================================================================================================================================//
 
   private _moveDevice(ev: CustomEvent): void {
     if (ev.detail.oldIndex === ev.detail.newIndex) {
@@ -155,6 +165,8 @@ export class DevicesEditor extends LitElement {
     updatedDevices.splice(ev.detail.newIndex!, 0, updatedDevices.splice(ev.detail.oldIndex!, 1)[0]);
     this._updateConfig(updatedDevices);
   }
+
+  //================================================================================================================================================================================//
 
   private _removeDevice(ev: CustomEvent): void {
     const index = (ev.currentTarget as any).index;
@@ -170,6 +182,8 @@ export class DevicesEditor extends LitElement {
     this._updateConfig(updatedDevices);
   }
 
+  //================================================================================================================================================================================//
+
   private _valueChanged(ev: any): void {
     if (!this.config || !this.hass) {
       return;
@@ -182,14 +196,20 @@ export class DevicesEditor extends LitElement {
     this._updateConfig(updatedDevices);
   }
 
+  //================================================================================================================================================================================//
+
   private _editDevice(index: number): void {
     this._indexBeingEdited = index;
   }
+
+  //================================================================================================================================================================================//
 
   private _updateConfig(updatedDevices: DeviceConfig[]): void {
     const config: EnergyFlowCardExtConfig = { ...this.config, devices: updatedDevices.length === 0 ? undefined : updatedDevices };
     fireEvent(this, 'config-changed', { config: cleanupConfig(this.hass, config) });
   }
+
+  //================================================================================================================================================================================//
 
   static get styles(): CSSResultGroup {
     return [

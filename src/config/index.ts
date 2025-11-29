@@ -32,7 +32,6 @@ export enum GlobalOptions {
 export enum AppearanceOptions {
   Dashboard_Link = "dashboard_link",
   Dashboard_Link_Label = "dashboard_link_label",
-  Inactive_Lines = "inactive_lines",
   Show_Zero_States = "show_zero_states",
   Clickable_Entities = "clickable_entities",
   Energy_Units = "energy_units",
@@ -50,7 +49,9 @@ export enum EnergyUnitsOptions {
 
 export enum FlowsOptions {
   Use_Hourly_Stats = "use_hourly_stats",
+  Use_HASS_Colours = "use_hass_colours",
   Animation = "animation",
+  Inactive_Lines = "inactive_lines",
   Min_Rate = "min_rate",
   Max_Rate = "max_rate",
   Min_Energy = "min_energy",
@@ -135,7 +136,6 @@ export interface AppearanceConfig {
 export interface AppearanceOptionsConfig {
   [AppearanceOptions.Dashboard_Link]?: string;
   [AppearanceOptions.Dashboard_Link_Label]?: string;
-  [AppearanceOptions.Inactive_Lines]?: InactiveLinesMode;
   [AppearanceOptions.Show_Zero_States]?: boolean;
   [AppearanceOptions.Clickable_Entities]?: boolean;
 };
@@ -151,7 +151,9 @@ export interface EnergyUnitsConfig {
 
 export interface FlowsConfig {
   [FlowsOptions.Use_Hourly_Stats]?: boolean;
+  [FlowsOptions.Use_HASS_Colours]?: boolean;
   [FlowsOptions.Animation]?: DotsMode;
+  [FlowsOptions.Inactive_Lines]?: InactiveLinesMode;
   [FlowsOptions.Min_Rate]?: number;
   [FlowsOptions.Max_Rate]?: number;
   [FlowsOptions.Min_Energy]?: number;
