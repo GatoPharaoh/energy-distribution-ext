@@ -39,5 +39,6 @@ export abstract class DualValueState extends ValueState {
 
     this.returnEntities = filterPrimaryEntities(hass, config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids]);
     this.firstReturnEntity = this.returnEntities.length !== 0 ? this.returnEntities[0] : undefined;
+    this.isPresent = this.isPresent || this.returnEntities.length !== 0;
   }
 }

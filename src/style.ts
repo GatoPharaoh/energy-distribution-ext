@@ -21,23 +21,27 @@ export const styles = css`
   .row {
     max-width: 470px;
   }
+
   .lines {
     position: absolute;
-    bottom: 100px;
+    bottom: 0;
     left: 0;
     width: 100%;
-    height: 156px;
+    height: 146px;
     display: flex;
     justify-content: center;
     padding: 0 16px 16px;
     box-sizing: border-box;
+  }
+  .lines.high {
+    bottom: 100px;
+    height: 156px;
   }
   .lines svg {
     width: var(--lines-svg-flat-width);
     height: 100%;
     max-width: 340px;
   }
-
   .lines svg:not(.flat-line) {
     width: var(--lines-svg-not-flat-width);
     height: var(--lines-svg-not-flat-line-height);
@@ -51,14 +55,15 @@ export const styles = css`
     max-width: 500px;
     margin: 0 auto;
   }
+  .top-row {
+    height: 130px;
+  }
+
   .circle-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     z-index: 2;
-  }
-  .spacer {
-    width: 84px;
   }
   .circle {
     width: 80px;
@@ -122,10 +127,6 @@ export const styles = css`
     overflow: hidden;
   }
 
-  .circle-container.non-fossil {
-    margin-right: 4px;
-    height: 130px;
-  }
   .non-fossil .circle {
     border-color: var(--circle-non-fossil-color);
   }
@@ -136,10 +137,6 @@ export const styles = css`
     color: var(--icon-non-fossil-color);
   }
 
-  .circle-container.solar {
-    margin: 0 4px;
-    height: 130px;
-  }
   .solar .circle {
     border-color: var(--circle-solar-color);
   }

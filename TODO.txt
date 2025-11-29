@@ -1,15 +1,7 @@
 BUGS
 ----
 
-If no battery Export entities are set, this should be treated as a warning
-
-Grid and Battery nodes not displayed if only Export entities are present; should be visible so long as at least one entity of either type is set
-
-With Grid as export-only, the solar->grid flow-line is white and has no dot
-
-With Battery as export-only, the solar->battery and grid->battery lines are not shown
-
-If no battery is present, the flow-lines are drawn in the wrong place
+Battery: if either Import or Export is missing, this should be treated as a warning
 
 If no grid is present, low-carbon should not be shown
 
@@ -58,6 +50,8 @@ GENERAL
 -------
 
 README and CHANGELOG updates
+
+Add license
 
 Rename to 'Energy Distribution Extended' (energy-distribution-ext) for consistency with the built-in card
 

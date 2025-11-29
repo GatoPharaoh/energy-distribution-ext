@@ -307,7 +307,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     return html`
-      <div class="circle-container ${cssClass}">
+      <div class="circle-container top-row ${cssClass}">
         <span class="label">${state.name}</span>
         <div class="circle" @click=${this._handleClick(state.firstMainEntity)} @keyDown=${this._handleKeyDown(state.firstMainEntity)}}>
           ${this._renderSecondarySpan(state.secondary, secondaryState)}
@@ -348,7 +348,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     return html`
       <div class="circle-container ${cssClass}">
         <div class="circle ${borderStyle}" @click=${this._handleClick(state.firstMainEntity)} @keyDown=${this._handleKeyDown(state.firstMainEntity)}>
-          ${config?.[EntitiesOptions.Colours]?.[ColourOptions.Circle] === ColourMode.Dynamic ? this._renderSegmentedCircle(states, cssClass, orientation) : ""}
+          ${config?.[EntitiesOptions.Colours]?.[ColourOptions.Circle] === ColourMode.Dynamic ? this._renderSegmentedCircle(state, states, cssClass, orientation) : ""}
           ${this._renderSecondarySpan(this._entityStates.battery.secondary, secondaryState)}
           <ha-icon class="entity-icon" .icon=${state.icon}></ha-icon>
           <span class="${cssClass}-export">
@@ -374,10 +374,10 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     setHomeNodeDynamicStyles(this._config?.[EditorPages.Home]!, states, this.style);
 
     const totalHomeConsumption: number = Math.max(0, states.home);
-    const highCarbonConsumption: number = states.highCarbon * (flows.gridToHome / states.gridImport);
+    const highCarbonConsumption: number = states.highCarbon * (flows.gridToHome / states.gridImport) || 0;
     const homeBatteryCircumference: number = CIRCLE_CIRCUMFERENCE * (flows.batteryToHome / totalHomeConsumption) || 0;
     const homeSolarCircumference: number = CIRCLE_CIRCUMFERENCE * (flows.solarToHome / totalHomeConsumption) || 0;
-    const homeHighCarbonCircumference: number = CIRCLE_CIRCUMFERENCE * (highCarbonConsumption / totalHomeConsumption) || CIRCLE_CIRCUMFERENCE;
+    const homeHighCarbonCircumference: number = CIRCLE_CIRCUMFERENCE * (highCarbonConsumption / totalHomeConsumption) || 0;
     const homeLowCarbonCircumference: number = CIRCLE_CIRCUMFERENCE - homeSolarCircumference - homeBatteryCircumference - homeHighCarbonCircumference;
 
     const segments: {
@@ -387,9 +387,13 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }[] = [
         { cssClass: CssClass.Solar, length: homeSolarCircumference, offset: homeSolarCircumference - CIRCLE_CIRCUMFERENCE },
         { cssClass: CssClass.Battery, length: homeBatteryCircumference, offset: homeBatteryCircumference + homeSolarCircumference - CIRCLE_CIRCUMFERENCE },
-        { cssClass: CssClass.LowCarbon, length: homeLowCarbonCircumference, offset: homeLowCarbonCircumference + homeBatteryCircumference + homeSolarCircumference - CIRCLE_CIRCUMFERENCE },
         {
-          cssClass: this._useHassColours ? CssClass.GridImport : states.home > 0 ? CssClass.Grid : CssClass.Unknown,
+          cssClass: states.home > 0 ? CssClass.LowCarbon : CssClass.Unknown,
+          length: homeLowCarbonCircumference,
+          offset: homeLowCarbonCircumference + homeBatteryCircumference + homeSolarCircumference - CIRCLE_CIRCUMFERENCE
+        },
+        {
+          cssClass: this._useHassColours ? CssClass.GridImport : CssClass.Grid,
           length: homeHighCarbonCircumference,
           offset: homeHighCarbonCircumference + homeLowCarbonCircumference + homeBatteryCircumference + homeSolarCircumference - CIRCLE_CIRCUMFERENCE
         }
@@ -431,56 +435,83 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _renderSegmentedCircle(states: States, cssClass: CssClass, orientation: Orientation): TemplateResult {
-    const offset: number = CIRCLE_GAP / 2 + (orientation === Orientation.Horizontal ? 3 * CIRCLE_CIRCUMFERENCE / 4 : 0);
+  private _renderSegmentedCircle(state: DualValueState, states: States, cssClass: CssClass, orientation: Orientation): TemplateResult {
+    let segmentMaxLength: number;
+    let circleGap: number;
 
-    let segment1Length: number = CIRCLE_SEGMENT_MAX;
+    if (state.firstMainEntity && state.firstReturnEntity) {
+      segmentMaxLength = CIRCLE_SEGMENT_MAX;
+      circleGap = CIRCLE_GAP;
+    } else {
+      segmentMaxLength = CIRCLE_CIRCUMFERENCE;
+      circleGap = 0;
+    }
+
+    const offset: number = circleGap / 2 + (orientation === Orientation.Horizontal ? 3 * CIRCLE_CIRCUMFERENCE / 4 : 0);
+
+    let segment1Length: number = 0;
     let segment2Length: number = 0;
-    let segment3Length: number = CIRCLE_SEGMENT_MAX;
+    let segment3Length: number = 0;
     let segment4Length: number = 0;
     let segment5Length: number = 0;
-    let segment1Css: string = CssClass.Unknown;
-    let segment2Css: string;
-    let segment3Css: string = CssClass.Unknown;
-    let segment4Css: string;
+    let segment1Css: CssClass = CssClass.Unknown;
+    let segment2Css: CssClass = CssClass.Unknown;
+    let segment3Css: CssClass = CssClass.Unknown;
+    let segment4Css: CssClass = CssClass.Unknown;
 
     if (cssClass === CssClass.Battery) {
-      const highCarbon: number = 1 - (states.lowCarbonPercentage / 100);
-      const totalExportEnergy: number = states.flows.solarToBattery + states.flows.gridToBattery;
-      segment2Css = CssClass.GridImport;
+      if (state.firstReturnEntity) {
+        const highCarbon: number = 1 - (states.lowCarbonPercentage / 100);
+        const totalExportEnergy: number = states.flows.solarToBattery + states.flows.gridToBattery;
 
-      if (totalExportEnergy > 0) {
-        segment1Length = CIRCLE_SEGMENT_MAX * states.flows.solarToBattery / totalExportEnergy;
-        segment2Length = CIRCLE_SEGMENT_MAX * states.flows.gridToBattery * highCarbon / totalExportEnergy;
-        segment5Length = CIRCLE_SEGMENT_MAX - segment1Length - segment2Length;
-        segment1Css = CssClass.Solar;
+        if (totalExportEnergy > 0) {
+          segment1Length = segmentMaxLength * states.flows.solarToBattery / totalExportEnergy;
+          segment2Length = segmentMaxLength * states.flows.gridToBattery * highCarbon / totalExportEnergy;
+          segment5Length = segmentMaxLength - segment1Length - segment2Length;
+          segment1Css = CssClass.Solar;
+          segment2Css = CssClass.GridImport;
+        } else {
+          segment1Length = segmentMaxLength;
+        }
       }
 
-      const totalImportEnergy: number = states.flows.batteryToGrid + states.flows.batteryToHome;
-      segment4Css = CssClass.BatteryImport;
+      if (state.firstMainEntity) {
+        const totalImportEnergy: number = states.flows.batteryToGrid + states.flows.batteryToHome;
 
-      if (totalImportEnergy > 0) {
-        segment3Length = CIRCLE_SEGMENT_MAX * states.flows.batteryToGrid / totalImportEnergy;
-        segment4Length = CIRCLE_SEGMENT_MAX - segment3Length;
-        segment3Css = CssClass.GridExport;
+        if (totalImportEnergy > 0) {
+          segment3Length = segmentMaxLength * states.flows.batteryToGrid / totalImportEnergy;
+          segment4Length = segmentMaxLength - segment3Length;
+          segment3Css = CssClass.GridExport;
+          segment4Css = CssClass.BatteryImport;
+        } else {
+          segment3Length = segmentMaxLength;
+        }
       }
     } else {
-      const totalImportEnergy: number = states.flows.gridToBattery + states.flows.gridToHome;
-      segment2Css = CssClass.GridImport;
+      if (state.firstMainEntity) {
+        const totalImportEnergy: number = states.flows.gridToBattery + states.flows.gridToHome;
 
-      if (totalImportEnergy > 0) {
-        segment1Length = CIRCLE_SEGMENT_MAX * states.flows.gridToBattery / totalImportEnergy;
-        segment2Length = CIRCLE_SEGMENT_MAX * states.flows.gridToHome / totalImportEnergy;
-        segment1Css = CssClass.BatteryExport;
+        if (totalImportEnergy > 0) {
+          segment1Length = segmentMaxLength * states.flows.gridToBattery / totalImportEnergy;
+          segment2Length = segmentMaxLength - segment1Length;
+          segment1Css = CssClass.BatteryExport;
+          segment2Css = CssClass.GridImport;
+        } else {
+          segment1Length = segmentMaxLength;
+        }
       }
 
-      const totalExportEnergy: number = states.flows.batteryToGrid + states.flows.solarToGrid;
-      segment4Css = CssClass.BatteryImport;
+      if (state.firstReturnEntity) {
+        const totalExportEnergy: number = states.flows.batteryToGrid + states.flows.solarToGrid;
 
-      if (totalExportEnergy > 0) {
-        segment3Length = CIRCLE_SEGMENT_MAX * states.flows.solarToGrid / totalExportEnergy;
-        segment4Length = CIRCLE_SEGMENT_MAX - segment3Length;
-        segment3Css = CssClass.Solar;
+        if (totalExportEnergy > 0) {
+          segment3Length = segmentMaxLength * states.flows.solarToGrid / totalExportEnergy;
+          segment4Length = segmentMaxLength - segment3Length;
+          segment3Css = CssClass.Solar;
+          segment4Css = CssClass.BatteryImport;
+        } else {
+          segment3Length = segmentMaxLength;
+        }
       }
     }
 
@@ -519,7 +550,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           cy="40"
           r="${CIRCLE_RADIUS}"
           stroke-dasharray="${segment3Length} ${CIRCLE_CIRCUMFERENCE - segment3Length}"
-          stroke-dashoffset="-${offset + segment1Length + segment2Length + segment5Length + CIRCLE_GAP}"
+          stroke-dashoffset="-${offset + segment1Length + segment2Length + segment5Length + circleGap}"
           shape-rendering="geometricPrecision"
         />
         <circle
@@ -528,7 +559,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           cy="40"
           r="${CIRCLE_RADIUS}"
           stroke-dasharray="${segment4Length} ${CIRCLE_CIRCUMFERENCE - segment4Length}"
-          stroke-dashoffset="-${offset + segment1Length + segment2Length + segment5Length + CIRCLE_GAP + segment3Length}"
+          stroke-dashoffset="-${offset + segment1Length + segment2Length + segment5Length + circleGap + segment3Length}"
           shape-rendering="geometricPrecision"
         />
       </svg>
@@ -838,7 +869,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const path: string = `M${this._entityStates.battery.isPresent ? 55 : 53},0 v${this._entityStates.grid.isPresent ? 15 : 17} c0,${this._entityStates.battery.isPresent ? "30 10,30 30,30" : "35 10,35 30,35"} h25`;
 
     return html`
-      <div class="lines"}>
+      <div class=${this._getLineCssClasses()}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-home-flow">
           ${renderLine(CssClass.Solar, path)}
           ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.Solar, animDuration)}` : ""}
@@ -857,7 +888,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const path: string = `M${this._entityStates.battery.isPresent ? 45 : 47},0 v15 c0,${this._entityStates.battery.isPresent ? "30 -10,30 -30,30" : "35 -10,35 -30,35"} h-20`;
 
     return html`
-      <div class="lines">
+      <div class=${this._getLineCssClasses()}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-grid-flow">
           ${renderLine(CssClass.GridExport, path)}
           ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.GridExport, animDuration)}` : ""}
@@ -874,7 +905,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     return html`
-      <div class="lines">
+      <div class=${this._getLineCssClasses()}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="solar-battery-flow" class="flat-line">
           ${renderLine(CssClass.BatteryExport, "M50,0 V100")}
           ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.BatteryExport, animDuration)}` : ""}
@@ -893,7 +924,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const path: string = `M0,${this._entityStates.battery.isPresent ? 50 : this._entityStates.solar.isPresent ? 56 : 53} H100`;
 
     return html`
-      <div class="lines">
+      <div class=${this._getLineCssClasses()}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="grid-home-flow" class="flat-line">
           ${renderLine(CssClass.GridImport, path)}
           ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.GridImport, animDuration)}` : ""}
@@ -912,7 +943,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const path: string = `M55,100 v-${this._entityStates.grid.isPresent ? 15 : 17} c0,-30 10,-30 30,-30 h20`;
 
     return html`
-      <div class="lines">
+      <div class=${this._getLineCssClasses()}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="battery-home-flow">
           ${renderLine(CssClass.BatteryImport, path)}
           ${value !== 0 ? html`${renderDot(DOT_SIZE_STANDARD, CssClass.BatteryImport, animDuration)}` : ""}
@@ -949,7 +980,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     return html`
-      <div class="lines">
+      <div class=${this._getLineCssClasses()}>
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" id="battery-grid-flow">
           <path id="grid-battery" class="${cssGridToBattery}" d="${path}" vector-effect="non-scaling-stroke" stroke-dasharray="${DASH_LENGTH}"/>
           <path id="battery-grid" class="${cssBatteryToGrid}" d="${path}" vector-effect="non-scaling-stroke" stroke-dasharray="0 ${DASH_LENGTH} 0"/>
@@ -958,5 +989,16 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         </svg>
       </div>
   `;
+  };
+
+  //================================================================================================================================================================================//
+
+  private _getLineCssClasses = (): string => {
+    return "lines" +
+      (this._entityStates.battery.isPresent
+        ? " high"
+        //        : this._individual1.isPresent && this._individual2.isPresent
+        //        ? " individual1-individual2"
+        : "");
   };
 }
