@@ -1,17 +1,18 @@
 export const CIRCLE_SIZE: number = 80;
 export const CIRCLE_STROKE_WIDTH: number = 2;
 export const CIRCLE_STROKE_WIDTH_SEGMENTS: number = CIRCLE_STROKE_WIDTH * 2;
+
 export const CIRCLE_RADIUS: number = (CIRCLE_SIZE - CIRCLE_STROKE_WIDTH_SEGMENTS) / 2;
 export const CIRCLE_CIRCUMFERENCE: number = CIRCLE_RADIUS * 2 * Math.PI;
 export const CIRCLE_CENTRE: number = CIRCLE_SIZE / 2;
-
-export const ROW_SPACING: number = 30;
-export const COL_SPACING: number = CIRCLE_SIZE + 50;
+export const ROW_SPACING: number = CIRCLE_SIZE * 3 / 8;
+export const COL_SPACING: number = CIRCLE_SIZE * 13 / 8;
 
 // TODO: where does this really come from?
 export const TEXT_LINE_HEIGHT: number = 19.2;
 
 export const LINE_SCALE_HORIZONTAL: number = 103;
+export const LINE_SCALE_VERTICAL: number = 106;
 
 export const CARD_NAME: string = "energy-flow-card-ext";
 export const DEVICE_CLASS_ENERGY = "energy";

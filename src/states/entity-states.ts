@@ -104,29 +104,38 @@ export class EntityStates {
     // not add up to the same value.  When this happens, while we still want to return the net energy for display, we need to rescale the flows so that the animation and
     // circles will look sensible.
     const toHome: number = states.flows.batteryToHome + states.flows.gridToHome + states.flows.solarToHome;
-    let scale: number = states.home / toHome;
 
-    if (scale > 0) {
-      states.flows.batteryToHome *= scale;
-      states.flows.gridToHome *= scale;
-      states.flows.solarToHome *= scale;
+    if (toHome > 0) {
+      const scale: number = states.home / toHome;
+
+      if (scale > 0) {
+        states.flows.batteryToHome *= scale;
+        states.flows.gridToHome *= scale;
+        states.flows.solarToHome *= scale;
+      }
     }
 
     // and similar for the exports
     const toGrid: number = states.flows.batteryToGrid + states.flows.solarToGrid;
-    scale = states.gridExport / toGrid || 0;
 
-    if (scale > 0) {
-      states.flows.batteryToGrid *= scale;
-      states.flows.solarToGrid *= scale;
+    if (toGrid > 0) {
+      const scale = states.gridExport / toGrid;
+
+      if (scale > 0) {
+        states.flows.batteryToGrid *= scale;
+        states.flows.solarToGrid *= scale;
+      }
     }
 
     const toBattery: number = states.flows.gridToBattery + states.flows.solarToBattery;
-    scale = states.batteryExport / toBattery || 0;
 
-    if (scale > 0) {
-      states.flows.gridToBattery *= scale;
-      states.flows.solarToBattery *= scale;
+    if (toBattery > 0) {
+      const scale = states.batteryExport / toBattery;
+
+      if (scale > 0) {
+        states.flows.gridToBattery *= scale;
+        states.flows.solarToBattery *= scale;
+      }
     }
 
     states.largestElectricValue = Math.max(
@@ -435,6 +444,8 @@ export class EntityStates {
 
         if (this.lowCarbon.isPresent && this._co2data) {
           this.grid.state.highCarbon = this._toWattHours("kWh", Object.values(this._co2data).reduce((sum, a) => sum + a, 0));
+        } else {
+          this.grid.state.highCarbon = this.grid.state.import;
         }
 
         this.home.state.fromGrid = gridToHome;

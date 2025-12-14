@@ -3,24 +3,19 @@ BUGS
 
 Battery: if either Import or Export is missing, this should be treated as a warning
 
-If no grid is present, low-carbon should not be shown
-
-Should be possible to hide low-carbon even if it has a config
-
-Investigate why two dot radii are needed - one for the main flows and one for the low-carbon/gas/etc!
-
 The 'multi entity' picker is sizing itself to the full width of its entity's name, should be constrained
   - HASS bug
-
-Reinstate the -ve coords for the lines, they are required so that the dots don't just vanish!
-  - and presumably they should extend at both ends?
 
 Power-outage is calculating its state up-front, rather than live as-needed (see GridState)
   - also needs implementing in the new grid render method
 
+If no grid import is present, low-carbon should be hidden regardless
 
+If there are no exports to a Node, don't display its export state
+  - logically, the export should be excluded from the flow calcs, too
 
-
+If there are no imports from a Node, don't display its import state
+  - logically, the import should be excluded from the flow calcs, too
 
 
 

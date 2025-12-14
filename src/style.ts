@@ -31,11 +31,11 @@ export const styles: CSSResult = css`
     bottom: calc(${px(CIRCLE_SIZE + TEXT_LINE_HEIGHT)} + var(--ha-space-4));
   }
   .lines svg {
-    width: var(--lines-svg-curved-line-width);
-    height: var(--lines-svg-curved-line-height);
-    top: var(--lines-svg-curved-line-top);
+    width: var(--lines-svg-width);
+    height: var(--lines-svg-height);
     max-width: ${px(CIRCLE_SIZE + COL_SPACING * 2)};
     position: relative;
+    align-self: center;
   }
 
   .row {
@@ -79,6 +79,7 @@ export const styles: CSSResult = css`
     position: relative;
     text-decoration: none;
     color: var(--primary-text-color);
+    background-color: var(--card-background-color);
   }
   .hidden-circle {
     border-width: 0;
@@ -114,7 +115,10 @@ export const styles: CSSResult = css`
     height: 100%;
     top: 0;
     left: 0;
-    z-index: -1;
+  }
+
+  span {
+    z-index: 2;
   }
 
   span.secondary-info {

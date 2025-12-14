@@ -5,7 +5,7 @@ import { CIRCLE_CENTRE } from "@/const";
 import { CssClass } from "@/enums";
 
 const INTER_GROUP_ARC: number = 7.5;
-const INTER_SEGMENT_ARC: number = INTER_GROUP_ARC / 2;
+const INTER_SEGMENT_ARC: number = INTER_GROUP_ARC / 3;
 
 //================================================================================================================================================================================//
 
@@ -19,7 +19,7 @@ export const renderDot = (size: number, cssClass: string, duration: number, reve
   return svg`
       <circle r="${size}" class="${cssClass}" vector-effect="non-scaling-stroke">
         <animateMotion dur="${duration}s" repeatCount="indefinite" keyPoints="${reverseDirection ? "1; 0" : "0; 1"}" keyTimes="0; 1" calcMode="linear">
-          <mpath xlink: href = "#${pathRef ?? cssClass}"/>
+          <mpath xlink: href="#${pathRef ?? cssClass}"/>
         </animateMotion>
       </circle>
       `;
