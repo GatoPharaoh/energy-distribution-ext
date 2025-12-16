@@ -1,4 +1,4 @@
-import { CSSResult, html, LitElement, PropertyValues, svg, TemplateResult } from "lit";
+import { CSSResult, html, LitElement, PropertyValues, TemplateResult } from "lit";
 import { formatNumber, HomeAssistant } from "custom-card-helpers";
 import { Decimal } from "decimal.js";
 import { customElement, property, state } from "lit/decorators.js";
@@ -13,7 +13,7 @@ import { SecondaryInfoState } from "@/states/secondary-info";
 import { States, Flows } from "@/states";
 import { EntityStates } from "@/states/entity-states";
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
-import { ColourMode, DisplayMode, DotsMode, EntityType, LowCarbonType, InactiveLinesMode, DefaultValues, UnitPosition, UnitPrefixes, CssClass, EnergyUnits } from "@/enums";
+import { ColourMode, DisplayMode, DotsMode, LowCarbonType, InactiveLinesMode, DefaultValues, UnitPosition, UnitPrefixes, CssClass, EnergyUnits } from "@/enums";
 import { HomeState } from "@/states/home";
 import { LowCarbonState } from "@/states/low-carbon";
 import { SingleValueState, ValueState } from "@/states/state";
@@ -22,8 +22,8 @@ import { CARD_NAME, CIRCLE_RADIUS, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY, D
 import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, PowerOutageOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, BatteryConfig, GridConfig } from "@/config";
 import { setDualValueNodeDynamicStyles, setDualValueNodeStaticStyles, setHomeNodeDynamicStyles, setHomeNodeStaticStyles, setSingleValueNodeStyles } from "@/ui-helpers/styles";
 import { GasState } from "@/states/gas";
-import { renderDot, renderLine, renderSegmentedCircle } from "@/ui-helpers/renderers";
-import { SegmentGroup } from "@/ui-helpers";
+import { renderFlowLines, renderSegmentedCircle } from "@/ui-helpers/renderers";
+import { AnimDurations, FlowLine, SegmentGroup } from "@/ui-helpers";
 
 interface RegisterCardParams {
   type: string;
@@ -50,8 +50,6 @@ registerCustomCard({
   name: "Energy Flow Card Extended",
   description: "A custom card for displaying energy flow in Home Assistant. Inspired by the official Energy Distribution Card and Energy Flow Card Plus.",
 });
-
-const DASH_LENGTH: number = 25;
 
 //================================================================================================================================================================================//
 
@@ -85,6 +83,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _solarGridPath: string = "";
   private _batteryHomePath: string = "";
   private _batteryGridPath: string = "";
+  private _gridBatteryPath: string = "";
 
   private _entityStates!: EntityStates;
   private _previousDur: { [name: string]: number } = {};
@@ -187,7 +186,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const electricUnits: string | undefined = this._energyUnitPrefixes === UnitPrefixes.HASS ? this._calculateEnergyUnits(new Decimal(states.largestElectricValue)) : undefined;
     const totalLines = flows.solarToHome + flows.solarToGrid + flows.solarToBattery + flows.gridToHome + flows.gridToBattery + flows.batteryToHome + flows.batteryToGrid;
 
-    const newDur = {
+    const durations: AnimDurations = {
       batteryToGrid: this._circleRate(flows.batteryToGrid ?? 0, totalLines),
       batteryToHome: this._circleRate(flows.batteryToHome ?? 0, totalLines),
       gridToHome: this._circleRate(flows.gridToHome, totalLines),
@@ -201,13 +200,13 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     ["batteryGrid", "batteryToHome", "gridToHome", "solarToBattery", "solarToGrid", "solarToHome"].forEach(flowName => {
       const flowSVGElement = this[`${flowName}Flow`] as SVGSVGElement;
 
-      if (flowSVGElement && this._previousDur[flowName] && this._previousDur[flowName] !== newDur[flowName]) {
+      if (flowSVGElement && this._previousDur[flowName] && this._previousDur[flowName] !== durations[flowName]) {
         flowSVGElement.pauseAnimations();
-        flowSVGElement.setCurrentTime(flowSVGElement.getCurrentTime() * (newDur[flowName] / this._previousDur[flowName]));
+        flowSVGElement.setCurrentTime(flowSVGElement.getCurrentTime() * (durations[flowName] / this._previousDur[flowName]));
         flowSVGElement.unpauseAnimations();
       }
 
-      this._previousDur[flowName] = newDur[flowName];
+      this._previousDur[flowName] = durations[flowName];
     });
 
     return html`
@@ -216,14 +215,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
         <!-- flow lines -->
         <div class=${this._getLineCssClasses()}>
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-            ${this._renderSolarToHomeLine(flows.solarToHome, newDur.solarToHome)}
-            ${this._renderSolarToGridLine(flows.solarToGrid, newDur.solarToGrid)}
-            ${this._renderSolarToBatteryLine(flows.solarToBattery, newDur.solarToBattery)}
-            ${this._renderGridToHomeLine(flows.gridToHome, newDur.gridToHome)}
-            ${this._renderBatteryToHomeLine(flows.batteryToHome, newDur.batteryToHome)}
-            ${this._renderBatteryGridLine(flows.batteryToGrid, flows.gridToBattery, newDur.batteryToGrid, newDur.gridToBattery)}
-          </svg>
+          ${this._renderFlowLines(flows, durations)}
         </div>
 
         <!-- top row -->
@@ -736,148 +728,100 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _renderIndividualCircleAtTop = (type: EntityType, entity: ValueState, state: number, secondaryState: number, animDuration: number): TemplateResult => {
-    return html`
-      <div class="circle-container ${type}">
-        <span class="label">${entity.name}</span>
-        <div class="circle" @click=${this._handleClick(entity.firstMainEntity)} @keyDown=${this._handleKeyDown(entity.firstMainEntity)}>
-          ${this._renderSecondarySpan(entity.secondary, secondaryState)}
-          <ha-icon class="entity-icon" .icon=${entity.icon}></ha-icon>
-          ${this._showZeroStates || state != 0 ? html`<span class=" ${type}">${this._renderEnergyState(state)}</span>` : ""}
-        </div>
-        ${this._showLine(state)
-        ? html`
-          <svg width="80" height="30">
-            ${renderLine(type, "M40 30 V-30")}
-            ${state != 0 ? html`${renderDot(this._dotRadius, type, Math.abs(animDuration), animDuration < 0)}` : ""}
-          </svg>
-        `
-        : ""}
-      </div>
-    `;
-  };
+  private _renderFlowLines = (flows: Flows, durations: AnimDurations): TemplateResult => {
+    const lines: FlowLine[] = [];
 
-  //================================================================================================================================================================================//
-
-  private _renderIndividualCircleAtBottom = (type: EntityType, entity: ValueState, state: number, animDuration: number): TemplateResult => {
-    return html`
-      <div class="circle-container ${type}">
-        ${this._showLine(state)
-        ? html`
-          <svg width="80" height="30">
-            ${renderLine(type, "M40 0 V30")}
-            ${state != 0 ? html`${renderDot(this._dotRadius, type, Math.abs(animDuration), animDuration < 0)}` : ""}
-          </svg>
-        `
-        : ""}
-        <div class="circle" @click=${this._handleClick(entity.firstMainEntity)} @keyDown=${this._handleKeyDown(entity.firstMainEntity)}>
-          ${this._renderSecondarySpan(entity.secondary, 0)}
-          <ha-icon class="entity-icon" .icon=${entity.icon}></ha-icon>
-          ${this._showZeroStates || state != 0 ? html`<span class=" ${type}">${this._renderEnergyState(state)}</span>` : ""}
-        </div>
-        <span class="label">${entity.name}</span>
-      </div>
-    `;
-  };
-
-  //================================================================================================================================================================================//
-
-  private _renderSolarToHomeLine = (value: number, animDuration: number): TemplateResult => {
-    if (!this._entityStates.solar.isPresent || !this._showLine(value ?? 0)) {
-      return html``;
+    if (this._entityStates.solar.isPresent) {
+      lines.push({
+        cssLine: CssClass.Solar,
+        cssDot: CssClass.Solar,
+        path: this._solarHomePath,
+        active: () => flows.solarToHome > 0,
+        animDuration: durations.solarToHome
+      });
     }
 
-    return html`
-      ${renderLine(CssClass.Solar, this._solarHomePath)}
-      ${value !== 0 ? html`${renderDot(this._dotRadius, CssClass.Solar, animDuration)}` : ""}
-    `;
-  };
-
-  //================================================================================================================================================================================//
-
-  private _renderSolarToGridLine = (value: number, animDuration: number): TemplateResult => {
-    if (!this._entityStates.solar.isPresent || !this._entityStates.grid.firstReturnEntity || !this._showLine(value ?? 0)) {
-      return html``;
+    if (this._entityStates.solar.isPresent && this._entityStates.grid.firstReturnEntity) {
+      lines.push({
+        cssLine: CssClass.GridExport,
+        cssDot: CssClass.GridExport,
+        path: this._solarGridPath,
+        active: () => flows.solarToGrid > 0,
+        animDuration: durations.solarToGrid
+      });
     }
 
-    return html`
-      ${renderLine(CssClass.GridExport, this._solarGridPath)}
-      ${value !== 0 ? html`${renderDot(this._dotRadius, CssClass.GridExport, animDuration)}` : ""}
-    `;
-  };
-
-  //================================================================================================================================================================================//
-
-  private _renderSolarToBatteryLine = (value: number, animDuration: number): TemplateResult => {
-    if (!this._entityStates.solar.isPresent || !this._entityStates.battery.isPresent || !this._showLine(value ?? 0)) {
-      return html``;
+    if (this._entityStates.solar.isPresent && this._entityStates.battery.firstReturnEntity) {
+      lines.push({
+        cssLine: CssClass.BatteryExport,
+        cssDot: CssClass.BatteryExport,
+        path: "M50,0 V100",
+        active: () => flows.solarToBattery > 0,
+        animDuration: durations.solarToBattery
+      });
     }
 
-    return html`
-      ${renderLine(CssClass.BatteryExport, "M50,0 V100")}
-      ${value !== 0 ? html`${renderDot(this._dotRadius, CssClass.BatteryExport, animDuration)}` : ""}
-    `;
-  };
-
-  //================================================================================================================================================================================//
-
-  private _renderGridToHomeLine = (value: number, animDuration: number): TemplateResult => {
-    if (!this._entityStates.grid.isPresent || !this._showLine(value ?? 0)) {
-      return html``;
+    if (this._entityStates.grid.firstMainEntity) {
+      lines.push({
+        cssLine: CssClass.GridImport,
+        cssDot: CssClass.GridImport,
+        path: "M0,50 H100",
+        active: () => flows.gridToHome > 0,
+        animDuration: durations.gridToHome
+      });
     }
 
-    return html`
-      ${renderLine(CssClass.GridImport, "M0,50 H100")}
-      ${value !== 0 ? html`${renderDot(this._dotRadius, CssClass.GridImport, animDuration)}` : ""}
-    `;
-  };
-
-  //================================================================================================================================================================================//
-
-  private _renderBatteryToHomeLine = (value: number, animDuration: number): TemplateResult => {
-    if (!this._entityStates.battery.isPresent || !this._showLine(value ?? 0)) {
-      return html``;
+    if (this._entityStates.battery.firstMainEntity) {
+      lines.push({
+        cssLine: CssClass.BatteryImport,
+        cssDot: CssClass.BatteryImport,
+        path: this._batteryHomePath,
+        active: () => flows.batteryToHome > 0,
+        animDuration: durations.batteryToHome
+      });
     }
 
-    return html`
-      ${renderLine(CssClass.BatteryImport, this._batteryHomePath)}
-      ${value !== 0 ? html`${renderDot(this._dotRadius, CssClass.BatteryImport, animDuration)}` : ""}
-    `;
-  };
+    if (this._entityStates.battery.firstMainEntity && this._entityStates.grid.firstReturnEntity) {
+      let cssGridToBattery: CssClass;
+      let cssBatteryToGrid: CssClass;
+      let cssGridToBatteryDot: CssClass = CssClass.BatteryExport;
+      let cssBatteryToGridDot: CssClass = CssClass.GridExport;
 
-  //================================================================================================================================================================================//
+      if (flows.gridToBattery === 0 && flows.batteryToGrid === 0) {
+        cssGridToBattery = cssBatteryToGrid = CssClass.GreyedOut;
+      } else if (this._useHassColours) {
+        cssGridToBattery = cssBatteryToGrid = flows.batteryToGrid !== 0 ? CssClass.GridExport : CssClass.GridImport;
+        cssGridToBatteryDot = CssClass.GridImport;
+      } else if (flows.gridToBattery === 0) {
+        cssGridToBattery = cssBatteryToGrid = CssClass.GridExport;
+      } else if (flows.batteryToGrid === 0) {
+        cssGridToBattery = cssBatteryToGrid = CssClass.BatteryExport;
+      } else {
+        cssGridToBattery = CssClass.BatteryExport;
+        cssBatteryToGrid = CssClass.GridExport;
+      }
 
-  private _renderBatteryGridLine = (batteryToGrid: number, gridToBattery: number, animDurationBatteryToGrid: number, animDurationGridToBattery: number): TemplateResult => {
-    if (!this._entityStates.grid.isPresent || !this._entityStates.battery.isPresent || !this._showLine(Math.max(gridToBattery, batteryToGrid) ?? 0)) {
-      return html``;
+      // TODO: if only one direction is active, we should not add the inactive line to the array at all, and the active line should not of course be dashed
+
+      lines.push({
+        cssLine: cssGridToBattery,
+        cssDot: cssGridToBatteryDot,
+        path: this._gridBatteryPath,
+        active: () => flows.gridToBattery > 0,
+        animDuration: durations.gridToBattery
+      });
+
+      lines.push({
+        cssLine: cssBatteryToGrid + " dashed",
+        cssDot: cssBatteryToGridDot,
+        path: this._batteryGridPath,
+        active: () => flows.batteryToGrid > 0,
+        animDuration: durations.batteryToGrid
+      });
     }
 
-    let cssGridToBattery: CssClass;
-    let cssBatteryToGrid: CssClass;
-    let cssGridToBatteryDot: CssClass = CssClass.BatteryExport;
-    let cssBatteryToGridDot: CssClass = CssClass.GridExport;
-
-    if (gridToBattery === 0 && batteryToGrid === 0) {
-      cssGridToBattery = cssBatteryToGrid = CssClass.Unknown;
-    } else if (this._useHassColours) {
-      cssGridToBattery = cssBatteryToGrid = batteryToGrid !== 0 ? CssClass.GridExport : CssClass.GridImport;
-      cssGridToBatteryDot = CssClass.GridImport;
-    } else if (gridToBattery === 0) {
-      cssGridToBattery = cssBatteryToGrid = CssClass.GridExport;
-    } else if (batteryToGrid === 0) {
-      cssGridToBattery = cssBatteryToGrid = CssClass.BatteryExport;
-    } else {
-      cssGridToBattery = CssClass.BatteryExport;
-      cssBatteryToGrid = CssClass.GridExport;
-    }
-
-    return svg`
-      <path id="grid-battery" class="${cssGridToBattery}" d="${this._batteryGridPath}" vector-effect="non-scaling-stroke" stroke-dasharray="${DASH_LENGTH}"></path>
-      <path id="battery-grid" class="${cssBatteryToGrid}" d="${this._batteryGridPath}" vector-effect="non-scaling-stroke" stroke-dasharray="0 ${DASH_LENGTH} 0"></path>
-      ${gridToBattery !== 0 ? html`${renderDot(this._dotRadius, cssGridToBatteryDot, animDurationGridToBattery, true, "grid-battery")}` : ""}
-      ${batteryToGrid !== 0 ? html`${renderDot(this._dotRadius, cssBatteryToGridDot, animDurationBatteryToGrid, false, "grid-battery")}` : ""}
-    `;
-  };
+    return renderFlowLines(this._config, flows, lines, this._dotRadius);
+  }
 
   //================================================================================================================================================================================//
 
@@ -904,10 +848,11 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         const line52_5 = 50 + FLOW_LINE_SPACING / 2 * linesDivScale;
         const line55 = 50 + FLOW_LINE_SPACING * linesDivScale;
 
-        this._solarHomePath = `M${this._entityStates.battery.isPresent ? line55 : this._entityStates.grid.isPresent ? line52_5 : 50},0 v${this._entityStates.grid.isPresent ? line15 : this._entityStates.battery.isPresent ? line17_5 : 20} c0,30 10,30 30,30 h25`;
-        this._solarGridPath = `M${this._entityStates.battery.isPresent ? line45 : line47_5},0 v${line15} c0,30 -10,30 -30,30 h-25`;
-        this._batteryHomePath = `M${this._entityStates.solar.isPresent ? line55 : this._entityStates.grid.isPresent ? line52_5 : 50},100 v-${this._entityStates.grid.isPresent ? line15 : this._entityStates.solar.isPresent ? line17_5 : 20} c0,-30 10,-30 30,-30 h25`;
-        this._batteryGridPath = `M${this._entityStates.solar.isPresent ? line45 : line47_5}, 100 v-${line15} c0,-30 -10,-30 -30,-30 h-25`;
+        this._solarHomePath = `M${this._entityStates.battery.isPresent ? line55 : this._entityStates.grid.isPresent ? line52_5 : 50},0 v${this._entityStates.grid.isPresent ? line15 : this._entityStates.battery.isPresent ? line17_5 : 20} c0,30 10,30 30,30 h20`;
+        this._solarGridPath = `M${this._entityStates.battery.isPresent ? line45 : line47_5},0 v${line15} c0,30 -10,30 -30,30 h-20`;
+        this._batteryHomePath = `M${this._entityStates.solar.isPresent ? line55 : this._entityStates.grid.isPresent ? line52_5 : 50},100 v-${this._entityStates.grid.isPresent ? line15 : this._entityStates.solar.isPresent ? line17_5 : 20} c0,-30 10,-30 30,-30 h20`;
+        this._batteryGridPath = `M${this._entityStates.solar.isPresent ? line45 : line47_5},100 v-${line15} c0,-30 -10,-30 -30,-30 h-${line15}`;
+        this._gridBatteryPath = `M0,${line55} h${this._entityStates.solar.isPresent ? line15 : line17_5} c20,0 30,0 30,30 v${line15}`;
 
         this._dotRadius = DOT_RADIUS * linesDivScale;
       }

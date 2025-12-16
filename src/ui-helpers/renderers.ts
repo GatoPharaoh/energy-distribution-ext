@@ -1,29 +1,60 @@
 import { html, TemplateResult, svg } from "lit";
 import { repeat } from "lit/directives/repeat.js";
-import { Segment, SegmentGroup } from ".";
+import { FlowLine, Segment, SegmentGroup } from ".";
 import { CIRCLE_CENTRE } from "@/const";
-import { CssClass } from "@/enums";
+import { CssClass, DotsMode, InactiveLinesMode } from "@/enums";
+import { EditorPages, EnergyFlowCardExtConfig, FlowsOptions, AppearanceOptions } from "@/config";
+import { Flows } from "@/states";
 
 const INTER_GROUP_ARC: number = 7.5;
 const INTER_SEGMENT_ARC: number = INTER_GROUP_ARC / 3;
 
 //================================================================================================================================================================================//
 
-export const renderLine = (id: string, path: string): TemplateResult => {
-  return svg`<path id="${id}" class="${id}" d="${path}" vector-effect="non-scaling-stroke"/>`;
-};
+export const renderFlowLines = (config: EnergyFlowCardExtConfig, flows: Flows, lines: FlowLine[], dotRadius: number): TemplateResult => {
+  const inactiveLinesMode: InactiveLinesMode = config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Inactive_Lines] || InactiveLinesMode.Normal;
+  const animationEnabled: boolean = config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Animation] !== DotsMode.Off;
 
-//================================================================================================================================================================================//
+  return html`
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+    ${repeat(
+    lines,
+    _ => undefined,
+    (_, index) => {
+      const line: FlowLine = lines[index];
+      const isActive: boolean = line.active(config, flows);
+      let cssLine: string = line.cssLine;
 
-export const renderDot = (size: number, cssClass: string, duration: number, reverseDirection: boolean = false, pathRef: string | undefined = undefined): TemplateResult => {
-  return svg`
-      <circle r="${size}" class="${cssClass}" vector-effect="non-scaling-stroke">
-        <animateMotion dur="${duration}s" repeatCount="indefinite" keyPoints="${reverseDirection ? "1; 0" : "0; 1"}" keyTimes="0; 1" calcMode="linear">
-          <mpath href="#${pathRef ?? cssClass}"/>
-        </animateMotion>
-      </circle>
-      `;
-};
+      if (!isActive) {
+        switch (inactiveLinesMode) {
+          case InactiveLinesMode.Dimmed:
+            cssLine += " dimmed";
+            break;
+
+          case InactiveLinesMode.Greyed:
+            cssLine = CssClass.GreyedOut;
+            break;
+
+          case InactiveLinesMode.Hidden:
+            return ``;
+        }
+      }
+
+      return svg`
+          <path class="${cssLine}" d="${line.path}"></path>
+          ${animationEnabled && isActive ?
+          svg`
+            <circle r="${dotRadius}" class="${line.cssDot}">
+              <animateMotion path="${line.path}" dur="${line.animDuration}s" repeatCount="indefinite" keyPoints="${false ? "1; 0" : "0; 1"}" keyTimes="0; 1" calcMode="linear"/>
+            </circle>
+          `
+          : ""}
+        `;
+    }
+  )}
+    </svg>
+  `;
+}
 
 //================================================================================================================================================================================//
 
@@ -64,7 +95,7 @@ export function renderSegmentedCircle(segmentGroups: SegmentGroup[], radius: num
       if (activeSegments === 0) {
         return svg`
           <circle
-            class="${CssClass.Unknown}"
+            class="${CssClass.GreyedOut}"
             cx = "${CIRCLE_CENTRE}"
             cy = "${CIRCLE_CENTRE}"
             r = "${radius}"

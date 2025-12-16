@@ -1,5 +1,5 @@
 import { css, CSSResult, unsafeCSS } from 'lit';
-import { CIRCLE_CIRCUMFERENCE, CIRCLE_SIZE, CIRCLE_STROKE_WIDTH, CIRCLE_STROKE_WIDTH_SEGMENTS, COL_SPACING, DOT_RADIUS, ROW_SPACING, TEXT_LINE_HEIGHT } from '@/const';
+import { CIRCLE_CIRCUMFERENCE, CIRCLE_SIZE, CIRCLE_STROKE_WIDTH, CIRCLE_STROKE_WIDTH_SEGMENTS, COL_SPACING, DOT_RADIUS, FLOW_DASH_LENGTH, ROW_SPACING, TEXT_LINE_HEIGHT } from '@/const';
 
 const px = (value: number): CSSResult => { return css`${unsafeCSS(value + 'px')}`; };
 
@@ -98,12 +98,14 @@ export const styles: CSSResult = css`
     white-space: nowrap;
     overflow: hidden;
   }
-  line,
+
   path {
     stroke: var(--disabled-text-color);
     stroke-width: 1;
     fill: none;
+    vector-effect: non-scaling-stroke;
   }
+
   .circle svg {
     position: absolute;
     fill: none;
@@ -221,8 +223,14 @@ export const styles: CSSResult = css`
     color: var(--text-battery-export-color);
   }
 
-  path.unknown {
+  path.greyed-out {
     stroke: var(--disabled-text-color);
+  }
+  path.dimmed {
+    opacity: 50%;
+  }
+  path.dashed {
+    stroke-dasharray: ${FLOW_DASH_LENGTH};
   }
   path.solar {
     stroke: var(--circle-solar-color);
@@ -240,7 +248,7 @@ export const styles: CSSResult = css`
     stroke: var(--text-battery-import-color);
   }
 
-  circle.unknown {
+  circle.greyed-out {
     stroke: var(--disabled-text-color);
   }
   circle.non-fossil {

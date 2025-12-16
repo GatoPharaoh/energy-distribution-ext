@@ -1,6 +1,19 @@
 BUGS
 ----
 
+HASS emulation:
+  - colours:
+    - the 'inactive' colour needs to match
+  - dots:
+    - too large
+  - flows:
+    - line curvature too large
+
+Layout:
+  - eliminate empty columns as well as rows!
+  - find out about setting a min width
+  - insert spacers between columns
+
 Battery: if either Import or Export is missing, this should be treated as a warning
 
 The 'multi entity' picker is sizing itself to the full width of its entity's name, should be constrained

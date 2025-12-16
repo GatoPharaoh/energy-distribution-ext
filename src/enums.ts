@@ -17,7 +17,7 @@ export enum CssClass {
   // for some reason HASS calls its css classes 'non-fossil'
   LowCarbon = "non-fossil",
   Solar = "solar",
-  Unknown = "unknown"
+  GreyedOut = "greyed-out"
 }
 
 export enum DefaultValues {
@@ -65,21 +65,6 @@ export enum ColourMode {
   Battery = "battery",
   Gas = "gas",
   Custom = "custom"
-}
-
-export enum EntityType {
-  Home = "home",
-  HomeSecondary = "homeSecondary",
-  Battery = "battery",
-  Battery_Secondary = "batterySecondary",
-  Device = "device",
-  Gas = "gas",
-  Grid = "grid",
-  Grid_Secondary = "gridSecondary",
-  Solar = "solar",
-  Solar_Secondary = "solarSecondary",
-  LowCarbon = "low-carbon",
-  LowCarbon_Secondary = "nonFossilSecondary"
 }
 
 export namespace ColourMode {

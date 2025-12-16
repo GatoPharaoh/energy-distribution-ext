@@ -3,6 +3,7 @@ export const CIRCLE_STROKE_WIDTH: number = 2;
 export const CIRCLE_STROKE_WIDTH_SEGMENTS: number = CIRCLE_STROKE_WIDTH * 2;
 
 export const DOT_RADIUS: number = 4.5;
+export const FLOW_DASH_LENGTH: number = 25;
 export const FLOW_LINE_SPACING: number = DOT_RADIUS * 2 + 5;
 
 
