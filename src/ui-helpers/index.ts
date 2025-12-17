@@ -14,7 +14,7 @@ export interface FlowLine {
   cssLine: string;
   cssDot: string;
   path: string;
-  active: (config: EnergyFlowCardExtConfig, flows: Flows) => boolean;
+  active: boolean;
   animDuration: number;
 }
 
@@ -27,6 +27,7 @@ export interface AnimDurations {
   solarToGrid: number;
   solarToHome: number;
   lowCarbon: number;
+  gas: number;
 
-  // TODO: gas, devices
+  // TODO: devices
 }

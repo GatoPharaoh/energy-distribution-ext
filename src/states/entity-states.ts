@@ -249,7 +249,7 @@ export class EntityStates {
 
     states.gasImport += this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.gas.mainEntities);
 
-    const highCarbonDelta: number = this.lowCarbon.isPresent ? gridImportDelta * Number(this.hass.states[this.lowCarbon.firstMainEntity!].state) / 100 : 0;
+    const highCarbonDelta: number = this.lowCarbon.isPresent ? gridImportDelta * Number(this.hass.states[this.lowCarbon.firstImportEntity!].state) / 100 : 0;
     states.highCarbon += highCarbonDelta;
 
     states.batterySecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.battery.secondary.mainEntities);
@@ -508,7 +508,7 @@ export class EntityStates {
       return;
     }
 
-    state.secondary.state = this._getEntityStates(this._secondaryStatistics!, state.secondary.firstMainEntity!, state.secondary.config?.[EntitiesOptions.Entities]?.[EntityOptions.Units]);
+    state.secondary.state = this._getEntityStates(this._secondaryStatistics!, state.secondary.firstImportEntity!, state.secondary.config?.[EntitiesOptions.Entities]?.[EntityOptions.Units]);
   }
 
   //================================================================================================================================================================================//
@@ -742,7 +742,7 @@ export class EntityStates {
       start_time: periodStart.toISOString(),
       end_time: periodEnd?.toISOString(),
       energy_statistic_ids: this.grid.mainEntities,
-      co2_statistic_id: this.lowCarbon.firstMainEntity,
+      co2_statistic_id: this.lowCarbon.firstImportEntity,
       period
     });
   };

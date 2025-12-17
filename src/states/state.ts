@@ -27,7 +27,7 @@ export abstract class SingleValueState extends ValueState {
 
 export abstract class DualValueState extends ValueState {
   public returnEntities?: string[]
-  public firstReturnEntity?: string;
+  public firstExportEntity?: string;
 
   protected constructor(hass: HomeAssistant, config: DualValueNodeConfig | undefined, defaultName: string, defaultIcon: string) {
     super(
@@ -38,7 +38,7 @@ export abstract class DualValueState extends ValueState {
       defaultIcon);
 
     this.returnEntities = filterPrimaryEntities(hass, config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids]);
-    this.firstReturnEntity = this.returnEntities.length !== 0 ? this.returnEntities[0] : undefined;
+    this.firstExportEntity = this.returnEntities.length !== 0 ? this.returnEntities[0] : undefined;
     this.isPresent = this.isPresent || this.returnEntities.length !== 0;
   }
 }

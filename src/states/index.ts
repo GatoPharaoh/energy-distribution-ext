@@ -38,12 +38,12 @@ export abstract class State {
   public isPresent: boolean;
   public icon: string;
   public mainEntities: string[];
-  public firstMainEntity?: string;
+  public firstImportEntity?: string;
 
   protected constructor(hass: HomeAssistant, config: any, mainEntities: string[] = [], defaultIcon: string) {
     this.mainEntities = mainEntities;
     this.isPresent = mainEntities.length !== 0;
-    this.firstMainEntity = this.isPresent ? mainEntities[0] : undefined;
+    this.firstImportEntity = this.isPresent ? mainEntities[0] : undefined;
     this.icon = config?.[EntitiesOptions.Overrides]?.[OverridesOptions.Icon] || defaultIcon;
   }
 }

@@ -4,14 +4,13 @@ import { FlowLine, Segment, SegmentGroup } from ".";
 import { CIRCLE_CENTRE } from "@/const";
 import { CssClass, DotsMode, InactiveLinesMode } from "@/enums";
 import { EditorPages, EnergyFlowCardExtConfig, FlowsOptions, AppearanceOptions } from "@/config";
-import { Flows } from "@/states";
 
 const INTER_GROUP_ARC: number = 7.5;
 const INTER_SEGMENT_ARC: number = INTER_GROUP_ARC / 3;
 
 //================================================================================================================================================================================//
 
-export const renderFlowLines = (config: EnergyFlowCardExtConfig, flows: Flows, lines: FlowLine[], dotRadius: number): TemplateResult => {
+export const renderFlowLines = (config: EnergyFlowCardExtConfig, lines: FlowLine[], dotRadius: number): TemplateResult => {
   const inactiveLinesMode: InactiveLinesMode = config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Inactive_Lines] || InactiveLinesMode.Normal;
   const animationEnabled: boolean = config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Animation] !== DotsMode.Off;
 
@@ -22,7 +21,7 @@ export const renderFlowLines = (config: EnergyFlowCardExtConfig, flows: Flows, l
     _ => undefined,
     (_, index) => {
       const line: FlowLine = lines[index];
-      const isActive: boolean = line.active(config, flows);
+      const isActive: boolean = line.active;
       let cssLine: string = line.cssLine;
 
       if (!isActive) {
@@ -36,7 +35,7 @@ export const renderFlowLines = (config: EnergyFlowCardExtConfig, flows: Flows, l
             break;
 
           case InactiveLinesMode.Hidden:
-            return ``;
+            return "";
         }
       }
 
@@ -45,7 +44,7 @@ export const renderFlowLines = (config: EnergyFlowCardExtConfig, flows: Flows, l
           ${animationEnabled && isActive ?
           svg`
             <circle r="${dotRadius}" class="${line.cssDot}">
-              <animateMotion path="${line.path}" dur="${line.animDuration}s" repeatCount="indefinite" keyPoints="${false ? "1; 0" : "0; 1"}" keyTimes="0; 1" calcMode="linear"/>
+              <animateMotion path="${line.path}" dur="${line.animDuration}s" repeatCount="indefinite" keyPoints="0; 1" keyTimes="0; 1" calcMode="linear"/>
             </circle>
           `
           : ""}
@@ -146,5 +145,4 @@ export function renderSegmentedCircle(segmentGroups: SegmentGroup[], radius: num
   )}
   </svg>
   `;
-
 }
