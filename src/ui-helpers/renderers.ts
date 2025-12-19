@@ -41,7 +41,7 @@ export const renderFlowLines = (config: EnergyFlowCardExtConfig, lines: FlowLine
           ${animationEnabled && isActive ?
           svg`
             <circle r="${DOT_RADIUS}" class="${line.cssDot}">
-              <animateMotion path="${line.path}" dur="${line.animDuration}s" repeatCount="indefinite" keyPoints="0; 1" keyTimes="0; 1" calcMode="linear"/>
+              <animateMotion path="${line.path}" dur="${line.animDuration}s" repeatCount="indefinite" calcMode="linear"/>
             </circle>
           `
           : ""}
@@ -83,9 +83,8 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
       let stateTotal: number = 0;
 
       group.segments.forEach(segment => {
-        stateTotal += segment.state;
-
         if (segment.state > 0) {
+          stateTotal += segment.state;
           activeSegments++;
         }
       });

@@ -126,10 +126,11 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
       [AppearanceOptions.Segment_Gaps]: false
     },
     [AppearanceOptions.Energy_Units]: {
-      [EnergyUnitsOptions.Unit_Prefixes]: UnitPrefixes.HASS,
+      [EnergyUnitsOptions.Unit_Prefixes]: UnitPrefixes.Unified,
       [EnergyUnitsOptions.Unit_Position]: UnitPosition.After_Space,
-      [EnergyUnitsOptions.Kwh_Display_Precision]: DefaultValues.KilowattHourDecimals,
-      [EnergyUnitsOptions.Mwh_Display_Precision]: DefaultValues.MegawattHourDecimals,
+      [EnergyUnitsOptions.Display_Precision_Under_10]: DefaultValues.DisplayPrecisionUnder10,
+      [EnergyUnitsOptions.Display_Precision_Under_100]: DefaultValues.DisplayPrecisionUnder100,
+      [EnergyUnitsOptions.Display_Precision_Default]: DefaultValues.DisplayPrecision,
       [EnergyUnitsOptions.Wh_Kwh_Threshold]: DefaultValues.WhkWhThreshold,
       [EnergyUnitsOptions.Kwh_Mwh_Threshold]: DefaultValues.KwhMwhThreshold
     },

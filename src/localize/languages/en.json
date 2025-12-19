@@ -51,13 +51,13 @@
     "energy_units": "Energy Units",
     "wh_kwh_threshold": "Wh/kWh threshold",
     "kwh_mwh_threshold": "kWh/MWh threshold",
-    "wh_display_precision": "Wh display precision",
-    "kwh_display_precision": "kWh display precision",
-    "mwh_display_precision": "MWh display precision",
+    "display_precision_under_10": "Display precision (<10)",
+    "display_precision_under_100": "Display precision (<100)",
+    "display_precision_default": "Display precision (100+)",
 
     "entity_id": "",
     "entity_ids": "",
-    "unit_prefixes": "Unit prefixes",
+    "unit_prefixes": "Electric unit prefixes",
     "unit_position": "Show units",
     "units": "Override units",
     "zero_threshold": "Threshold",
@@ -153,8 +153,8 @@
     "off": "Off"
   },
   "UnitPrefixes": {
-    "hass": "HASS",
-    "automatic": "Automatic"
+    "unified": "Unified",
+    "individual": "Individual"
   },
   "UnitPosition": {
     "after": "After value",

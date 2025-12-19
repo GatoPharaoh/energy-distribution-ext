@@ -232,8 +232,10 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
       switch (this._currentConfigPage) {
         case EditorPages.Battery:
         case EditorPages.Grid:
-          validatePrimaryEntities(this.hass, EntitiesOptions.Import_Entities, config?.[this._currentConfigPage]?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids], !!secondaryEntityId, errors);
-          validatePrimaryEntities(this.hass, EntitiesOptions.Export_Entities, config?.[this._currentConfigPage]?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids], false, errors);
+          const importEntityIds: string[] = config?.[this._currentConfigPage]?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids] || [];
+          const exportEntityIds: string[] = config?.[this._currentConfigPage]?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids] || [];
+          const entityIds: string[] = [...importEntityIds, ...exportEntityIds];
+          validatePrimaryEntities(this.hass, EntitiesOptions.Import_Entities, entityIds, !!secondaryEntityId, errors);
           break;
 
         case EditorPages.Gas:

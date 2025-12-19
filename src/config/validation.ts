@@ -17,8 +17,9 @@ const appearanceOptionsConfigStruct = object({
 const energyUnitsOptionsConfigStruct = object({
   [EnergyUnitsOptions.Unit_Prefixes]: optional(string()),
   [EnergyUnitsOptions.Unit_Position]: optional(string()),
-  [EnergyUnitsOptions.Kwh_Display_Precision]: optional(integer()),
-  [EnergyUnitsOptions.Mwh_Display_Precision]: optional(integer()),
+  [EnergyUnitsOptions.Display_Precision_Under_10]: optional(integer()),
+  [EnergyUnitsOptions.Display_Precision_Under_100]: optional(integer()),
+  [EnergyUnitsOptions.Display_Precision_Default]: optional(integer()),
   [EnergyUnitsOptions.Wh_Kwh_Threshold]: optional(number()),
   [EnergyUnitsOptions.Kwh_Mwh_Threshold]: optional(number())
 });

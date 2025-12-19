@@ -42,8 +42,9 @@ export enum AppearanceOptions {
 export enum EnergyUnitsOptions {
   Unit_Prefixes = "unit_prefixes",
   Unit_Position = "unit_position",
-  Kwh_Display_Precision = "kwh_display_precision",
-  Mwh_Display_Precision = "mwh_display_precision",
+  Display_Precision_Under_10 = "display_precision_under_10",
+  Display_Precision_Under_100 = "display_precision_under_100",
+  Display_Precision_Default = "display_precision_default",
   Wh_Kwh_Threshold = "wh_kwh_threshold",
   Kwh_Mwh_Threshold = "kwh_mwh_threshold"
 };
@@ -145,8 +146,9 @@ export interface AppearanceOptionsConfig {
 export interface EnergyUnitsConfig {
   [EnergyUnitsOptions.Unit_Prefixes]?: UnitPrefixes;
   [EnergyUnitsOptions.Unit_Position]?: UnitPosition;
-  [EnergyUnitsOptions.Kwh_Display_Precision]?: number;
-  [EnergyUnitsOptions.Mwh_Display_Precision]?: number;
+  [EnergyUnitsOptions.Display_Precision_Under_10]?: number;
+  [EnergyUnitsOptions.Display_Precision_Under_100]?: number;
+  [EnergyUnitsOptions.Display_Precision_Default]?: number;
   [EnergyUnitsOptions.Wh_Kwh_Threshold]?: number;
   [EnergyUnitsOptions.Kwh_Mwh_Threshold]?: number;
 };

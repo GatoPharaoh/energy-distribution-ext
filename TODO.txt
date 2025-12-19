@@ -3,49 +3,62 @@ TODO
 
 Code:
   - rename to 'Energy Distribution Extended' (energy-distribution-ext) for consistency with the built-in card
+  - power-outage is calculating its state up-front, rather than live as-needed (see GridState)
+    - also needs implementing in the new grid render method
 
 Animation:
   - work out a new 'dynamic' algo (and rename this to 'Linear')
+    - this may not be required if log-scaling works out, in which case the option reduces to 'on/off' - no 'HASS' option required, and the other settings can be dropped
+  - if it's not possible to specify the speed directly, calculate the length of each line and use that to work out the duration
 
 Interaction:
   - clicking on the low-carbon circle should do the same as the HASS card
 
 Settings:
-  - battery: if either Import or Export is missing, this should be treated as a warning
-  - The 'multi entity' picker is sizing itself to the full width of its entity's name, should be constrained
-    - HASS bug
-  - linear/log scale flag for circle segments (in Appearance)
-
-  - 'Gas' option in Home: 'Do not show', 'Single ring', 'Dual ring', 'Split ring'
-  - 'Electric devices' flag in Home: when true, they are added/subtracted from the Home electric total
-  - for the dual-value nodes, add 'Dual' and 'Split' options
-  - for the Home node, perhaps have the option to show Gas and Electric as separate figures?
-    - this would allow the Gas to be added to the circle without it overpowering the value
-    - could even display all three figures, if the circle were made larger
-    - producing devices are expected to be electric, not gas, so they won't be a problem
-    - each value will require an icon (same idea as the secondaries, use the icons from Grid/Gas)
-    - the 'include in calculation' could be moved onto Home, rather than being per-device
-      - separate options for 'electric' and 'gas'?
-        - 'electric' is probably just whether to include Devices
-        - 'gas' would be 'hidden', 'displayed', 'include in total'...or something
+  - Appearance:
+    - Flows:
+      - linear/log scale flag
+        - used for circle segments and dot animations
+        - could also perhaps be used (for Home only) to control the relative sizes of the groups when in split-ring mode
+  - Home:
+    - gas producers display mode:
+      - do not show
+      - include in total
+      - show separately
+      - auto
+        - threshold, above which it switches from 'include' to 'separately'
+    - electric producers
+      - include in total
+    - consumers
+      - subtract from totals
+        - if set, gas consumers are subtracted from the gas value, so this will happen only if it's being displayed
+  - Devices:
+    - allow each to be bi-directional and dual-fuel
 
 Display:
-  - power-outage is calculating its state up-front, rather than live as-needed (see GridState)
-    - also needs implementing in the new grid render method
-  - if there are no exports to a Node, don't display its export state
-    - logically, the export should be excluded from the flow calcs, too
-    - same for imports
   - bigger circles!
     - possibly dynamic if something can be figured out?
-  - if data is still loading when we render, go ahead and render the circles/lines anyway, just put 'loading' for the values
-
-
+    - need a Layout class to hold the calculated sizes
+  - if data is still loading when we render, go ahead and render the circles/lines anyway, just put 'loading' for the values (or an overlay in the centre of the card?)
+  - Home:
+    - if gas producers is 'show separately', display a second value and a split-ring
+      - in this case, the gas and electric values need icons
+      - the gas half of the split-ring will be on the top
+      - include producing devices in the segment arrays
+  - Devices:
+    - first attempt to expand to the right
+    - if there is not enough space for the required number of columns, expand below instead
+    - for rightwards, draw the bus out from the Home circle and position devices above/below it
+      - could try to get clever and stop the bus one column from the end so we can fit three devices in a column
+    - for downwards, draw the bus from the bottom of the Home circle, then turn left to the centre column and then downwards
+      - this occpuies the first 'row' below the standard 3x3 grid (or 3x2 if no battery is present)
+      - devices now go to the left/right of the bus
+        - and again, the bottom-most row could contain three devices
 
 
 Under consideration
 -------------------
 
-  - make the colour of the grid->home line and dot either larger-value or (for the line) dashed by proportion of high/low-carbon
   - more modes:
     - current month
     - current year
@@ -53,11 +66,13 @@ Under consideration
     - could display this as a title?
   - display the flow rates as hover-overs on the lines
     - or over the circles?
-  - might need to support a vertical layout
-    - either dynamic, based on available width and the number of Nodes to draw, or user-controlled
-    - basically rotate right by 90
+    - or do we bother?  the segments may be enough now
   - may be able to remove pruneConfig() now
+    - but see if it can be used to filter out 'bad' config rather than forcing the user into YAML mode
+      - or failing that - is there any way to find out from validation what the bad config is so we can at least *tell* the user?
+        - looks like it - see superstruct
   - see if the 'state' values in the State objects can be made internal/private - they should not be accessed outside the EntityStates object
+    - probably not, they'd have to be instance fields on EntityStates
   - alternative flow algorithm which prioritises House->Battery->Grid
 
 
@@ -70,3 +85,4 @@ Before release
   - test dashboard link
   - test localisation by disabling EN and EN-GB and checking that all strings revert to their keys
     - also check that there aren't any redundant keys!
+  - find out why there seems to be a serious delay in populating the display after setting the date

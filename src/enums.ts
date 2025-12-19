@@ -24,8 +24,9 @@ export enum CssClass {
 
 export enum DefaultValues {
   // EnergyUnits
-  KilowattHourDecimals = 2,
-  MegawattHourDecimals = 1,
+  DisplayPrecisionUnder10 = 2,
+  DisplayPrecisionUnder100 = 1,
+  DisplayPrecision = 0,
   WhkWhThreshold = 1000,
   KwhMwhThreshold = 1000,
 
@@ -148,8 +149,8 @@ function getEditorLabel(type: string, value: any): string {
 }
 
 export enum UnitPrefixes {
-  HASS = "hass",
-  Automatic = "automatic"
+  Unified = "unified",
+  Individual = "individual"
 }
 
 export namespace UnitPrefixes {

@@ -95,8 +95,8 @@ function energyUnitsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, s
             select: {
               mode: 'dropdown',
               options: [
-                UnitPrefixes.getItem(UnitPrefixes.HASS),
-                UnitPrefixes.getItem(UnitPrefixes.Automatic)
+                UnitPrefixes.getItem(UnitPrefixes.Unified),
+                UnitPrefixes.getItem(UnitPrefixes.Individual)
               ]
             }
           }
@@ -116,43 +116,38 @@ function energyUnitsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, s
               ]
             }
           }
+        },
+        {
+          name: EnergyUnitsOptions.Wh_Kwh_Threshold,
+          required: true,
+          selector: { number: { mode: 'box', min: 0, max: 1000000, step: 1 } }
+        },
+        {
+          name: EnergyUnitsOptions.Kwh_Mwh_Threshold,
+          required: true,
+          selector: { number: { mode: 'box', min: 0, max: 1000000, step: 1 } }
         }
       ]
     },
-    dynamicEnergyUnitsOptionsSchema(config, schemaConfig)
+    {
+      type: 'grid',
+      column_min_width: '67px',
+      schema: [
+        {
+          name: EnergyUnitsOptions.Display_Precision_Under_10,
+          selector: { number: { mode: 'box', min: 0, max: 3, step: 1 } }
+        },
+        {
+          name: EnergyUnitsOptions.Display_Precision_Under_100,
+          selector: { number: { mode: 'box', min: 0, max: 3, step: 1 } }
+        },
+        {
+          name: EnergyUnitsOptions.Display_Precision_Default,
+          selector: { number: { mode: 'box', min: 0, max: 3, step: 1 } }
+        }
+      ]
+    }
   ];
-}
-
-//================================================================================================================================================================================//
-
-function dynamicEnergyUnitsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaConfig: EnergyUnitsConfig | undefined): {} {
-  if (schemaConfig?.[EnergyUnitsOptions.Unit_Prefixes] === UnitPrefixes.HASS) {
-    return {};
-  }
-
-  return {
-    type: 'grid',
-    schema: [
-      {
-        name: EnergyUnitsOptions.Wh_Kwh_Threshold,
-        required: true,
-        selector: { number: { mode: 'box', min: 0, max: 1000000, step: 1 } }
-      },
-      {
-        name: EnergyUnitsOptions.Kwh_Mwh_Threshold,
-        required: true,
-        selector: { number: { mode: 'box', min: 0, max: 1000000, step: 1 } }
-      },
-      {
-        name: EnergyUnitsOptions.Kwh_Display_Precision,
-        selector: { number: { mode: 'box', min: 0, max: 5, step: 1 } }
-      },
-      {
-        name: EnergyUnitsOptions.Mwh_Display_Precision,
-        selector: { number: { mode: 'box', min: 0, max: 5, step: 1 } }
-      }
-    ]
-  };
 }
 
 //================================================================================================================================================================================//

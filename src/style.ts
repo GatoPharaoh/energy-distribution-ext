@@ -172,7 +172,7 @@ export const styles: CSSResult = css`
     color: var(--text-grid-import-color);
     padding-top: 2px;
   }
-  .grid ha-icon {
+  .grid ha-icon not(:small) {
     color: var(--icon-grid-color);
   }
   .grid .arrow-import {
@@ -216,7 +216,7 @@ export const styles: CSSResult = css`
     color: var(--text-battery-import-color);
     padding-top: 2px;
   }
-  .battery ha-icon {
+  .battery ha-icon not(:small) {
     color: var(--icon-battery-color);
   }
   .battery .arrow-import {
