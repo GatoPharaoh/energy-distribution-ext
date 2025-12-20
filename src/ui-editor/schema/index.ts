@@ -297,7 +297,7 @@ export function singleValueColourSchema(config: EnergyFlowCardExtConfig | undefi
               select: {
                 mode: 'dropdown',
                 options: [
-                  FlowColourMode.getItem(FlowColourMode.HASS),
+                  FlowColourMode.getItem(FlowColourMode.Default),
                   FlowColourMode.getItem(FlowColourMode.Custom)
                 ]
               }
@@ -374,7 +374,7 @@ export function dualValueNodeSchema(config: EnergyFlowCardExtConfig | undefined,
                 select: {
                   mode: 'dropdown',
                   options: [
-                    FlowColourMode.getItem(FlowColourMode.HASS),
+                    FlowColourMode.getItem(FlowColourMode.Default),
                     FlowColourMode.getItem(FlowColourMode.Custom)
                   ]
                 }
@@ -388,7 +388,7 @@ export function dualValueNodeSchema(config: EnergyFlowCardExtConfig | undefined,
                 select: {
                   mode: 'dropdown',
                   options: [
-                    FlowColourMode.getItem(FlowColourMode.HASS),
+                    FlowColourMode.getItem(FlowColourMode.Default),
                     FlowColourMode.getItem(FlowColourMode.Custom)
                   ]
                 }

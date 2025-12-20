@@ -220,7 +220,7 @@ export namespace EnergyDirection {
 }
 
 export enum FlowColourMode {
-  HASS = "hass",
+  Default = "default",
   Custom = "custom"
 }
 

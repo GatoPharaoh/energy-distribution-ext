@@ -158,8 +158,8 @@ export function getDefaultGridConfig(hass: HomeAssistant, requireEntity: boolean
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Import_Flow]: FlowColourMode.HASS,
-      [ColourOptions.Export_Flow]: FlowColourMode.HASS,
+      [ColourOptions.Import_Flow]: FlowColourMode.Default,
+      [ColourOptions.Export_Flow]: FlowColourMode.Default,
       [ColourOptions.Circle]: ColourMode.Import,
       [ColourOptions.Values]: ColourMode.Flow,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour
@@ -213,8 +213,8 @@ export function getDefaultBatteryConfig(hass: HomeAssistant, requireEntity: bool
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Import_Flow]: FlowColourMode.HASS,
-      [ColourOptions.Export_Flow]: FlowColourMode.HASS,
+      [ColourOptions.Import_Flow]: FlowColourMode.Default,
+      [ColourOptions.Export_Flow]: FlowColourMode.Default,
       [ColourOptions.Circle]: ColourMode.Export,
       [ColourOptions.Values]: ColourMode.Flow,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour
@@ -265,7 +265,7 @@ export function getDefaultSolarConfig(hass: HomeAssistant, requireEntity: boolea
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Flow]: FlowColourMode.HASS,
+      [ColourOptions.Flow]: FlowColourMode.Default,
       [ColourOptions.Value]: ColourMode.Do_Not_Colour,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour
     },
@@ -306,7 +306,7 @@ export function getDefaultGasConfig(hass: HomeAssistant, requireEntity: boolean)
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Flow]: FlowColourMode.HASS,
+      [ColourOptions.Flow]: FlowColourMode.Default,
       [ColourOptions.Value]: ColourMode.Do_Not_Colour,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour
     },
@@ -364,7 +364,7 @@ export function getDefaultHomeConfig(): HomeConfig {
 export function getDefaultLowCarbonConfig(): LowCarbonConfig {
   return {
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Flow]: FlowColourMode.HASS,
+      [ColourOptions.Flow]: FlowColourMode.Default,
       [ColourOptions.Value]: ColourMode.Do_Not_Colour,
       [ColourOptions.Icon]: ColourMode.Flow
     },
@@ -385,7 +385,7 @@ export function getDefaultDeviceConfig(): DeviceConfig {
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Flow]: FlowColourMode.HASS,
+      [ColourOptions.Flow]: FlowColourMode.Default,
       [ColourOptions.Value]: ColourMode.Do_Not_Colour,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour
     },

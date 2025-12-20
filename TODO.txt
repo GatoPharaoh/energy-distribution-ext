@@ -23,9 +23,6 @@ Settings:
   - Colours:
     - add custom colours for circle, icon, value(s)
     - add custom colour for secondary
-  - Config:
-    - HASS can add its own settings...!
-      - so is it even possible to validate here?
 
 Display:
   - bigger circles!

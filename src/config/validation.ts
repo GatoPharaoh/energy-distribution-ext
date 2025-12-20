@@ -4,6 +4,10 @@ import { AppearanceOptions, ColourOptions, DeviceOptions, EditorPages, EnergyUni
 const baseLovelaceCardConfigStruct = object({
   type: string(),
   view_layout: any(),
+  layout_options: any(),
+  grid_options: any(),
+  visibility: any(),
+  disabled: optional(boolean())
 });
 
 const appearanceOptionsConfigStruct = object({

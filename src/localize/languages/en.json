@@ -180,7 +180,7 @@
     "both": "Both"
   },
   "FlowColourMode": {
-    "hass": "HASS",
+    "default": "Default",
     "custom": "Custom"
   }
 }
