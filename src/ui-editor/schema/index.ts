@@ -1,5 +1,5 @@
 import { AppearanceOptions, ColourOptions, EnergyUnitsOptions, EntitiesOptions, EntityOptions, FlowsOptions, GlobalOptions, OverridesOptions, SecondaryInfoOptions, AppearanceConfig, AppearanceOptionsConfig, DualValueNodeConfig, EnergyFlowCardExtConfig, EnergyUnitsConfig, FlowsConfig, NodeConfig, SecondaryInfoConfig, SingleValueNodeConfig, LowCarbonConfig, SingleValueColourConfig, DualValueColourConfig } from '@/config';
-import { ColourMode, DisplayMode, DotsMode, InactiveFlowsMode, UnitPosition, UnitPrefixes } from '@/enums';
+import { ColourMode, DisplayMode, DotsMode, InactiveFlowsMode, Scale, UnitPosition, UnitPrefixes } from '@/enums';
 import { DEVICE_CLASS_ENERGY } from '@/const';
 
 //================================================================================================================================================================================//
@@ -175,6 +175,19 @@ function flowsOptionsSchema(config: EnergyFlowCardExtConfig | undefined, schemaC
                 InactiveFlowsMode.getItem(InactiveFlowsMode.Normal),
                 InactiveFlowsMode.getItem(InactiveFlowsMode.Dimmed),
                 InactiveFlowsMode.getItem(InactiveFlowsMode.Greyed)
+              ]
+            }
+          }
+        },
+        {
+          name: FlowsOptions.Scale,
+          required: true,
+          selector: {
+            select: {
+              mode: 'dropdown',
+              options: [
+                Scale.getItem(Scale.Linear),
+                Scale.getItem(Scale.Logarithmic)
               ]
             }
           }

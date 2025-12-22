@@ -2,9 +2,19 @@ TODO
 ----
 
 Code:
+  - add support for Power
+    - single-entities for Grid/Battery/Devices
+    - no stats-gathering, just sensors
+    - sensor types are now Power and Measurement
+    - support State-of-Charge for Battery
+    - see what else should be changed/hidden
   - rename to 'Energy Distribution Extended' (energy-distribution-ext) for consistency with the built-in card
+    - or something else, given Power support as well
   - power-outage is calculating its state up-front, rather than live as-needed (see GridState)
     - also needs implementing in the new grid render method
+  - unit-testing
+  - move the language files to Typescript so enum values can be used for the keys
+  - dynamic labelling for, eg, Battery's import ('discharge') and export ('charge') fields in the UI
 
 Animation:
   - work out a new 'dynamic' algo (and rename this to 'Linear')
@@ -13,13 +23,6 @@ Animation:
 
 Interaction:
   - clicking on the low-carbon circle should do the same as the HASS card
-
-Settings:
-  - Appearance:
-    - Flows:
-      - linear/log scale flag
-        - used for circle segments and dot animations
-        - could also perhaps be used (for Home only) to control the relative sizes of the groups when in split-ring mode
 
 Display:
   - bigger circles!
@@ -32,10 +35,7 @@ Display:
       - can animation do this?
       - similarly, the grid-import ring can now show high and low
   - Home:
-    - if gas producers is 'show separately', display a second value and a split-ring
-      - in this case, the gas and electric values need icons
-      - the gas half of the split-ring will be on the top
-      - include producing devices in the segment arrays
+    - include producing devices in the segment arrays
     - if 'subtract' is set, subtract consuming devices from the appropriate total
   - Devices:
     - first attempt to expand to the right
@@ -75,6 +75,7 @@ Before release
   - README and CHANGELOG updates
   - add license
   - test dashboard link
-  - test localisation by disabling EN and EN-GB and checking that all strings revert to their keys
+  - test localisation by disabling EN and checking that all strings revert to their keys
     - also check that there aren't any redundant keys!
+      - if all keys are enums, this should be simple
   - find out why there seems to be a serious delay in populating the display after setting the date or changing the config

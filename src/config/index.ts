@@ -1,5 +1,5 @@
 import { HomeAssistant, LovelaceCard, LovelaceCardConfig } from 'custom-card-helpers';
-import { ColourMode, DisplayMode, DotsMode, LowCarbonType, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode } from '@/enums';
+import { ColourMode, DisplayMode, DotsMode, LowCarbonType, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale } from '@/enums';
 import { DEVICE_CLASS_ENERGY } from '@/const';
 
 declare global {
@@ -54,6 +54,7 @@ export enum FlowsOptions {
   Use_HASS_Style = "use_hass_style",
   Animation = "animation",
   Inactive_Flows = "inactive_flows",
+  Scale = "scale",
   Min_Rate = "min_rate",
   Max_Rate = "max_rate",
   Min_Energy = "min_energy",
@@ -175,6 +176,7 @@ export interface FlowsConfig {
   [FlowsOptions.Use_HASS_Style]?: boolean;
   [FlowsOptions.Animation]?: DotsMode;
   [FlowsOptions.Inactive_Flows]?: InactiveFlowsMode;
+  [FlowsOptions.Scale]?: Scale;
   [FlowsOptions.Min_Rate]?: number;
   [FlowsOptions.Max_Rate]?: number;
   [FlowsOptions.Min_Energy]?: number;

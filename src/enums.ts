@@ -10,6 +10,7 @@ export enum CssClass {
   Battery = "battery",
   Battery_Export = "export-battery",
   Battery_Import = "import-battery",
+  Electric = "electric",
   Gas = "gas",
   Grid = "grid",
   Grid_Export = "export-grid",
@@ -217,6 +218,21 @@ export namespace EnergyDirection {
   }
 
   export function getItem(value: EnergyDirection): { label: string, value: string } {
+    return { label: getName(value), value: value };
+  }
+}
+
+export enum Scale {
+  Linear = "linear",
+  Logarithmic = "logarithmic"
+}
+
+export namespace Scale {
+  export function getName(value: Scale): string {
+    return getEditorLabel("Scale", value);
+  }
+
+  export function getItem(value: Scale): { label: string, value: string } {
     return { label: getName(value), value: value };
   }
 }

@@ -38,9 +38,9 @@ const DEVICES_EDITOR_ELEMENT_NAME = CARD_NAME + "-devices-editor";
 export class DevicesEditor extends LitElement {
   public hass!: HomeAssistant;
   @property({ attribute: false }) public config!: EnergyFlowCardExtConfig;
-  @state() private _devices?: DeviceConfig[];
   @state() private _indexBeingEdited: number = -1;
 
+  private _devices?: DeviceConfig[];
   private _entityKeys = new WeakMap<DeviceConfig, string>();
   private _nextDeviceColour: number = 0;
 

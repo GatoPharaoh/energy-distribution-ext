@@ -13,17 +13,17 @@ import { SecondaryInfoState } from "@/states/secondary-info";
 import { States, Flows } from "@/states";
 import { EntityStates } from "@/states/entity-states";
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
-import { ColourMode, DisplayMode, DotsMode, LowCarbonType, DefaultValues, UnitPosition, UnitPrefixes, CssClass, EnergyUnits, InactiveFlowsMode } from "@/enums";
+import { ColourMode, DisplayMode, DotsMode, LowCarbonType, DefaultValues, UnitPosition, UnitPrefixes, CssClass, EnergyUnits, InactiveFlowsMode, GasSourcesMode } from "@/enums";
 import { HomeState } from "@/states/home";
 import { SingleValueState } from "@/states/state";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
 import { CARD_NAME, CIRCLE_RADIUS, CIRCLE_SIZE, COL_SPACING, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY, DOT_DIAMETER, FLOW_LINE_CURVED, FLOW_LINE_CURVED_CONTROL, FLOW_LINE_SPACING, ROW_SPACING } from "@/const";
-import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, PowerOutageOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, BatteryConfig, GridConfig, FlowsConfig } from "@/config";
+import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, PowerOutageOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, BatteryConfig, GridConfig, FlowsConfig, HomeOptions, HomeConfig } from "@/config";
 import { setDualValueNodeDynamicStyles, setDualValueNodeStaticStyles, setHomeNodeDynamicStyles, setHomeNodeStaticStyles, setSingleValueNodeStyles } from "@/ui-helpers/styles";
 import { renderFlowLines, renderSegmentedCircle } from "@/ui-helpers/renderers";
-import { AnimSpeeds, FlowLine, SegmentGroup } from "@/ui-helpers";
+import { AnimSpeeds, FlowLine, getGasSourcesMode, SegmentGroup } from "@/ui-helpers";
 import { LowCarbonState } from "@/states/low-carbon";
-import { mdiArrowDown, mdiArrowUp, mdiArrowLeft, mdiArrowRight } from "@mdi/js";
+import { mdiArrowDown, mdiArrowUp, mdiArrowLeft, mdiArrowRight, mdiFlash, mdiFire } from "@mdi/js";
 
 interface RegisterCardParams {
   type: string;
@@ -103,6 +103,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _useHassColours: boolean = true;
   private _lowCarbonAsPercentage: boolean = true;
   private _inactiveFlowsCss: string = CssClass.Inactive;
+  private _gasSourcesMode: GasSourcesMode = GasSourcesMode.Do_Not_Show;
+  private _gasThreshold: number = DefaultValues.Gas_Sources_Threshold;
 
   //================================================================================================================================================================================//
 
@@ -147,6 +149,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     this._showSegmentGaps = this._config?.[EditorPages.Appearance]?.[GlobalOptions.Options]?.[AppearanceOptions.Segment_Gaps] ?? false;
     this._useHassColours = this._config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Use_HASS_Style] ?? true;
     this._lowCarbonAsPercentage = this._config?.[EditorPages.Low_Carbon]?.[GlobalOptions.Options]?.[EntitiesOptions.Low_Carbon_Mode] === LowCarbonType.Percentage;
+    this._gasSourcesMode = this._config?.[EditorPages.Home]?.[GlobalOptions.Options]?.[HomeOptions.Gas_Sources] ?? GasSourcesMode.Do_Not_Show;
+    this._gasThreshold = this._config?.[EditorPages.Home]?.[GlobalOptions.Options]?.[HomeOptions.Gas_Sources_Threshold] ?? DefaultValues.Gas_Sources_Threshold;
 
     switch (this._config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Inactive_Flows] || InactiveFlowsMode.Normal) {
       case InactiveFlowsMode.Dimmed:
@@ -415,8 +419,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
             ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, CIRCLE_RADIUS, 180, this._showSegmentGaps) : ""}
             ${this._renderSecondarySpan(state.secondary, states.batterySecondary, CssClass.Battery + " " + inactiveCss)}
             <ha-icon class="entity-icon ${inactiveCss}" .icon=${state.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(CssClass.Battery_Export + " " + inactiveCssExport, state.firstExportEntity, mdiArrowDown, states.batteryExport, energyUnits)}
-            ${this._renderEnergyStateSpan(CssClass.Battery_Import + " " + inactiveCssImport, state.firstImportEntity, mdiArrowUp, states.batteryImport, energyUnits)}
+            ${this._renderEnergyStateSpan(CssClass.Battery_Export + " " + inactiveCssExport, state.firstExportEntity, mdiArrowDown, state.firstExportEntity ? states.batteryExport : undefined, energyUnits)}
+            ${this._renderEnergyStateSpan(CssClass.Battery_Import + " " + inactiveCssImport, state.firstImportEntity, mdiArrowUp, state.firstImportEntity ? states.batteryImport : undefined, energyUnits)}
           </div>
         </div>
         <span class="label ${inactiveCss}">${state.name}</span>
@@ -499,8 +503,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
             ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, CIRCLE_RADIUS, 270, this._showSegmentGaps) : ""}
             ${this._renderSecondarySpan(this._entityStates.grid.secondary, states.gridSecondary, CssClass.Grid + " " + inactiveCss)}
             <ha-icon class="entity-icon ${inactiveCss}" .icon=${state.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(CssClass.Grid_Export + " " + inactiveCssExport, state.firstExportEntity, mdiArrowLeft, states.gridExport, energyUnits)}
-            ${this._renderEnergyStateSpan(CssClass.Grid_Import + " " + inactiveCssImport, state.firstImportEntity, mdiArrowRight, states.gridImport, energyUnits)}
+            ${this._renderEnergyStateSpan(CssClass.Grid_Export + " " + inactiveCssExport, state.firstExportEntity, mdiArrowLeft, state.firstExportEntity ? states.gridExport : undefined, energyUnits)}
+            ${this._renderEnergyStateSpan(CssClass.Grid_Import + " " + inactiveCssImport, state.firstImportEntity, mdiArrowRight, state.firstImportEntity ? states.gridImport : undefined, energyUnits)}
           </div>
         </div>
         <span class="label ${inactiveCss}">${state.name}</span>
@@ -512,11 +516,15 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   private _renderHomeNode = (states: States, energyUnits: string | undefined = undefined): TemplateResult => {
     const state: HomeState = this._entityStates.home;
-    const config: GridConfig = this._config[EditorPages.Home]!;
+    const config: HomeConfig = this._config[EditorPages.Home]!;
     const circleMode: ColourMode = config?.[EntitiesOptions.Colours]?.[ColourOptions.Circle]!;
+
     const flows: Flows = states.flows;
     const highCarbonConsumption: number = states.highCarbon * (flows.gridToHome / states.gridImport) || 0;
     const lowCarbonConsumption: number = states.lowCarbon * (flows.gridToHome / states.gridImport) || 0;
+
+    // TODO: gas-producing devices
+    const gasSourcesMode: GasSourcesMode = this._entityStates.gas.isPresent ? getGasSourcesMode(config, states) : GasSourcesMode.Do_Not_Show;
 
     const segmentGroups: SegmentGroup[] = [];
 
@@ -544,23 +552,60 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           ]
         }
       );
+
+      // TODO: electric-producing devices
+
+      if (gasSourcesMode !== GasSourcesMode.Do_Not_Show) {
+        // TODO: gas-producing devices
+        segmentGroups[0].segments.unshift({
+          state: states.homeGas,
+          cssClass: CssClass.Gas
+        });
+      }
     }
 
     setHomeNodeStaticStyles(this._config?.[EditorPages.Home]!, this.style);
     setHomeNodeDynamicStyles(config, states, this.style);
 
-    const inactiveCss: string = states.home === 0 ? this._inactiveFlowsCss : "";
+    const inactiveCss: string = states.homeElectric === 0 ? this._inactiveFlowsCss : "";
     const borderCss: string = circleMode === ColourMode.Dynamic ? CssClass.Hidden_Circle : "";
-    const valueCss: string = CssClass.Home + " " + inactiveCss;
+    const valueElectricCss: string = CssClass.Home + " " + CssClass.Electric + " " + inactiveCss;
+    const valueGasCss: string = CssClass.Home + " " + CssClass.Gas + " " + inactiveCss;
+    const valueSecondaryCss: string = CssClass.Home + " " + inactiveCss;
+    let electricIcon: string | undefined;
+    let gasIcon: string | undefined;
+    let electricTotal: number = states.homeElectric;
+    let gasTotal: number | undefined;
+
+    switch (gasSourcesMode) {
+      case GasSourcesMode.Add_To_Total:
+        electricTotal += states.homeGas;
+        gasTotal = undefined;
+        electricIcon = gasIcon = undefined;
+        break;
+
+      case GasSourcesMode.Show_Separately:
+        gasTotal = states.homeGas;
+        electricIcon = mdiFlash;
+        gasIcon = mdiFire;
+        break;
+
+      case GasSourcesMode.Do_Not_Show:
+      default:
+        gasTotal = undefined;
+        electricIcon = gasIcon = undefined;
+        break;
+    }
 
     return html`
       <div class="node ${CssClass.Home}">
         <div class="circle background">
           <div class="circle ${borderCss} ${inactiveCss}">
             ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, CIRCLE_RADIUS, 0, this._showSegmentGaps) : ""}
-            ${this._renderSecondarySpan(state.secondary, states.homeSecondary, valueCss)}
+            ${this._renderSecondarySpan(state.secondary, states.homeSecondary, valueSecondaryCss)}
             <ha-icon class="entity-icon ${inactiveCss}" .icon=${state.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(valueCss, undefined, undefined, states.home, energyUnits)}
+            ${this._renderEnergyStateSpan(valueElectricCss, undefined, electricIcon, electricTotal, energyUnits)}
+            ${this._renderEnergyStateSpan(valueGasCss, undefined, gasIcon, gasTotal, energyUnits)}
           </div>
         </div>
         <span class="label ${inactiveCss}">${state.name}</span>
@@ -570,8 +615,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _renderEnergyStateSpan = (cssClass: string, entityId: string | undefined, icon: string | undefined, state: number, energyUnits: string | undefined): TemplateResult => {
-    if ((!entityId && !cssClass.includes(CssClass.Home)) || (state === 0 && !this._showZeroStates)) {
+  private _renderEnergyStateSpan = (cssClass: string, entityId: string | undefined, icon: string | undefined, state: number | undefined, energyUnits: string | undefined): TemplateResult => {
+    if (state === undefined || (state === 0 && !this._showZeroStates)) {
       return html``;
     }
 

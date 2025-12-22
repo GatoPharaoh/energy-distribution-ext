@@ -203,8 +203,11 @@ export const styles: CSSResult = css`
   .home.secondary-info {
     color: var(--secondary-home-color);
   }
-  .home.value {
-    color: var(--value-home-color);
+  .home.value.electric {
+    color: var(--value-electric-home-color);
+  }
+  .home.value.gas {
+    color: var(--value-gas-home-color);
   }
 
   .battery .circle {

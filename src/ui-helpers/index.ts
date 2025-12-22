@@ -1,3 +1,7 @@
+import { GlobalOptions, HomeConfig, HomeOptions } from "../config";
+import { DefaultValues, GasSourcesMode } from "../enums";
+import { States } from "../states";
+
 export interface Segment {
   state: number;
   cssClass: string;
@@ -29,3 +33,14 @@ export interface AnimSpeeds {
 
   // TODO: devices
 }
+
+export const getGasSourcesMode = (config: HomeConfig, states: States): GasSourcesMode => {
+  const gasSourcesMode: GasSourcesMode = config?.[GlobalOptions.Options]?.[HomeOptions.Gas_Sources] || GasSourcesMode.Do_Not_Show;
+  const gasThreshold: number = config?.[GlobalOptions.Options]?.[HomeOptions.Gas_Sources_Threshold] || DefaultValues.Gas_Sources_Threshold;
+
+  return gasSourcesMode === GasSourcesMode.Automatic
+    ? 100 * states.homeGas / states.homeElectric + states.homeGas < gasThreshold
+      ? GasSourcesMode.Add_To_Total
+      : GasSourcesMode.Show_Separately
+    : gasSourcesMode;
+};

@@ -42,6 +42,7 @@
     "inactive_flows": "Inactive flows",
 
     "flows": "Flows",
+    "scale": "Scale",
     "animation": "Animation",
     "min_rate": "Min rate",
     "max_rate": "Max rate",
@@ -188,5 +189,9 @@
     "source": "Source",
     "consumer": "Consumer",
     "both": "Both"
+  },
+  "Scale": {
+    "linear": "Linear",
+    "logarithmic": "Logarithmic"
   }
 }

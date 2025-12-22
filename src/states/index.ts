@@ -22,7 +22,8 @@ export interface States {
   gridExport: number;
   gridSecondary: number;
   highCarbon: number;
-  home: number;
+  homeElectric: number;
+  homeGas: number;
   homeSecondary: number;
   lowCarbon: number;
   lowCarbonPercentage: number;

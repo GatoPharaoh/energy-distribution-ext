@@ -2,7 +2,7 @@ import { html, TemplateResult, svg } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import { FlowLine, Segment, SegmentGroup } from ".";
 import { CIRCLE_CENTRE, DOT_RADIUS } from "@/const";
-import { CssClass, DotsMode, InactiveFlowsMode } from "@/enums";
+import { CssClass, DotsMode, InactiveFlowsMode, Scale } from "@/enums";
 import { EditorPages, EnergyFlowCardExtConfig, FlowsOptions, AppearanceOptions } from "@/config";
 
 const INTER_GROUP_ARC: number = 7.5;
@@ -56,6 +56,7 @@ export const renderFlowLines = (config: EnergyFlowCardExtConfig, lines: FlowLine
 
 export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGroups: SegmentGroup[], radius: number, startingAngle: number, interSegmentGaps: boolean): TemplateResult {
   const inactiveFlowsMode: InactiveFlowsMode = config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Inactive_Flows] || InactiveFlowsMode.Normal;
+  const scale: Scale = config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Scale] || Scale.Linear;
 
   const circumference: number = 2 * radius * Math.PI;
 
@@ -84,7 +85,7 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
 
       group.segments.forEach(segment => {
         if (segment.state > 0) {
-          stateTotal += segment.state;
+          stateTotal += scale === Scale.Linear ? segment.state : Math.log(segment.state);
           activeSegments++;
         }
       });
@@ -134,7 +135,7 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
           }
 
           const interSegmentGap: number = segmentToRender++ > 0 || segmentGroups.length === 1 ? interSegmentLength : 0;
-          length = segment.state / stateTotal * segmentLengths;
+          length = (scale === Scale.Linear ? segment.state : Math.log(segment.state)) / stateTotal * segmentLengths;
           offset += interSegmentGap + length;
 
           return svg`
@@ -156,3 +157,5 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
   </svg>
   `;
 }
+
+//================================================================================================================================================================================//

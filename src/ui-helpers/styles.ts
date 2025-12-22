@@ -2,6 +2,7 @@ import { ColourOptions, DualValueNodeConfig, EntitiesOptions, GlobalOptions, Hom
 import { STYLE_ENERGY_BATTERY_EXPORT_COLOR, STYLE_ENERGY_BATTERY_IMPORT_COLOR, STYLE_ENERGY_GRID_EXPORT_COLOR, STYLE_ENERGY_GRID_IMPORT_COLOR, STYLE_PRIMARY_TEXT_COLOR } from "@/const";
 import { ColourMode, CssClass, GasSourcesMode } from "@/enums";
 import { Flows, States } from "@/states";
+import { getGasSourcesMode } from ".";
 
 const COLOUR_MAPPINGS: Map<ColourMode, CssClass> = new Map(
   [
@@ -39,14 +40,19 @@ export function setHomeNodeStaticStyles(config: HomeConfig, style: CSSStyleDecla
         break;
     }
 
-    style.setProperty(`--${options.replace("_mode", "")}-home-color`, colour);
+    if (options === ColourOptions.Value) {
+      style.setProperty(`--value-electric-home-color`, colour);
+      style.setProperty(`--value-gas-home-color`, colour);
+    } else {
+      style.setProperty(`--${options.replace("_mode", "")}-home-color`, colour);
+    }
   });
 }
 
 //================================================================================================================================================================================//
 
 export function setHomeNodeDynamicStyles(config: HomeConfig, states: States, style: CSSStyleDeclaration): void {
-  if (states.home <= 0) {
+  if (states.homeElectric <= 0) {
     style.setProperty("--circle-home-color", STYLE_PRIMARY_TEXT_COLOR);
     style.setProperty("--icon-home-color", STYLE_PRIMARY_TEXT_COLOR);
     style.setProperty("--value-home-color", STYLE_PRIMARY_TEXT_COLOR);
@@ -56,7 +62,7 @@ export function setHomeNodeDynamicStyles(config: HomeConfig, states: States, sty
 
   const flows: Flows = states.flows;
 
-  const homeSources = {
+  const electricSources: {} = {
     battery: {
       value: flows.batteryToHome,
       colour: "var(--flow-import-battery-color)"
@@ -72,25 +78,41 @@ export function setHomeNodeDynamicStyles(config: HomeConfig, states: States, sty
     lowCarbon: {
       value: flows.gridToHome * states.lowCarbonPercentage / 100,
       colour: "var(--flow-non-fossil-color)"
-    },
+    }
 
     // TODO: electric-producing devices
   };
 
-  // TODO: refactor this out, it also needs to handle gas-producing devices
-  if (config?.[GlobalOptions.Options]?.[HomeOptions.Gas_Sources] !== GasSourcesMode.Do_Not_Show) {
-    homeSources["gas"] = {
+  const electricLargestSource: string = Object.keys(electricSources).reduce((a, b) => electricSources[a].value > electricSources[b].value ? a : b);
+  const electricLargestColour: string = electricSources[electricLargestSource].colour;
+
+  const gasSources: {} = {
+    gas: {
       value: states.gasImport,
       colour: "var(--flow-gas-color)"
-    };
-  }
+    }
 
-  const homeLargestSource: string = Object.keys(homeSources).reduce((a, b) => homeSources[a].value > homeSources[b].value ? a : b);
-  const homeLargestColour: string = homeSources[homeLargestSource].colour;
+    // TODO: gas-producing devices
+  };
+
+  const gasSourcesMode: GasSourcesMode = getGasSourcesMode(config, states);
+  const gasLargestSource: string = Object.keys(gasSources).reduce((a, b) => gasSources[a].value > gasSources[b].value ? a : b);
+  const gasLargestColour: string = gasSources[gasLargestSource].colour;
+  const homeLargestColour: string = gasSourcesMode === GasSourcesMode.Do_Not_Show || electricSources[electricLargestSource].value >= gasSources[gasLargestSource].value ? electricLargestColour : gasLargestColour;
 
   HOME_UI_ELEMENTS.forEach(options => {
     if (config?.[EntitiesOptions.Colours]?.[options] === ColourMode.Largest_Value) {
-      style.setProperty(`--${options.replace("_mode", "")}-home-color`, homeLargestColour);
+      if (options === ColourOptions.Value) {
+        if (gasSourcesMode === GasSourcesMode.Show_Separately) {
+          style.setProperty(`--value-electric-home-color`, electricLargestColour);
+          style.setProperty(`--value-gas-home-color`, gasLargestColour);
+        } else {
+          style.setProperty(`--value-electric-home-color`, homeLargestColour);
+          style.setProperty(`--value-gas-home-color`, homeLargestColour);
+        }
+      } else {
+        style.setProperty(`--${options.replace("_mode", "")}-home-color`, homeLargestColour);
+      }
     }
   });
 }

@@ -73,7 +73,9 @@ export class EntityStates {
       gridExport: this.grid.state.export,
       gridSecondary: this.grid.secondary.state,
       highCarbon: this.grid.state.highCarbon,
-      home: 0,
+      homeElectric: 0,
+      // TODO: gas-producing devices need adding to here
+      homeGas: this.gas.state.import,
       homeSecondary: this.home.secondary.state,
       lowCarbon: 0,
       lowCarbonPercentage: 0,
@@ -96,7 +98,8 @@ export class EntityStates {
 
     this._addStateDeltas(states);
 
-    states.home = states.batteryImport + states.gridImport + states.solarImport - states.batteryExport - states.gridExport;
+    // TODO: electric-producing devices need adding here
+    states.homeElectric = states.batteryImport + states.gridImport + states.solarImport - states.batteryExport - states.gridExport;
     states.lowCarbon = states.gridImport - states.highCarbon;
     states.lowCarbonPercentage = (states.lowCarbon / states.gridImport) * 100 || 0;
 
@@ -106,7 +109,7 @@ export class EntityStates {
     const toHome: number = states.flows.batteryToHome + states.flows.gridToHome + states.flows.solarToHome;
 
     if (toHome > 0) {
-      const scale: number = states.home / toHome;
+      const scale: number = states.homeElectric / toHome;
 
       if (scale > 0) {
         states.flows.batteryToHome *= scale;
@@ -143,7 +146,7 @@ export class EntityStates {
       states.batteryExport,
       states.gridImport,
       states.gridExport,
-      states.home,
+      states.homeElectric,
       states.lowCarbon,
       states.solarImport
     );
