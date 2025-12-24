@@ -99,7 +99,7 @@ export class EntityStates {
     this._addStateDeltas(states);
 
     // TODO: electric-producing devices need adding here
-    states.homeElectric = states.flows.gridToHome + states.flows.batteryToHome + states.flows.solarToHome;
+    states.homeElectric = states.batteryImport + states.gridImport + states.solarImport - states.batteryExport - states.gridExport;
     states.lowCarbon = states.gridImport - states.highCarbon;
     states.lowCarbonPercentage = (states.lowCarbon / states.gridImport) * 100 || 0;
 
@@ -409,8 +409,13 @@ export class EntityStates {
       const be: number = this._getFlowEntityStates(entry, this.battery.returnEntities);
       const gi: number = this._getFlowEntityStates(entry, this.grid.mainEntities);
       const ge: number = this._getFlowEntityStates(entry, this.grid.returnEntities);
-      const flows: Flows = this._calculateFlows(sp, bi, be, gi, ge);
+      solarProduction += sp;
+      gridImport += gi;
+      gridExport += ge;
+      batteryImport += bi;
+      batteryExport += be;
 
+      const flows: Flows = this._calculateFlows(sp, bi, be, gi, ge);
       solarToHome += flows.solarToHome;
       gridToHome += flows.gridToHome;
       gridToBattery += flows.gridToBattery;
@@ -418,11 +423,6 @@ export class EntityStates {
       batteryToHome += flows.batteryToHome;
       solarToBattery += flows.solarToBattery;
       solarToGrid += flows.solarToGrid;
-      solarProduction += sp;
-      gridImport += gi;
-      gridExport += ge;
-      batteryImport += bi;
-      batteryExport += be;
     });
 
     if (this.grid.isPresent) {
@@ -592,6 +592,8 @@ export class EntityStates {
     let batteryToHome: number;
     let solarToBattery: number;
     let solarToGrid: number;
+
+    console.log("in:" + energyIn + ", out:" + energyOut);
 
     const excess: number = Math.max(0, Math.min(toBattery, fromGrid - remaining));
     gridToBattery = excess;

@@ -15,11 +15,14 @@ Code:
   - unit-testing
   - move the language files to Typescript so enum values can be used for the keys
   - dynamic labelling for, eg, Battery's import ('discharge') and export ('charge') fields in the UI
-  - support GWh and TWh thresholds and calculations
-  - support cal and J as well as Wh, for compatibility with HASS?
-    - if not, then make sure the entities are in Wh!
-    - gas also supports volumes, although who knows how you're supposed to convert that to Wh!
-      - we'd need the conversion factor to be supplied by the user
+  - support entities in cal and J as well as Wh, for compatibility with HASS
+    - might not need to, it looks like the stats API may do the conversion to kWh (or, presumably, Wh) automatically if we pass in a 'units' value to the call
+    - gas also supports volumes
+      - needs the calorific value to be supplied by the user
+        - support a sensor as well as a value?
+    - all energy values are converted to the same units, whatever that is
+      - in the case of a volume sensor for gas, while we do the conversion so that flow calcs will work we also store the actual value for display in that node if the user selects to do so
+        - which is to say that the value will be converted to the user's selected units, so if they picked an energy unit rather than a volume unit we either don't store or else convert to m3
 
 Interaction:
   - clicking on the low-carbon circle should do the same as the HASS card
@@ -35,7 +38,15 @@ Display:
       - find the largest of the height and spans (secondary, import, export) and ceil()
       - size the circle to hold a square of that size (ie, set _circleSize to the diagonal of the square plus CIRCLE_STROKE_WIDTH_SEGMENTS * 2)
       - if HASS styles are enabled, skip all the above!
-  - if data is still loading when we render, go ahead and render the circles/lines anyway, just put 'loading' for the values (or an overlay in the centre of the card?)
+        - or do we want a specific flag for this behaviour?
+
+  - Energy Units:
+    - support GWh and TWh
+    - single unit threshold, range 900-1100, step 25?
+    - limit decimals to 3dp
+    - support display in J and cal as well as Wh
+      - for Gas, also support suitable volume units
+  - if data is still loading when we render, go ahead and render the diagram anyway, just put 'loading' for the values (or an overlay in the centre of the card?)
   - Flows:
     - in non-HASS mode, see if the grid->home flow can be made to alternate between high and low carbon colours on successive runs
       - ideally in proportion, but otherwise a simple 1:1 will do
