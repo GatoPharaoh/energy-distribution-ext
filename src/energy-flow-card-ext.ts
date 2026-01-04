@@ -220,7 +220,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         </ha-card>`;
     }
 
-    this._calculateFlowLines();
+    this._calculateLayout();
 
     const states: States = this._entityStates.getStates();
     const electricUnitPrefix: string | undefined = this._electricUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestElectricValue)) : undefined;
@@ -981,14 +981,16 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _calculateFlowLines(): void {
+  private _calculateLayout(): void {
     const width: number = this._getPropertyValue(".lines", "width");
 
     if (width !== this._width) {
       this._width = width;
 
       if (width > 0) {
-        const circleSize: number = this._calculateCircleSize();
+        const numColumns: number = this._getNumColumns();
+        const maxCircleSize: number = Math.floor((width - (numColumns - 1) * getColSpacing(DefaultValues.Circle_Size).min) / numColumns);
+        const circleSize: number = Math.min(maxCircleSize, this._calculateCircleSize());
         this._circleSize = circleSize;
         setLayout(this.style, circleSize);
 
@@ -1000,7 +1002,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         const flowLineCurvedControl: number = Math.round(flowLineCurved / 3);
 
         const isTopRowPresent: boolean = (this._entityStates.lowCarbon.isPresent && this._entityStates.grid.isPresent) || this._entityStates.solar.isPresent || this._entityStates.gas.isPresent;
-        const numColumns: number = this._getNumColumns();
         const columnSpacing: number = Math.max(colSpacing.min, (width - numColumns * circleSize) / (numColumns - 1));
         const textLineHeight: number = this._getPropertyValue(".label", "line-height");
 

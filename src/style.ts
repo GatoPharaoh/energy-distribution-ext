@@ -7,9 +7,6 @@ export const styles: CSSResult = css`
     --label-height: calc(var(--ha-font-size-s) * var(--ha-line-height-normal));
   }
 
-  ha-card {
-    min-width: calc(var(--circle-size) * 3 + var(--col-spacing-min) * 2 + 2 * var(--ha-card-border-width, 1px) + 2 * var(--ha-space-4));
-  }
   .card-content {
     position: relative;
     direction: ltr;
