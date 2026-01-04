@@ -248,7 +248,8 @@ export enum GasUnits {
   Cubic_Feet = "ft³",
   Cubic_Metres = "m³",
   CCF = "CCF",
-  MCF = "MCF"
+  MCF = "MCF",
+  Litres = "L"
 }
 
 export namespace GasUnits {

@@ -17,8 +17,6 @@ Code:
   - dynamic labelling for, eg, Battery's import ('discharge') and export ('charge') fields in the UI
   - support entities in cal and J as well as Wh, for compatibility with HASS
     - gas also supports volumes
-      - needs the calorific value to be supplied by the user
-        - support a sensor as well as a value?
     - all energy values are converted to the same units, whatever that is
       - in the case of a volume sensor for gas, while we do the conversion so that flow calcs will work we also store the actual value for display in that node if the user selects to do so
         - which is to say that the value will be converted to the user's selected units, so if they picked an energy unit rather than a volume unit we either don't store or else convert to m3
@@ -38,9 +36,6 @@ Config:
     - need a helptext for 'override units', 'display precision' to explain what happens if set/not set
 
 Display:
-  - Energy Units:
-    - support display in J and cal as well as Wh
-      - for Gas, support 'same as electric', plus suitable volume units
   - if data is still loading when we render, go ahead and render the diagram anyway, just put 'loading' for the values (or an overlay in the centre of the card?)
   - Flows:
     - in non-HASS mode, see if the grid->home flow can be made to alternate between high and low carbon colours on successive runs
