@@ -14,3 +14,5 @@ export const ENERGY_DATA_TIMEOUT: number = 10000;
 
 export const ELECTRIC_ENTITY_CLASSES: string[] = [DEVICE_CLASS_ENERGY];
 export const GAS_ENTITY_CLASSES: string[] = [DEVICE_CLASS_ENERGY, DEVICE_CLASS_GAS];
+
+export const MAP_URL: string = "https://app.electricitymaps.com";

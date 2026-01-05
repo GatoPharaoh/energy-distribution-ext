@@ -133,6 +133,7 @@ export const styles: CSSResult = css`
 
   .non-fossil .circle {
     border-color: var(--circle-non-fossil-color);
+    cursor: pointer;
   }
   .non-fossil ha-icon {
     color: var(--icon-non-fossil-color);
@@ -142,6 +143,7 @@ export const styles: CSSResult = css`
   }
   .non-fossil.value {
     color: var(--value-non-fossil-color);
+    padding-bottom: calc(${ICON_PADDING}px);
   }
 
   .solar .circle {

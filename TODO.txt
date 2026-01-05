@@ -19,9 +19,6 @@ Code:
     - params would be the name (or type) of the enum, and an optional list of the values wanted
       - if no values are specified, it returns all values in the order they are defined
 
-Interaction:
-  - clicking on the low-carbon circle should do the same as the HASS card
-
 Config:
   - is it possible to auto-detect changes to the Energy config?
       - either way, we could have a button on the main page to (re)load the entities from that config
@@ -44,8 +41,6 @@ Display:
   - Home:
     - include producing devices in the segment arrays
     - if 'subtract' is set, subtract consuming devices from the appropriate total
-  - Low-carbon:
-    - change value display to support energy/percentage/both options
   - Devices:
     - see if the Energy Dashboard's devices can be detected and loaded
     - first attempt to expand to the right
@@ -99,6 +94,7 @@ Before release
 
   - README and CHANGELOG updates
   - add license
+  - reinstate terser in rollup.config.js
   - test dashboard link
   - test localisation by disabling EN and checking that all strings revert to their keys
     - also check that there aren't any redundant keys!

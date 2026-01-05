@@ -96,7 +96,8 @@ export namespace ColourMode {
 
 export enum LowCarbonDisplayMode {
   Energy = "energy",
-  Percentage = "percentage"
+  Percentage = "percentage",
+  Both = "both"
 }
 
 export namespace LowCarbonDisplayMode {

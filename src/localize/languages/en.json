@@ -149,7 +149,8 @@
   },
   "LowCarbonDisplayMode": {
     "energy": "Energy",
-    "percentage": "Percentage"
+    "percentage": "Percentage",
+    "both": "Both"
   },
   "InactiveFlowsMode": {
     "normal": "Normal colors",
