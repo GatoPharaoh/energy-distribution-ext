@@ -1,6 +1,7 @@
 import { DualValueNodeConfig, EntitiesOptions, EntityOptions, filterPrimaryEntities, NodeConfig, OverridesOptions, SingleValueNodeConfig } from "@/config";
 import { HomeAssistant } from "custom-card-helpers";
 import { State } from ".";
+import { DEVICE_CLASS_ENERGY, ELECTRIC_ENTITY_CLASSES } from "../const";
 import { SecondaryInfoState } from "./secondary-info";
 
 export abstract class ValueState extends State {
@@ -17,18 +18,20 @@ export abstract class ValueState extends State {
 export abstract class SingleValueState extends ValueState {
   public state: {
     import: number;
+    importVolume: number;
   };
 
-  protected constructor(hass: HomeAssistant, config: SingleValueNodeConfig | undefined, defaultName: string, defaultIcon: string) {
+  protected constructor(hass: HomeAssistant, config: SingleValueNodeConfig | undefined, defaultName: string, defaultIcon: string, deviceClasses: string[]) {
     super(
       hass,
       config,
-      filterPrimaryEntities(hass, config?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids]),
+      filterPrimaryEntities(hass, config?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids], deviceClasses),
       defaultName,
       defaultIcon);
 
     this.state = {
-      import: 0
+      import: 0,
+      importVolume: 0
     };
   }
 }
@@ -41,11 +44,11 @@ export abstract class DualValueState extends ValueState {
     super(
       hass,
       config,
-      filterPrimaryEntities(hass, config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids]),
+      filterPrimaryEntities(hass, config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids], ELECTRIC_ENTITY_CLASSES),
       defaultName,
       defaultIcon);
 
-    this.returnEntities = filterPrimaryEntities(hass, config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids]);
+    this.returnEntities = filterPrimaryEntities(hass, config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids], ELECTRIC_ENTITY_CLASSES);
     this.firstExportEntity = this.returnEntities.length !== 0 ? this.returnEntities[0] : undefined;
     this.isPresent = this.isPresent || this.returnEntities.length !== 0;
   }

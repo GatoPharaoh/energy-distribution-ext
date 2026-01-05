@@ -1,5 +1,5 @@
-import { EditorPages, EntitiesOptions, GlobalOptions, EnergyFlowCardExtConfig } from '@/config';
-import { LowCarbonType } from '@/enums';
+import { EditorPages, GlobalOptions, EnergyFlowCardExtConfig, LowCarbonOptions } from '@/config';
+import { LowCarbonDisplayMode } from '@/enums';
 import { nodeConfigSchema, singleValueColourSchema } from '.';
 
 export function lowCarbonSchema(config: EnergyFlowCardExtConfig | undefined): any[] {
@@ -11,14 +11,14 @@ export function lowCarbonSchema(config: EnergyFlowCardExtConfig | undefined): an
           type: 'expandable',
           schema: [
             {
-              name: [EntitiesOptions.Low_Carbon_Mode],
+              name: [LowCarbonOptions.Low_Carbon_Mode],
               required: true,
               selector: {
                 select: {
                   mode: 'dropdown',
                   options: [
-                    LowCarbonType.getItem(LowCarbonType.Energy),
-                    LowCarbonType.getItem(LowCarbonType.Percentage)
+                    LowCarbonDisplayMode.getItem(LowCarbonDisplayMode.Energy),
+                    LowCarbonDisplayMode.getItem(LowCarbonDisplayMode.Percentage)
                   ]
                 }
               }

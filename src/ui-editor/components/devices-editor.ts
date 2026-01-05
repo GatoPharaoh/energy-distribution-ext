@@ -3,7 +3,7 @@ import { mdiArrowLeft, mdiArrowRight, mdiDelete, mdiDrag, mdiPlus } from "@mdi/j
 import { HomeAssistant, fireEvent } from "custom-card-helpers";
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, state } from "lit-element";
-import { CARD_NAME } from "@/const";
+import { CARD_NAME, ELECTRIC_ENTITY_CLASSES } from "@/const";
 import { DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, EntitiesOptions, EntityOptions } from "@/config";
 import { deviceSchema } from "../schema/device";
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from "..";
@@ -114,7 +114,7 @@ export class DevicesEditor extends LitElement {
       this._devices,
       deviceConf => this._getKey(deviceConf),
       (deviceConf, index) => {
-        const statusIcon: Status = getStatusIcon(this.hass, deviceConf, true, true);
+        const statusIcon: Status = getStatusIcon(this.hass, deviceConf, ELECTRIC_ENTITY_CLASSES, true, true);
 
         return html`
           <div class="devices">
@@ -155,8 +155,8 @@ export class DevicesEditor extends LitElement {
     const errors: object = {};
     const secondaryEntityId: string | undefined = config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id];
 
-    validatePrimaryEntities(this.hass, EntitiesOptions.Import_Entities, config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids], true, errors);
-    validatePrimaryEntities(this.hass, EntitiesOptions.Export_Entities, config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids], true, errors);
+    validatePrimaryEntities(this.hass, EntitiesOptions.Import_Entities, config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids], ELECTRIC_ENTITY_CLASSES, true, errors);
+    validatePrimaryEntities(this.hass, EntitiesOptions.Export_Entities, config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids], ELECTRIC_ENTITY_CLASSES, true, errors);
 
     if (secondaryEntityId) {
       validateSecondaryEntity(this.hass, EntitiesOptions.Secondary_Info, secondaryEntityId, errors);

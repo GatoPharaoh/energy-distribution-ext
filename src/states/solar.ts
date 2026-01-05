@@ -2,6 +2,7 @@ import { localize } from "@/localize/localize";
 import { SolarConfig } from "@/config";
 import { SingleValueState } from "./state";
 import { HomeAssistant } from "custom-card-helpers";
+import { ELECTRIC_ENTITY_CLASSES } from "@/const";
 
 export class SolarState extends SingleValueState {
   config?: SolarConfig;
@@ -11,7 +12,8 @@ export class SolarState extends SingleValueState {
       hass,
       config,
       localize("editor.solar"),
-      "mdi:solar-power"
+      "mdi:solar-power",
+      ELECTRIC_ENTITY_CLASSES
     );
 
     this.config = config;

@@ -10,119 +10,13 @@ import { LowCarbonState } from "./low-carbon";
 import { SolarState } from "./solar";
 import { DeviceState } from "./device";
 import { addDays, addHours, differenceInDays, endOfDay, getHours, isFirstDayOfMonth, isLastDayOfMonth, startOfDay } from "date-fns";
-import { clampEnumValue, DefaultValues, DisplayMode, ElectricUnits, EnergyUnitPrefixes, EntityMode, GasUnits } from "@/enums";
+import { clampEnumValue, DefaultValues, DisplayMode, EnergyUnits, EnergyUnitPrefix, EntityMode, VolumeUnits } from "@/enums";
 import { logDebug } from "@/logging";
 import { getEnergyDataCollection } from "@/energy";
 import { ENERGY_DATA_TIMEOUT } from "@/const";
 import { ValueState } from "./state";
 import { Flows, States } from ".";
-
-const CALORIES_TO_JOULES: number = 4.184;
-const WATTHOURS_TO_CALORIES: number = 860.42065;
-const WATTHOURS_TO_JOULES: number = 3600;
-
-interface ConversionFunctions {
-  [ElectricUnits.Calories]: (value: number, gcv: number) => number;
-  [ElectricUnits.Joules]: (value: number, gcv: number) => number;
-  [ElectricUnits.WattHours]: (value: number, gcv: number) => number;
-  [GasUnits.CCF]: (value: number, gcv: number) => number;
-  [GasUnits.Cubic_Feet]: (value: number, gcv: number) => number;
-  [GasUnits.Cubic_Metres]: (value: number, gcv: number) => number;
-  [GasUnits.Litres]: (value: number, gcv: number) => number;
-  [GasUnits.MCF]: (value: number, gcv: number) => number;
-}
-
-const UNIT_CONVERSIONS: {
-  [ElectricUnits.Calories]: ConversionFunctions;
-  [ElectricUnits.Joules]: ConversionFunctions;
-  [ElectricUnits.WattHours]: ConversionFunctions;
-  [GasUnits.CCF]: ConversionFunctions;
-  [GasUnits.Cubic_Feet]: ConversionFunctions;
-  [GasUnits.Cubic_Metres]: ConversionFunctions;
-  [GasUnits.Litres]: ConversionFunctions;
-  [GasUnits.MCF]: ConversionFunctions;
-} = {
-  [ElectricUnits.Calories]: {
-    [ElectricUnits.Calories]: value => value,
-    [ElectricUnits.Joules]: value => value * CALORIES_TO_JOULES,
-    [ElectricUnits.WattHours]: value => value / WATTHOURS_TO_CALORIES,
-    [GasUnits.CCF]: (value, gcf) => value,
-    [GasUnits.Cubic_Feet]: (value, gcf) => value,
-    [GasUnits.Cubic_Metres]: (value, gcf) => value,
-    [GasUnits.Litres]: (value, gcf) => value,
-    [GasUnits.MCF]: (value, gcf) => value
-  },
-  [ElectricUnits.Joules]: {
-    [ElectricUnits.Calories]: value => value / CALORIES_TO_JOULES,
-    [ElectricUnits.Joules]: value => value,
-    [ElectricUnits.WattHours]: value => value / WATTHOURS_TO_JOULES,
-    [GasUnits.CCF]: (value, gcf) => value,
-    [GasUnits.Cubic_Feet]: (value, gcf) => value,
-    [GasUnits.Cubic_Metres]: (value, gcf) => value,
-    [GasUnits.Litres]: (value, gcf) => value,
-    [GasUnits.MCF]: (value, gcf) => value
-  },
-  [ElectricUnits.WattHours]: {
-    [ElectricUnits.Calories]: value => value * WATTHOURS_TO_CALORIES,
-    [ElectricUnits.Joules]: value => value * WATTHOURS_TO_JOULES,
-    [ElectricUnits.WattHours]: value => value,
-    [GasUnits.CCF]: (value, gcf) => value,
-    [GasUnits.Cubic_Feet]: (value, gcf) => value,
-    [GasUnits.Cubic_Metres]: (value, gcf) => value,
-    [GasUnits.Litres]: (value, gcf) => value,
-    [GasUnits.MCF]: (value, gcf) => value
-  },
-  [GasUnits.CCF]: {
-    [ElectricUnits.Calories]: (value, gcf) => value,
-    [ElectricUnits.Joules]: (value, gcf) => value,
-    [ElectricUnits.WattHours]: (value, gcf) => value,
-    [GasUnits.CCF]: value => value,
-    [GasUnits.Cubic_Feet]: value => value,
-    [GasUnits.Cubic_Metres]: value => value,
-    [GasUnits.Litres]: value => value,
-    [GasUnits.MCF]: value => value
-  },
-  [GasUnits.Cubic_Feet]: {
-    [ElectricUnits.Calories]: (value, gcf) => value,
-    [ElectricUnits.Joules]: (value, gcf) => value,
-    [ElectricUnits.WattHours]: (value, gcf) => value,
-    [GasUnits.CCF]: value => value,
-    [GasUnits.Cubic_Feet]: value => value,
-    [GasUnits.Cubic_Metres]: value => value,
-    [GasUnits.Litres]: value => value,
-    [GasUnits.MCF]: value => value
-  },
-  [GasUnits.Cubic_Metres]: {
-    [ElectricUnits.Calories]: (value, gcf) => value,
-    [ElectricUnits.Joules]: (value, gcf) => value,
-    [ElectricUnits.WattHours]: (value, gcf) => value,
-    [GasUnits.CCF]: value => value,
-    [GasUnits.Cubic_Feet]: value => value,
-    [GasUnits.Cubic_Metres]: value => value,
-    [GasUnits.Litres]: value => value,
-    [GasUnits.MCF]: value => value
-  },
-  [GasUnits.Litres]: {
-    [ElectricUnits.Calories]: (value, gcf) => value,
-    [ElectricUnits.Joules]: (value, gcf) => value,
-    [ElectricUnits.WattHours]: (value, gcf) => value,
-    [GasUnits.CCF]: value => value,
-    [GasUnits.Cubic_Feet]: value => value,
-    [GasUnits.Cubic_Metres]: value => value,
-    [GasUnits.Litres]: value => value,
-    [GasUnits.MCF]: value => value
-  },
-  [GasUnits.MCF]: {
-    [ElectricUnits.Calories]: value => value,
-    [ElectricUnits.Joules]: value => value,
-    [ElectricUnits.WattHours]: value => value,
-    [GasUnits.CCF]: value => value,
-    [GasUnits.Cubic_Feet]: value => value,
-    [GasUnits.Cubic_Metres]: value => value,
-    [GasUnits.Litres]: value => value,
-    [GasUnits.MCF]: value => value
-  }
-};
+import { UNIT_CONVERSIONS } from "./unit-conversions";
 
 export class EntityStates {
   public hass: HomeAssistant;
@@ -148,15 +42,16 @@ export class EntityStates {
   private _entityModes: Map<string, EntityMode> = new Map();
   private _error?: Error;
   private _co2data?: Record<string, number>;
-  private _electricUnits: string;
-  private _gasUnits: string;
+  private _energyUnits: string;
+  private _volumeUnits: string;
   private _gasCalorificValue: number;
+  private _useHourlyStats: boolean;
 
   //================================================================================================================================================================================//
 
   public constructor(hass: HomeAssistant, config: EnergyFlowCardExtConfig) {
     this.hass = hass;
-    this._displayMode = config?.[GlobalOptions.Display_Mode]!;
+    this._displayMode = config?.[GlobalOptions.Display_Mode] ?? DisplayMode.History;
     this.battery = new BatteryState(hass, config?.[EditorPages.Battery]);
     this.gas = new GasState(hass, config?.[EditorPages.Gas]);
     this.grid = new GridState(hass, config?.[EditorPages.Grid]);
@@ -165,14 +60,15 @@ export class EntityStates {
     this.solar = new SolarState(hass, config?.[EditorPages.Solar]);
     this.devices = config?.[EditorPages.Devices]?.flatMap(device => new DeviceState(hass, device)) || [];
 
-    this._electricUnits = clampEnumValue(config?.[EditorPages.Appearance]?.[AppearanceOptions.Energy_Units]?.[EnergyUnitsOptions.Electric_Units], ElectricUnits, ElectricUnits.WattHours);
-    this._gasUnits = clampEnumValue(config?.[EditorPages.Appearance]?.[AppearanceOptions.Energy_Units]?.[EnergyUnitsOptions.Gas_Units], GasUnits, GasUnits.Same_As_Electric);
+    this._energyUnits = clampEnumValue(config?.[EditorPages.Appearance]?.[AppearanceOptions.Energy_Units]?.[EnergyUnitsOptions.Electric_Units], EnergyUnits, EnergyUnits.WattHours);
+    this._volumeUnits = clampEnumValue(config?.[EditorPages.Appearance]?.[AppearanceOptions.Energy_Units]?.[EnergyUnitsOptions.Gas_Units], VolumeUnits, VolumeUnits.Same_As_Electric);
 
-    if (this._gasUnits === GasUnits.Same_As_Electric) {
-      this._gasUnits = this._electricUnits;
+    if (this._volumeUnits === VolumeUnits.Same_As_Electric) {
+      this._volumeUnits = VolumeUnits.Cubic_Metres;
     }
 
     this._gasCalorificValue = config?.[EditorPages.Appearance]?.[AppearanceOptions.Energy_Units]?.[EnergyUnitsOptions.Gas_Calorific_Value] ?? DefaultValues.Gas_Calorific_Value;
+    this._useHourlyStats = config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Use_Hourly_Stats] ?? false;
 
     this._populateEntityArrays();
     this._inferEntityModes();
@@ -188,14 +84,15 @@ export class EntityStates {
       batteryExport: this.battery.state.export,
       batterySecondary: this.battery.secondary.state,
       gasImport: this.gas.state.import,
+      gasImportVolume: this.gas.state.importVolume,
       gasSecondary: this.gas.secondary.state,
       gridImport: this.grid.state.import,
       gridExport: this.grid.state.export,
       gridSecondary: this.grid.secondary.state,
       highCarbon: this.grid.state.highCarbon,
       homeElectric: 0,
-      // TODO: gas-producing devices need adding to here
-      homeGas: this.gas.state.import,
+      homeGas: 0,
+      homeGasVolume: 0,
       homeSecondary: this.home.secondary.state,
       lowCarbon: 0,
       lowCarbonPercentage: 0,
@@ -222,6 +119,10 @@ export class EntityStates {
     states.homeElectric = states.batteryImport + states.gridImport + states.solarImport - states.batteryExport - states.gridExport;
     states.lowCarbon = states.gridImport - states.highCarbon;
     states.lowCarbonPercentage = (states.lowCarbon / states.gridImport) * 100 || 0;
+
+    // TODO: gas-producing devices need adding to here
+    states.homeGas = states.gasImport;
+    states.homeGasVolume = states.gasImportVolume;
 
     // The net energy in the system is (imports-exports), but as the entities may not be updated in sync with each other it is possible that the flows to the home will
     // not add up to the same value.  When this happens, while we still want to return the net energy for display, we need to rescale the flows so that the animation and
@@ -272,7 +173,7 @@ export class EntityStates {
     );
 
     // TODO: add gas-producing devices
-    states.largestGasValue = states.gasImport;
+    states.largestGasValue = this._volumeUnits === VolumeUnits.Same_As_Electric ? states.gasImport : states.gasImportVolume;
 
     return states;
   }
@@ -315,7 +216,7 @@ export class EntityStates {
           let periodStart: Date;
           let periodEnd: Date;
 
-          if (config?.[GlobalOptions.Display_Mode] === DisplayMode.Today) {
+          if (this._displayMode === DisplayMode.Today) {
             periodEnd = new Date();
             periodStart = startOfDay(periodEnd);
           } else {
@@ -324,10 +225,7 @@ export class EntityStates {
           }
 
           const dayDiff: number = differenceInDays(periodEnd, periodStart);
-
-          const period = config?.[EditorPages.Appearance]?.[AppearanceOptions.Flows]?.[FlowsOptions.Use_Hourly_Stats] ? 'hour' :
-            isFirstDayOfMonth(periodStart) && isLastDayOfMonth(periodEnd) && dayDiff > 35 ? 'month' : dayDiff > 2 ? 'day' : 'hour';
-
+          const period = this._useHourlyStats ? 'hour' : isFirstDayOfMonth(periodStart) && isLastDayOfMonth(periodEnd) && dayDiff > 35 ? 'month' : dayDiff > 2 ? 'day' : 'hour';
           this._loadStatistics(periodStart, periodEnd, period);
         });
       });
@@ -351,11 +249,11 @@ export class EntityStates {
       periodEnd = this._energyData!.end!;
     }
 
-    const solarImportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.solar.mainEntities, this._electricUnits);
-    const batteryImportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.battery.mainEntities, this._electricUnits);
-    const batteryExportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.battery.returnEntities, this._electricUnits);
-    const gridImportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.grid.mainEntities, this._electricUnits);
-    const gridExportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.grid.returnEntities, this._electricUnits);
+    const solarImportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.solar.mainEntities, this._energyUnits);
+    const batteryImportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.battery.mainEntities, this._energyUnits);
+    const batteryExportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.battery.returnEntities, this._energyUnits);
+    const gridImportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.grid.mainEntities, this._energyUnits);
+    const gridExportDelta: number = this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.grid.returnEntities, this._energyUnits);
     const flowDeltas: Flows = this._calculateFlows(solarImportDelta, batteryImportDelta, batteryExportDelta, gridImportDelta, gridExportDelta);
 
     states.batteryImport += batteryImportDelta;
@@ -373,18 +271,19 @@ export class EntityStates {
     states.flows.gridToHome += flowDeltas.gridToHome;
     states.flows.solarToHome += flowDeltas.solarToHome;
 
-    states.gasImport += this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.gas.mainEntities, this._gasUnits);
+    states.gasImport += this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.gas.mainEntities, this._energyUnits);
+    states.gasImportVolume += this._getStateDelta(periodStart, periodEnd, this._primaryStatistics, this.gas.mainEntities, this._volumeUnits);
 
     const highCarbonDelta: number = this.lowCarbon.isPresent ? gridImportDelta * Number(this.hass.states[this.lowCarbon.firstImportEntity!].state) / 100 : 0;
     states.highCarbon += highCarbonDelta;
 
-    states.batterySecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.battery.secondary.mainEntities, this._electricUnits);
-    states.gasSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.gas.secondary.mainEntities, this._gasUnits);
-    states.gridSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.grid.secondary.mainEntities, this._electricUnits);
-    states.homeSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.home.secondary.mainEntities, this._electricUnits);
-    states.lowCarbonSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.lowCarbon.secondary.mainEntities, this._electricUnits);
-    states.solarSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.solar.secondary.mainEntities, this._electricUnits);
-    this.devices.forEach((device, index) => states.devicesSecondary[index] += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, device.secondary.mainEntities, this._electricUnits));
+    states.batterySecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.battery.secondary.mainEntities, this._energyUnits);
+    states.gasSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.gas.secondary.mainEntities, this._volumeUnits);
+    states.gridSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.grid.secondary.mainEntities, this._energyUnits);
+    states.homeSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.home.secondary.mainEntities, this._energyUnits);
+    states.lowCarbonSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.lowCarbon.secondary.mainEntities, this._energyUnits);
+    states.solarSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.solar.secondary.mainEntities, this._energyUnits);
+    this.devices.forEach((device, index) => states.devicesSecondary[index] += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, device.secondary.mainEntities, this._energyUnits));
   }
 
   //================================================================================================================================================================================//
@@ -419,13 +318,15 @@ export class EntityStates {
 
   //================================================================================================================================================================================//
 
-  private async _loadStatistics(periodStart: Date, periodEnd: Date, period: '5minute' | 'hour' | 'day' | 'week' | 'month') {
+  private async _loadStatistics(periodStart: Date, periodEnd: Date, period: '5minute' | 'hour' | 'day' | 'week' | 'month'): Promise<void> {
+    let startTime: number = new Date().getTime();
+
     const [previousPrimaryData, primaryData]: Statistics[] = await Promise.all([
       this._fetchStatistics(addHours(periodStart, -1), periodStart, this._primaryEntityIds, 'hour'),
       this._fetchStatistics(periodStart, periodEnd, this._primaryEntityIds, period)
     ]);
 
-    logDebug("Received primary stats for period [" + periodStart + " - " + periodEnd + "] @ " + new Date());
+    logDebug("Received primary stats for period [" + periodStart + " - " + periodEnd + "] @ " + new Date() + " in " + (new Date().getTime() - startTime) + "ms");
 
     if (this.lowCarbon.isPresent) {
       this._co2data = await this._fetchCo2Data(periodStart, periodEnd, period);
@@ -436,12 +337,14 @@ export class EntityStates {
     this._calculatePrimaryStatistics();
 
     if (this._secondaryEntityIds.length !== 0) {
+      startTime = new Date().getTime();
+
       const [previousSecondaryData, secondaryData]: Statistics[] = await Promise.all([
         this._fetchStatistics(addHours(periodStart, -1), periodStart, this._secondaryEntityIds, 'hour'),
         this._fetchStatistics(periodStart, periodEnd, this._secondaryEntityIds, 'day')
       ]);
 
-      logDebug("Received secondary stats for period [" + periodStart + " - " + periodEnd + "] @ " + new Date());
+      logDebug("Received secondary stats for period [" + periodStart + " - " + periodEnd + "] @ " + new Date() + " in " + (new Date().getTime() - startTime) + "ms");
       this._validateStatistics(this._secondaryEntityIds, secondaryData, previousSecondaryData, periodStart, periodEnd);
       this._secondaryStatistics = secondaryData;
       this._calculateSecondaryStatistics();
@@ -500,17 +403,17 @@ export class EntityStates {
     const combinedStats: Map<number, Map<string, number>> = new Map();
 
     if (this.grid.isPresent) {
-      this._addFlowStats(this._primaryStatistics, combinedStats, this.grid.mainEntities, this._electricUnits);
-      this._addFlowStats(this._primaryStatistics, combinedStats, this.grid.returnEntities, this._electricUnits);
+      this._addFlowStats(this._primaryStatistics, combinedStats, this.grid.mainEntities, this._energyUnits);
+      this._addFlowStats(this._primaryStatistics, combinedStats, this.grid.returnEntities, this._energyUnits);
     }
 
     if (this.battery.isPresent) {
-      this._addFlowStats(this._primaryStatistics, combinedStats, this.battery.mainEntities, this._electricUnits);
-      this._addFlowStats(this._primaryStatistics, combinedStats, this.battery.returnEntities, this._electricUnits);
+      this._addFlowStats(this._primaryStatistics, combinedStats, this.battery.mainEntities, this._energyUnits);
+      this._addFlowStats(this._primaryStatistics, combinedStats, this.battery.returnEntities, this._energyUnits);
     }
 
     if (this.solar.isPresent) {
-      this._addFlowStats(this._primaryStatistics, combinedStats, this.solar.mainEntities, this._electricUnits);
+      this._addFlowStats(this._primaryStatistics, combinedStats, this.solar.mainEntities, this._energyUnits);
     }
 
     let solarToHome: number = 0;
@@ -569,7 +472,7 @@ export class EntityStates {
         }
 
         if (this.lowCarbon.isPresent && this._co2data) {
-          this.grid.state.highCarbon = this._toBaseUnits(Object.values(this._co2data).reduce((sum, a) => sum + a, 0), EnergyUnitPrefixes.Kilo + ElectricUnits.WattHours, this._electricUnits);
+          this.grid.state.highCarbon = this._toBaseUnits(Object.values(this._co2data).reduce((sum, a) => sum + a, 0), EnergyUnitPrefix.Kilo + EnergyUnits.WattHours, this._energyUnits);
         } else {
           this.grid.state.highCarbon = this.grid.state.import;
         }
@@ -605,9 +508,11 @@ export class EntityStates {
     }
 
     if (this.gas.isPresent) {
-      this.gas.state.import = this._getDirectEntityStates(this.gas.config, this.gas.mainEntities, this._gasUnits);
+      this.gas.state.import = this._getDirectEntityStates(this.gas.config, this.gas.mainEntities, this._energyUnits);
+      this.gas.state.importVolume = this._getDirectEntityStates(this.gas.config, this.gas.mainEntities, this._volumeUnits);
     } else {
       this.gas.state.import = 0;
+      this.gas.state.importVolume = 0;
     }
   }
 
@@ -640,7 +545,7 @@ export class EntityStates {
   //================================================================================================================================================================================//
 
   private _addFlowStats(statistics: Statistics, combinedStats: Map<number, Map<string, number>>, entityIds: string[] | undefined = [], requestedUnits: string): void {
-    if (!entityIds.length) {
+    if (entityIds.length === 0) {
       return;
     }
 
@@ -663,7 +568,7 @@ export class EntityStates {
   //================================================================================================================================================================================//
 
   private _getFlowEntityStates(entry: Map<string, number>, entityIds: string[] | undefined = []): number {
-    if (!entityIds.length) {
+    if (entityIds.length === 0) {
       return 0;
     }
 
@@ -694,8 +599,8 @@ export class EntityStates {
   private _getEntityStates(statistics: Statistics, entityId: string, units: string | undefined, requestedUnits: string | undefined = undefined): number {
     const entityStats: StatisticValue[] = statistics[entityId];
 
-    if (entityStats.length > 0) {
-      const state: number = entityStats.map(stat => stat.change || 0).reduce((result, change) => result + change, 0) || 0;
+    if (entityStats.length !== 0) {
+      const state: number = entityStats.map(stat => stat.change || 0).reduce((result, change) => result + change, 0) ?? 0;
       return this._toBaseUnits(state, units || this.hass.states[entityId].attributes.unit_of_measurement, requestedUnits);
     }
 
@@ -779,7 +684,7 @@ export class EntityStates {
       let entityStats: StatisticValue[] = currentStatistics[entity];
       let idx: number = 0;
 
-      if (!entityStats || entityStats.length == 0 || entityStats[0].start > periodStart.getTime()) {
+      if (!entityStats || entityStats.length === 0 || entityStats[0].start > periodStart.getTime()) {
         let dummyStat: StatisticValue;
 
         if (previousStatistics && previousStatistics[entity]?.length) {
@@ -829,10 +734,10 @@ export class EntityStates {
               stat.change = stat.state;
             }
 
-            lastState = stat.state || 0;
+            lastState = stat.state ?? 0;
           } else {
             // the 'change' values coming back from statistics are not always correct, so recalculate them from the state-diffs
-            const state: number = stat.state || 0;
+            const state: number = stat.state ?? 0;
             const change: number = state - lastState;
 
             if (this._entityModes.get(entity) === EntityMode.Totalising) {
@@ -882,12 +787,12 @@ export class EntityStates {
     if (stateObj) {
       const statisticsForEntity: StatisticValue[] = statistics[entityId];
 
-      if (statisticsForEntity && statisticsForEntity.length != 0) {
+      if (statisticsForEntity && statisticsForEntity.length !== 0) {
         const units: string | undefined = stateObj.attributes.unit_of_measurement;
 
         statisticsForEntity.map(entry => {
-          const state = this._toBaseUnits(entry.change || 0, units, requestedUnits);
-          entityStats.set(entry.start, (entityStats.get(entry.start) || 0) + state);
+          const state = this._toBaseUnits(entry.change ?? 0, units, requestedUnits);
+          entityStats.set(entry.start, (entityStats.get(entry.start) ?? 0) + state);
         });
       }
     }
@@ -903,13 +808,13 @@ export class EntityStates {
     }
 
     const baseUnits = this._getBaseUnits(units);
-    const prefixes: string[] = Object.values(EnergyUnitPrefixes);
+    const prefixes: string[] = Object.values(EnergyUnitPrefix);
     let multiplier: number = 1;
 
-    for (let n = 0; n < prefixes.length; n++, multiplier *= 1000) {
+    for (let n: number = 0; n < prefixes.length; n++, multiplier *= 1000) {
       if (units === prefixes[n] + baseUnits) {
         const fn: (value: number, gcf: number) => number = UNIT_CONVERSIONS[baseUnits][requestedUnits];
-        return round(fn(value, this._gasCalorificValue) * multiplier, 0);
+        return fn(value, this._gasCalorificValue) * multiplier;
       }
     }
 
@@ -919,15 +824,15 @@ export class EntityStates {
   //================================================================================================================================================================================//
 
   private _getBaseUnits(units: string): string {
-    const prefixes: string[] = Object.values(EnergyUnitPrefixes);
+    const prefixes: string[] = Object.values(EnergyUnitPrefix);
     const supportedUnits: string[] = [
-      ElectricUnits.Calories,
-      ElectricUnits.Joules,
-      ElectricUnits.WattHours
+      EnergyUnits.Calories,
+      EnergyUnits.Joules,
+      EnergyUnits.WattHours
     ];
 
-    for (let u = 0; u < supportedUnits.length; u++) {
-      for (let p = 0; p < prefixes.length; p++) {
+    for (let u: number = 0; u < supportedUnits.length; u++) {
+      for (let p: number = 0; p < prefixes.length; p++) {
         if (units === prefixes[p] + supportedUnits[u]) {
           return supportedUnits[u];
         }

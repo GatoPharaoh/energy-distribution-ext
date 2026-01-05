@@ -14,7 +14,6 @@
     "entities": "Entities",
     "overrides": "Overrides",
     "options": "Options",
-    "include_in_home": "Include when calculating energy usage for Home",
     "low_carbon_mode": "Display as",
     "add_device": "Add Device",
     "remove_device": "Remove Device",
@@ -82,7 +81,6 @@
 
     "low_carbon": "Low-carbon",
     "low_carbon_energy": "Low-Carbon Energy",
-    "low_carbon_show_as": "Show as",
 
     "home": "Home",
 
@@ -149,10 +147,9 @@
     "custom": "Custom",
     "default": "Default"
   },
-  "LowCarbonType": {
+  "LowCarbonDisplayMode": {
     "energy": "Energy",
-    "percentage": "Percentage",
-    "hidden": "Hidden"
+    "percentage": "Percentage"
   },
   "InactiveFlowsMode": {
     "normal": "Normal colors",
@@ -189,12 +186,12 @@
     "linear": "Linear",
     "logarithmic": "Logarithmic"
   },
-  "ElectricUnits": {
+  "EnergyUnits": {
     "Wh": "Watt hours",
     "J": "Joules",
     "cal": "Calories"
   },
-  "GasUnits": {
+  "VolumeUnits": {
     "same_as_electric": "Same as electric",
     "ft³": "Cubic feet",
     "m³": "Cubic meters",

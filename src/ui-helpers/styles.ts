@@ -28,7 +28,6 @@ const HOME_UI_ELEMENTS: ColourOptions[] = [ColourOptions.Circle, ColourOptions.I
 const SINGLE_NODE_UI_ELEMENTS: ColourOptions[] = [ColourOptions.Circle, ColourOptions.Icon, ColourOptions.Value, ColourOptions.Secondary];
 const DUAL_NODE_UI_ELEMENTS: ColourOptions[] = [ColourOptions.Circle, ColourOptions.Icon, ColourOptions.Value_Import, ColourOptions.Value_Export, ColourOptions.Secondary];
 
-
 //================================================================================================================================================================================//
 
 export function getColSpacing(circleSize: number): MinMax {

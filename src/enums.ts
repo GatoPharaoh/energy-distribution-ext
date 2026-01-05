@@ -8,7 +8,7 @@ export function clampEnumValue<T extends Object>(value: any, type: any, defaultV
   return Object.values(type).indexOf(value) === -1 ? defaultValue : value;
 }
 
-export enum EnergyUnitPrefixes {
+export enum EnergyUnitPrefix {
   None = "",
   Kilo = "k",
   Mega = "M",
@@ -94,17 +94,17 @@ export namespace ColourMode {
   }
 }
 
-export enum LowCarbonType {
+export enum LowCarbonDisplayMode {
   Energy = "energy",
   Percentage = "percentage"
 }
 
-export namespace LowCarbonType {
-  export function getName(value: LowCarbonType): string {
-    return getEditorLabel("LowCarbonType", value);
+export namespace LowCarbonDisplayMode {
+  export function getName(value: LowCarbonDisplayMode): string {
+    return getEditorLabel("LowCarbonDisplayMode", value);
   }
 
-  export function getItem(value: LowCarbonType): { label: string, value: string } {
+  export function getItem(value: LowCarbonDisplayMode): { label: string, value: string } {
     return { label: getName(value), value: value };
   }
 }
@@ -227,23 +227,23 @@ export namespace Scale {
   }
 }
 
-export enum ElectricUnits {
+export enum EnergyUnits {
   WattHours = "Wh",
   Joules = "J",
   Calories = "cal"
 }
 
-export namespace ElectricUnits {
-  export function getName(value: ElectricUnits): string {
-    return getEditorLabel("ElectricUnits", value);
+export namespace EnergyUnits {
+  export function getName(value: EnergyUnits): string {
+    return getEditorLabel("EnergyUnits", value);
   }
 
-  export function getItem(value: ElectricUnits): { label: string, value: string } {
+  export function getItem(value: EnergyUnits): { label: string, value: string } {
     return { label: getName(value), value: value };
   }
 }
 
-export enum GasUnits {
+export enum VolumeUnits {
   Same_As_Electric = "same_as_electric",
   Cubic_Feet = "ft³",
   Cubic_Metres = "m³",
@@ -252,12 +252,12 @@ export enum GasUnits {
   Litres = "L"
 }
 
-export namespace GasUnits {
-  export function getName(value: GasUnits): string {
-    return getEditorLabel("GasUnits", value);
+export namespace VolumeUnits {
+  export function getName(value: VolumeUnits): string {
+    return getEditorLabel("VolumeUnits", value);
   }
 
-  export function getItem(value: GasUnits): { label: string, value: string } {
+  export function getItem(value: VolumeUnits): { label: string, value: string } {
     return { label: getName(value), value: value };
   }
 }

@@ -15,11 +15,6 @@ Code:
   - unit-testing
   - move the language files to Typescript so enum values can be used for the keys
   - dynamic labelling for, eg, Battery's import ('discharge') and export ('charge') fields in the UI
-  - support entities in cal and J as well as Wh, for compatibility with HASS
-    - gas also supports volumes
-    - all energy values are converted to the same units, whatever that is
-      - in the case of a volume sensor for gas, while we do the conversion so that flow calcs will work we also store the actual value for display in that node if the user selects to do so
-        - which is to say that the value will be converted to the user's selected units, so if they picked an energy unit rather than a volume unit we either don't store or else convert to m3
   - see if a generic 'get enum values for UI' function can be written
     - params would be the name (or type) of the enum, and an optional list of the values wanted
       - if no values are specified, it returns all values in the order they are defined
@@ -43,6 +38,7 @@ Display:
       - can animation do this?
       - similarly, the grid-import ring can now show high and low
     - fix z-ordering so that dots appear on top of lines
+      - will require re-ordering the svg elements, which changes the way we render
     - go back to specifying direction:
         - this will fix the alignment and overlap problems with the dashed line, and will help when doing bi-directional devices
   - Home:

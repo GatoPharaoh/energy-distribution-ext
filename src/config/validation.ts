@@ -1,5 +1,5 @@
 import { any, assign, boolean, integer, number, object, optional, string, array } from 'superstruct';
-import { AppearanceOptions, ColourOptions, DeviceOptions, EditorPages, EnergyUnitsOptions, EntitiesOptions, EntityOptions, FlowsOptions, GlobalOptions, HomeOptions, OverridesOptions, PowerOutageOptions, SecondaryInfoOptions } from '.';
+import { AppearanceOptions, ColourOptions, DeviceOptions, EditorPages, EnergyUnitsOptions, EntitiesOptions, EntityOptions, FlowsOptions, GlobalOptions, HomeOptions, LowCarbonOptions, OverridesOptions, PowerOutageOptions, SecondaryInfoOptions } from '.';
 
 const baseLovelaceCardConfigStruct = object({
   type: string(),
@@ -15,7 +15,8 @@ const appearanceOptionsConfigStruct = object({
   [AppearanceOptions.Dashboard_Link_Label]: optional(string()),
   [AppearanceOptions.Show_Zero_States]: optional(boolean()),
   [AppearanceOptions.Clickable_Entities]: optional(boolean()),
-  [AppearanceOptions.Segment_Gaps]: optional(boolean())
+  [AppearanceOptions.Segment_Gaps]: optional(boolean()),
+  [AppearanceOptions.Use_HASS_Style]: optional(boolean())
 });
 
 const energyUnitsOptionsConfigStruct = object({
@@ -33,7 +34,6 @@ const energyUnitsOptionsConfigStruct = object({
 
 const flowsOptionsConfigStruct = object({
   [FlowsOptions.Use_Hourly_Stats]: optional(boolean()),
-  [FlowsOptions.Use_HASS_Style]: optional(boolean()),
   [FlowsOptions.Animation]: optional(boolean()),
   [FlowsOptions.Inactive_Flows]: optional(string()),
   [FlowsOptions.Scale]: optional(string())
@@ -87,7 +87,7 @@ const overridesConfigStruct = object({
 const secondaryInfoConfigStruct = object({
   [EntityOptions.Entity_Id]: optional(string()),
   [SecondaryInfoOptions.Units]: optional(string()),
-  [EntityOptions.Unit_Position]: optional(string()),
+  [SecondaryInfoOptions.Unit_Position]: optional(string()),
   [SecondaryInfoOptions.Zero_Threshold]: optional(number()),
   [SecondaryInfoOptions.Display_Precision]: optional(number()),
   [SecondaryInfoOptions.Icon]: optional(string())
@@ -160,7 +160,7 @@ const homeConfigStruct = object({
 });
 
 const lowCarbonOptionsConfig = object({
-  [EntitiesOptions.Low_Carbon_Mode]: optional(string())
+  [LowCarbonOptions.Low_Carbon_Mode]: optional(string())
 });
 
 const lowCarbonConfigStruct = object({

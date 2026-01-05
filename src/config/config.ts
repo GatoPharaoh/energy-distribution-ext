@@ -1,6 +1,6 @@
-import { ColourMode, DisplayMode, LowCarbonType, InactiveFlowsMode, DefaultValues, UnitPrefixes, UnitPosition, GasSourcesMode, EnergyType, EnergyDirection, Scale, ElectricUnits, GasUnits } from "@/enums";
+import { ColourMode, DisplayMode, LowCarbonDisplayMode, InactiveFlowsMode, DefaultValues, UnitPrefixes, UnitPosition, GasSourcesMode, EnergyType, EnergyDirection, Scale, EnergyUnits, VolumeUnits } from "@/enums";
 import { HomeAssistant } from 'custom-card-helpers';
-import { AppearanceConfig, BatteryConfig, DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, GasConfig, GridConfig, HomeConfig, HomeOptions, LowCarbonConfig, SolarConfig } from ".";
+import { AppearanceConfig, BatteryConfig, DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, GasConfig, GridConfig, HomeConfig, HomeOptions, LowCarbonConfig, LowCarbonOptions, SecondaryInfoOptions, SolarConfig } from ".";
 import { CARD_NAME } from "@/const";
 import { AppearanceOptions, ColourOptions, EditorPages, EnergyUnitsOptions, EntitiesOptions, EntityOptions, FlowsOptions, GlobalOptions } from "@/config";
 import { localize } from "@/localize/localize";
@@ -125,12 +125,13 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
     [GlobalOptions.Options]: {
       [AppearanceOptions.Show_Zero_States]: true,
       [AppearanceOptions.Clickable_Entities]: false,
-      [AppearanceOptions.Segment_Gaps]: false
+      [AppearanceOptions.Segment_Gaps]: false,
+      [AppearanceOptions.Use_HASS_Style]: true
     },
     [AppearanceOptions.Energy_Units]: {
-      [EnergyUnitsOptions.Electric_Units]: ElectricUnits.WattHours,
+      [EnergyUnitsOptions.Electric_Units]: EnergyUnits.WattHours,
       [EnergyUnitsOptions.Electric_Unit_Prefixes]: UnitPrefixes.Unified,
-      [EnergyUnitsOptions.Gas_Units]: GasUnits.Same_As_Electric,
+      [EnergyUnitsOptions.Gas_Units]: VolumeUnits.Same_As_Electric,
       [EnergyUnitsOptions.Gas_Unit_Prefixes]: UnitPrefixes.Unified,
       [EnergyUnitsOptions.Unit_Position]: UnitPosition.After_Space,
       [EnergyUnitsOptions.Display_Precision_Under_10]: DefaultValues.Display_Precision_Under_10,
@@ -141,11 +142,9 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
     },
     [AppearanceOptions.Flows]: {
       [FlowsOptions.Use_Hourly_Stats]: false,
-      [FlowsOptions.Use_HASS_Style]: true,
       [FlowsOptions.Animation]: true,
       [FlowsOptions.Inactive_Flows]: InactiveFlowsMode.Normal,
       [FlowsOptions.Scale]: Scale.Linear
-
     }
   };
 }
@@ -161,16 +160,16 @@ export function getDefaultGridConfig(hass: HomeAssistant, requireEntity: boolean
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Circle]: ColourMode.Import,
       [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Flow_Export]: ColourMode.Default,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Circle]: ColourMode.Import,
       [ColourOptions.Value_Import]: ColourMode.Flow,
-      [ColourOptions.Value_Export]: ColourMode.Flow
+      [ColourOptions.Value_Export]: ColourMode.Flow,
+      [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [EntitiesOptions.Secondary_Info]: {
-      [EntityOptions.Unit_Position]: UnitPosition.After_Space
+      [SecondaryInfoOptions.Unit_Position]: UnitPosition.After_Space
     }
   };
 
@@ -218,16 +217,16 @@ export function getDefaultBatteryConfig(hass: HomeAssistant, requireEntity: bool
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Circle]: ColourMode.Export,
       [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Flow_Export]: ColourMode.Default,
+      [ColourOptions.Circle]: ColourMode.Export,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
       [ColourOptions.Value_Import]: ColourMode.Flow,
-      [ColourOptions.Value_Export]: ColourMode.Flow
+      [ColourOptions.Value_Export]: ColourMode.Flow,
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [EntitiesOptions.Secondary_Info]: {
-      [EntityOptions.Unit_Position]: UnitPosition.After_Space
+      [SecondaryInfoOptions.Unit_Position]: UnitPosition.After_Space
     }
   };
 
@@ -272,14 +271,14 @@ export function getDefaultSolarConfig(hass: HomeAssistant, requireEntity: boolea
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Flow]: ColourMode.Default,
+      [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Value]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [EntitiesOptions.Secondary_Info]: {
-      [EntityOptions.Unit_Position]: UnitPosition.After_Space
+      [SecondaryInfoOptions.Unit_Position]: UnitPosition.After_Space
     }
   };
 
@@ -315,14 +314,14 @@ export function getDefaultGasConfig(hass: HomeAssistant, requireEntity: boolean)
       [EntityOptions.Entity_Ids]: []
     },
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Flow]: ColourMode.Default,
+      [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Value]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [EntitiesOptions.Secondary_Info]: {
-      [EntityOptions.Unit_Position]: UnitPosition.After_Space
+      [SecondaryInfoOptions.Unit_Position]: UnitPosition.After_Space
     }
   };
 
@@ -357,16 +356,16 @@ export function getDefaultHomeConfig(): HomeConfig {
     [EntitiesOptions.Colours]: {
       [ColourOptions.Circle]: ColourMode.Dynamic,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Value]: ColourMode.Do_Not_Colour
-    },
-    [EntitiesOptions.Secondary_Info]: {
-      [EntityOptions.Unit_Position]: UnitPosition.After_Space
+      [ColourOptions.Value]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [GlobalOptions.Options]: {
       [HomeOptions.Gas_Sources]: GasSourcesMode.Do_Not_Show,
       [HomeOptions.Gas_Sources_Threshold]: DefaultValues.Gas_Sources_Threshold,
       [HomeOptions.Subtract_Consumers]: false
+    },
+    [EntitiesOptions.Secondary_Info]: {
+      [SecondaryInfoOptions.Unit_Position]: UnitPosition.After_Space
     }
   };
 }
@@ -376,17 +375,17 @@ export function getDefaultHomeConfig(): HomeConfig {
 export function getDefaultLowCarbonConfig(): LowCarbonConfig {
   return {
     [EntitiesOptions.Colours]: {
-      [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Flow]: ColourMode.Default,
+      [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Icon]: ColourMode.Flow,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Value]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [GlobalOptions.Options]: {
-      [EntitiesOptions.Low_Carbon_Mode]: LowCarbonType.Energy
+      [LowCarbonOptions.Low_Carbon_Mode]: LowCarbonDisplayMode.Energy
     },
     [EntitiesOptions.Secondary_Info]: {
-      [EntityOptions.Unit_Position]: UnitPosition.After_Space
+      [SecondaryInfoOptions.Unit_Position]: UnitPosition.After_Space
     }
   };
 }
@@ -406,12 +405,12 @@ export function getDefaultDeviceConfig(importColour: number[], exportColour: num
       [ColourOptions.Flow_Export_Colour]: exportColour,
       [ColourOptions.Circle]: ColourMode.Do_Not_Colour,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
       [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [EntitiesOptions.Secondary_Info]: {
-      [EntityOptions.Unit_Position]: UnitPosition.After_Space
+      [SecondaryInfoOptions.Unit_Position]: UnitPosition.After_Space
     },
     [DeviceOptions.Name]: localize("common.new_device"),
     [DeviceOptions.Icon]: "mdi:devices",

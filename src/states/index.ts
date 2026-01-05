@@ -18,6 +18,7 @@ export interface States {
   batteryExport: number;
   batterySecondary: number;
   gasImport: number;
+  gasImportVolume: number;
   gasSecondary: number;
   gridImport: number;
   gridExport: number;
@@ -25,6 +26,7 @@ export interface States {
   highCarbon: number;
   homeElectric: number;
   homeGas: number;
+  homeGasVolume: number;
   homeSecondary: number;
   lowCarbon: number;
   lowCarbonPercentage: number;

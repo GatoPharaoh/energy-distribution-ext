@@ -1,6 +1,5 @@
 import { HomeAssistant, LovelaceCard, LovelaceCardConfig } from 'custom-card-helpers';
-import { ColourMode, DisplayMode, LowCarbonType, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, ElectricUnits, GasUnits } from '@/enums';
-import { DEVICE_CLASS_ENERGY } from '@/const';
+import { ColourMode, DisplayMode, LowCarbonDisplayMode, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, EnergyUnits, VolumeUnits } from '@/enums';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -35,6 +34,7 @@ export enum AppearanceOptions {
   Show_Zero_States = "show_zero_states",
   Clickable_Entities = "clickable_entities",
   Segment_Gaps = "segment_gaps",
+  Use_HASS_Style = "use_hass_style",
   Energy_Units = "energy_units",
   Flows = "flows"
 };
@@ -54,7 +54,6 @@ export enum EnergyUnitsOptions {
 
 export enum FlowsOptions {
   Use_Hourly_Stats = "use_hourly_stats",
-  Use_HASS_Style = "use_hass_style",
   Animation = "animation",
   Inactive_Flows = "inactive_flows",
   Scale = "scale"
@@ -66,14 +65,12 @@ export enum EntitiesOptions {
   Export_Entities = "export_entities",
   Colours = "colours",
   Overrides = "overrides",
-  Secondary_Info = "secondary_info",
-  Low_Carbon_Mode = "low_carbon_mode"
+  Secondary_Info = "secondary_info"
 };
 
 export enum EntityOptions {
   Entity_Id = "entity_id",
-  Entity_Ids = "entity_ids",
-  Unit_Position = "unit_position"
+  Entity_Ids = "entity_ids"
 };
 
 export enum ColourOptions {
@@ -113,7 +110,8 @@ export enum SecondaryInfoOptions {
   Icon = "secondary_icon",
   Units = "units",
   Zero_Threshold = "zero_threshold",
-  Display_Precision = "display_precision"
+  Display_Precision = "display_precision",
+  Unit_Position = "unit_position"
 }
 
 export enum DeviceOptions {
@@ -127,6 +125,10 @@ export enum HomeOptions {
   Gas_Sources = "gas_sources",
   Gas_Sources_Threshold = "gas_sources_threshold",
   Subtract_Consumers = "subtract_consumers"
+}
+
+export enum LowCarbonOptions {
+  Low_Carbon_Mode = "low_carbon_mode"
 }
 
 //================================================================================================================================================================================//
@@ -158,12 +160,13 @@ export interface AppearanceOptionsConfig {
   [AppearanceOptions.Show_Zero_States]?: boolean;
   [AppearanceOptions.Clickable_Entities]?: boolean;
   [AppearanceOptions.Segment_Gaps]?: boolean;
+  [AppearanceOptions.Use_HASS_Style]?: boolean;
 };
 
 export interface EnergyUnitsConfig {
-  [EnergyUnitsOptions.Electric_Units]?: ElectricUnits;
+  [EnergyUnitsOptions.Electric_Units]?: EnergyUnits;
   [EnergyUnitsOptions.Electric_Unit_Prefixes]?: UnitPrefixes;
-  [EnergyUnitsOptions.Gas_Units]?: GasUnits;
+  [EnergyUnitsOptions.Gas_Units]?: VolumeUnits;
   [EnergyUnitsOptions.Gas_Unit_Prefixes]?: UnitPrefixes;
   [EnergyUnitsOptions.Unit_Position]?: UnitPosition;
   [EnergyUnitsOptions.Display_Precision_Under_10]?: number;
@@ -175,7 +178,6 @@ export interface EnergyUnitsConfig {
 
 export interface FlowsConfig {
   [FlowsOptions.Use_Hourly_Stats]?: boolean;
-  [FlowsOptions.Use_HASS_Style]?: boolean;
   [FlowsOptions.Animation]?: boolean;
   [FlowsOptions.Inactive_Flows]?: InactiveFlowsMode;
   [FlowsOptions.Scale]?: Scale;
@@ -194,7 +196,7 @@ export interface LowCarbonConfig extends NodeConfig {
 };
 
 export interface LowCarbonOptionsConfig {
-  [EntitiesOptions.Low_Carbon_Mode]?: LowCarbonType;
+  [LowCarbonOptions.Low_Carbon_Mode]?: LowCarbonDisplayMode;
 };
 
 export interface SolarConfig extends SingleValueNodeConfig {
@@ -312,7 +314,7 @@ export interface PowerOutageConfig {
 export interface SecondaryInfoConfig {
   [EntityOptions.Entity_Id]?: string;
   [SecondaryInfoOptions.Units]?: string;
-  [EntityOptions.Unit_Position]?: UnitPosition;
+  [SecondaryInfoOptions.Unit_Position]?: UnitPosition;
   [SecondaryInfoOptions.Zero_Threshold]?: number;
   [SecondaryInfoOptions.Display_Precision]?: number;
   [SecondaryInfoOptions.Icon]?: string;
@@ -322,10 +324,10 @@ export interface SecondaryInfoConfig {
 
 const isTotalisingEntity = (hass: HomeAssistant, entityId: string = ""): boolean => ["total", "total_increasing"].includes(hass.states[entityId]?.attributes?.state_class || "");
 
-export const isValidPrimaryEntity = (hass: HomeAssistant, entityId: string = ""): boolean => isTotalisingEntity(hass, entityId) && hass.states[entityId]?.attributes?.device_class === DEVICE_CLASS_ENERGY;
+export const isValidPrimaryEntity = (hass: HomeAssistant, entityId: string = "", deviceClasses: string[]): boolean => isTotalisingEntity(hass, entityId) && deviceClasses.indexOf(hass.states[entityId]?.attributes?.device_class!) !== -1;
 export const isValidSecondaryEntity = (hass: HomeAssistant, entityId: string = ""): boolean => isTotalisingEntity(hass, entityId);
 
-export const filterPrimaryEntities = (hass: HomeAssistant, entityIds: string[] = []): string[] => entityIds.filter(entityId => isValidPrimaryEntity(hass, entityId));
+export const filterPrimaryEntities = (hass: HomeAssistant, entityIds: string[] = [], deviceClasses: string[]): string[] => entityIds.filter(entityId => isValidPrimaryEntity(hass, entityId, deviceClasses));
 export const filterSecondaryEntity = (hass: HomeAssistant, entityId: string = ""): string[] => isValidSecondaryEntity(hass, entityId) ? [entityId] : [];
 
 //================================================================================================================================================================================//

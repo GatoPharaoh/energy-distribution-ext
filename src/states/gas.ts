@@ -2,6 +2,7 @@ import { GasConfig } from "@/config";
 import { SingleValueState } from "./state";
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
+import { GAS_ENTITY_CLASSES } from "@/const";
 
 export class GasState extends SingleValueState {
   config?: GasConfig;
@@ -11,7 +12,8 @@ export class GasState extends SingleValueState {
       hass,
       config,
       localize("editor.gas"),
-      "mdi:fire"
+      "mdi:fire",
+      GAS_ENTITY_CLASSES
     );
 
     this.config = config;
