@@ -1,8 +1,8 @@
 import { localize } from "@/localize/localize";
-import { html, TemplateResult } from "lit";
 import { EntityOptions, GridConfig, PowerOutageConfig, PowerOutageOptions } from "@/config";
 import { DualValueState } from "./state";
 import { HomeAssistant } from "custom-card-helpers";
+import { getConfigValue } from "@/config/config";
 
 export class GridState extends DualValueState {
   config?: GridConfig;
@@ -18,8 +18,9 @@ export class GridState extends DualValueState {
   powerOutage: {
     isPresent: boolean;
     isOutage: boolean;
-    icon?: string;
-    name: string | TemplateResult<1>;
+    icon: string;
+    state: string;
+    entity_id: string;
   };
 
   public constructor(hass: HomeAssistant, config: GridConfig | undefined) {
@@ -44,11 +45,10 @@ export class GridState extends DualValueState {
 
     this.powerOutage = {
       isPresent: powerOutageConfig?.[EntityOptions.Entity_Id] !== undefined,
-      // TODO: power outage
-      isOutage: false,//powerOutageConfig?.[EntitiesOptions.Single_Entity] !== undefined && hass.states[powerOutageConfig?.[EntitiesOptions.Single_Entity]]?.state === (powerOutageConfig?.[PowerOutageOptions.State_Alert] ?? "on"),
-      icon: powerOutageConfig?.[PowerOutageOptions.Icon_Alert] || "mdi:transmission-tower-off",
-      // TODO localize this
-      name: powerOutageConfig?.[PowerOutageOptions.Label_Alert] ?? html`Power<br />Outage`
+      isOutage: false,
+      icon: getConfigValue([powerOutageConfig], [PowerOutageOptions.Alert_Icon]) || "mdi:transmission-tower-off",
+      state: getConfigValue([powerOutageConfig], [PowerOutageOptions.Alert_State]),
+      entity_id: getConfigValue([powerOutageConfig], [EntityOptions.Entity_Id])
     };
   }
-};
+}

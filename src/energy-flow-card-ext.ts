@@ -17,7 +17,7 @@ import { ColourMode, DisplayMode, LowCarbonDisplayMode, UnitPosition, UnitPrefix
 import { HomeState } from "@/states/home";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
 import { CARD_NAME, CIRCLE_STROKE_WIDTH_SEGMENTS, DEFAULT_CONFIG, DEFAULT_GAS_CONFIG, DEFAULT_LOW_CARBON_CONFIG, DEFAULT_SOLAR_CONFIG, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY, DOT_RADIUS, ICON_PADDING } from "@/const";
-import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, PowerOutageOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, SecondaryInfoOptions, HomeOptions, DualValueNodeConfig, LowCarbonOptions } from "@/config";
+import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, SecondaryInfoOptions, HomeOptions, DualValueNodeConfig, LowCarbonOptions } from "@/config";
 import { getColSpacing, MinMax, setDualValueNodeDynamicStyles, setDualValueNodeStaticStyles, setHomeNodeDynamicStyles, setHomeNodeStaticStyles, setLayout, setSingleValueNodeStyles } from "@/ui-helpers/styles";
 import { renderFlowLines, renderSegmentedCircle } from "@/ui-helpers/renderers";
 import { AnimationDurations, FlowLine, getGasSourcesMode, PathScaleFactors, SegmentGroup } from "@/ui-helpers";
@@ -540,8 +540,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   //================================================================================================================================================================================//
 
   private _renderGridNode = (states: States, overridePrefix: EnergyUnitPrefix | undefined): TemplateResult => {
-    // TODO: power outage
-
     const state: GridState = this._entityStates.grid;
 
     if (!state.isPresent) {
@@ -604,15 +602,22 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const inactiveCssExport: string = states.gridExport === 0 ? this._inactiveFlowsCss : "";
     const borderCss: string = circleMode === ColourMode.Dynamic ? CssClass.Hidden_Circle : "";
 
+    const isOutage: boolean = this._entityStates.grid.powerOutage.isOutage;
+    const icon: string = isOutage ? state.powerOutage.icon : state.icon;
+
     return html`
       <div class="node ${CssClass.Grid}">
         <div class="circle background">
           <div class="circle ${borderCss} ${inactiveCss}" @click=${this._handleClick(mainEntityId)} @keyDown=${this._handleKeyDown(mainEntityId)}>
             ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 270, this._showSegmentGaps) : ""}
             ${this._renderSecondarySpan(this._entityStates.grid.secondary, states.gridSecondary, CssClass.Grid + " " + inactiveCss)}
-            <ha-icon class="entity-icon ${inactiveCss}" .icon=${state.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(CssClass.Grid_Export + " " + inactiveCssExport, state.firstExportEntity, mdiArrowLeft, state.firstExportEntity ? states.gridExport : undefined, this._energyUnits, overridePrefix)}
-            ${this._renderEnergyStateSpan(CssClass.Grid_Import + " " + inactiveCssImport, state.firstImportEntity, mdiArrowRight, state.firstImportEntity ? states.gridImport : undefined, this._energyUnits, overridePrefix)}
+            <ha-icon class="entity-icon ${inactiveCss}" .icon=${icon}></ha-icon>
+            ${!isOutage
+        ? this._renderEnergyStateSpan(CssClass.Grid_Export + " " + inactiveCssExport, state.firstExportEntity, mdiArrowLeft, state.firstExportEntity ? states.gridExport : undefined, this._energyUnits, overridePrefix)
+        : html`<span class="${CssClass.Grid} power-outage">${localize("common.power_outage")}</span>`}
+            ${!isOutage
+        ? this._renderEnergyStateSpan(CssClass.Grid_Import + " " + inactiveCssImport, state.firstImportEntity, mdiArrowRight, state.firstImportEntity ? states.gridImport : undefined, this._energyUnits, overridePrefix)
+        : ""}
           </div>
         </div>
         <span class="label ${inactiveCss}">${state.name}</span>
@@ -892,48 +897,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         </span>
       `;
   };
-
-  //================================================================================================================================================================================//
-
-  private _renderGridCircle2(gridToGrid: number, gridFromGrid: number, secondaryState: number, energyUnits: string | undefined): TemplateResult {
-    if (!this._entityStates.grid.isPresent) {
-      return html`<div class="spacer"></div>`;
-    }
-
-    const gridIcon: string =
-      this._entityStates.grid.powerOutage.isOutage
-        ? getConfigValue(this._configs, [EditorPages.Grid, PowerOutageOptions.Power_Outage, PowerOutageOptions.Icon_Alert]) || "mdi:transmission-tower-off"
-        : this._entityStates.grid.icon;
-
-    return html`
-        <div class="node grid">
-          <div class="circle" @click=${this._handleClick(this._entityStates.grid.firstImportEntity)} @keyDown=${this._handleKeyDown(this._entityStates.grid.firstImportEntity)}>
-          ${this._renderSecondarySpan(this._entityStates.grid.secondary, secondaryState, "")}
-          <ha-icon class="entity-icon" .icon=${gridIcon}></ha-icon>
-          ${!this._entityStates.grid.powerOutage.isOutage && (this._showZeroStates || gridToGrid !== 0)
-        ? html`
-            <span class="return" @click=${this._handleClick(this._entityStates.grid.firstExportEntity)} @keyDown=${this._handleKeyDown(this._entityStates.grid.firstExportEntity)}>
-              <ha-icon class="small" .icon=${"mdi:arrow-left"}></ha-icon>
-              ${this._renderEnergyState(gridToGrid, this._energyUnits, EnergyUnitPrefix.None)}
-            </span>
-            `
-        : ``}
-            ${!this._entityStates.grid.powerOutage.isOutage && (this._showZeroStates || gridFromGrid !== 0)
-        ? html`
-            <span class="consumption">
-              <ha-icon class="small" .icon=${"mdi:arrow-right"}></ha-icon>
-              ${this._renderEnergyState(gridFromGrid, this._energyUnits, EnergyUnitPrefix.None)}
-            </span>`
-        : ``}
-            ${this._entityStates.grid.powerOutage.isOutage
-        ? html`
-            <span style="padding-top: 2px;" class="grid power-outage">${this._config?.[EditorPages.Grid]?.[PowerOutageOptions.Power_Outage]?.[PowerOutageOptions.Label_Alert] || html`Power<br/>Outage`}</span>`
-        : ``}
-          </div>
-          <span class="label">${this._entityStates.grid.name}</span>
-        </div>
-    `;
-  }
 
   //================================================================================================================================================================================//
 

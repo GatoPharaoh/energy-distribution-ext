@@ -8,8 +8,6 @@ Code:
     - sensor types are now Power and Measurement
     - support State-of-Charge for Battery
     - see what else should be changed/hidden
-  - power-outage is calculating its state up-front, rather than live as-needed (see GridState)
-    - also needs implementing in the new grid render method
   - unit-testing
   - move the language files to Typescript so enum values can be used for the keys
   - dynamic labelling for, eg, Battery's import ('discharge') and export ('charge') fields in the UI
@@ -17,9 +15,6 @@ Code:
 Config:
   - is it possible to auto-detect changes to the Energy config?
     - if not, we could have a button on the main page to (re)load the entities from that config
-  - Secondaries:
-    - drop threshold
-    - need a helptext for 'override units', 'display precision' to explain what happens if set/not set
 
 Display:
   - odd layout glitches when changing settings, refreshing the page, etc - the circles are small and squashed

@@ -41,6 +41,10 @@ export const styles: CSSResult = css`
     min-width: var(--circle-size);
   }
 
+  .power-outage {
+    color: var(--error-color);
+  }
+
   .node {
     display: flex;
     flex-direction: column;

@@ -88,7 +88,6 @@ const secondaryInfoConfigStruct = object({
   [EntityOptions.Entity_Id]: optional(string()),
   [SecondaryInfoOptions.Units]: optional(string()),
   [SecondaryInfoOptions.Unit_Position]: optional(string()),
-  [SecondaryInfoOptions.Zero_Threshold]: optional(number()),
   [SecondaryInfoOptions.Display_Precision]: optional(number()),
   [SecondaryInfoOptions.Icon]: optional(string())
 });
@@ -123,10 +122,8 @@ const gasConfigStruct = object({
 
 const powerOutageConfigStruct = object({
   [EntityOptions.Entity_Id]: optional(string()),
-  [PowerOutageOptions.State_Alert]: optional(string()),
-  [PowerOutageOptions.Label_Alert]: optional(string()),
-  [PowerOutageOptions.Icon_Alert]: optional(string())
-
+  [PowerOutageOptions.Alert_State]: optional(string()),
+  [PowerOutageOptions.Alert_Icon]: optional(string())
 });
 
 const gridConfigStruct = object({

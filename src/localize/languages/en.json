@@ -2,7 +2,8 @@
   "common": {
     "invalid_configuration": "Invalid Configuration",
     "unknown": "Unknown",
-    "new_device": "New Device"
+    "new_device": "New Device",
+    "power_outage": "Power outage"
   },
   "editor": {
     "undefined": "",
@@ -64,9 +65,9 @@
     "export_entities": "Export Entities",
 
     "power_outage": "Power Outage",
-    "label_alert": "Label for alert",
-    "icon_alert": "Icon for alert",
-    "state_alert": "State of alert",
+    "alert_state": "State of alert",
+    "alert_state#helptext": "The entity state which indicates an outage",
+    "alert_icon": "Override icon",
 
     "gas_sources": "Show gas sources",
     "gas_sources_threshold": "Threshold (%)",
@@ -115,9 +116,7 @@
     "secondary_icon": "Icon",
     "unit_position": "Show units",
     "units": "Override units",
-    "zero_threshold": "Threshold",
-    "zero_threshold#helptext": "Values less than this will be shown as zero",
-    "display_precision": "Display precision",
+    "display_precision": "Override display precision",
 
     "missing_entity": "Entity must be specified",
     "invalid_primary_entity": "is not an energy sensor of type Total or Total_Increasing",

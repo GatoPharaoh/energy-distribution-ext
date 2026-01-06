@@ -96,9 +96,8 @@ export enum ColourOptions {
 
 export enum PowerOutageOptions {
   Power_Outage = "power_outage",
-  Label_Alert = "label_alert",
-  Icon_Alert = "icon_alert",
-  State_Alert = "state_alert"
+  Alert_State = "alert_state",
+  Alert_Icon = "alert_icon"
 };
 
 export enum OverridesOptions {
@@ -109,7 +108,6 @@ export enum OverridesOptions {
 export enum SecondaryInfoOptions {
   Icon = "secondary_icon",
   Units = "units",
-  Zero_Threshold = "zero_threshold",
   Display_Precision = "display_precision",
   Unit_Position = "unit_position"
 }
@@ -306,16 +304,14 @@ export interface EntityConfig {
 
 export interface PowerOutageConfig {
   [EntityOptions.Entity_Id]?: string;
-  [PowerOutageOptions.State_Alert]?: string;
-  [PowerOutageOptions.Label_Alert]?: string;
-  [PowerOutageOptions.Icon_Alert]?: string;
+  [PowerOutageOptions.Alert_State]?: string;
+  [PowerOutageOptions.Alert_Icon]?: string;
 };
 
 export interface SecondaryInfoConfig {
   [EntityOptions.Entity_Id]?: string;
   [SecondaryInfoOptions.Units]?: string;
   [SecondaryInfoOptions.Unit_Position]?: UnitPosition;
-  [SecondaryInfoOptions.Zero_Threshold]?: number;
   [SecondaryInfoOptions.Display_Precision]?: number;
   [SecondaryInfoOptions.Icon]?: string;
 };

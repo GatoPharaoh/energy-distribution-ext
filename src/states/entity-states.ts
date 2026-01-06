@@ -36,7 +36,7 @@ export class EntityStates {
   public solar: SolarState;
   public devices: DeviceState[];
 
-  private _energyData;
+  private _energyData: any;
   private _displayMode: DisplayMode;
   private _primaryEntityIds: string[] = [];
   private _secondaryEntityIds: string[] = [];
@@ -408,7 +408,7 @@ export class EntityStates {
 
     const combinedStats: Map<number, Map<string, number>> = new Map();
 
-    if (this.grid.isPresent) {
+    if (this.grid.isPresent && !this._isPowerOutage()) {
       this._addFlowStats(this._primaryStatistics, combinedStats, this.grid.mainEntities, this._energyUnits);
       this._addFlowStats(this._primaryStatistics, combinedStats, this.grid.returnEntities, this._energyUnits);
     }
@@ -458,7 +458,8 @@ export class EntityStates {
     });
 
     if (this.grid.isPresent) {
-      if (this.grid.powerOutage.isOutage) {
+      if (this._isPowerOutage()) {
+        this.grid.powerOutage.isOutage = true;
         this.grid.state.import = 0;
         this.grid.state.export = 0;
         this.grid.state.fromBattery = 0;
@@ -466,6 +467,7 @@ export class EntityStates {
         this.grid.state.highCarbon = 0;
         this.home.state.fromGrid = 0;
       } else {
+        this.grid.powerOutage.isOutage = false;
         this.grid.state.import = gridImport;
         this.grid.state.export = gridExport;
 
@@ -626,6 +628,11 @@ export class EntityStates {
     let batteryToHome: number;
     let solarToBattery: number;
     let solarToGrid: number;
+
+    if (this._isPowerOutage()) {
+      fromGrid = 0;
+      toGrid = 0;
+    }
 
     const excess: number = Math.max(0, Math.min(toBattery, fromGrid - remaining));
     gridToBattery = excess;
@@ -847,6 +854,10 @@ export class EntityStates {
 
     return units;
   }
+
+  //================================================================================================================================================================================//
+
+  private _isPowerOutage = (): boolean => this.grid.powerOutage.isPresent ? this.hass.states[this.grid.powerOutage.entity_id].state === this.grid.powerOutage.state : false;
 
   //================================================================================================================================================================================//
 }

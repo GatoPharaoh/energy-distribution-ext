@@ -287,11 +287,10 @@ export function secondaryInfoSchema(config: EnergyFlowCardExtConfig | undefined,
         schema: [
           { name: SecondaryInfoOptions.Unit_Position, required: true, selector: { select: { mode: 'dropdown', options: getDropdownValues(UnitPosition) } } },
           { name: SecondaryInfoOptions.Units, selector: { text: {} } },
-          { name: SecondaryInfoOptions.Zero_Threshold, selector: { number: { mode: 'box', min: 0, max: 1000000, step: 0.01 } } },
-          { name: SecondaryInfoOptions.Display_Precision, selector: { number: { mode: 'box', min: 0, max: 3, step: 1 } } }
+          { name: SecondaryInfoOptions.Display_Precision, selector: { number: { mode: 'box', min: 0, max: 3, step: 1 } } },
+          { name: [SecondaryInfoOptions.Icon], selector: { icon: {} } }
         ]
-      },
-      { name: [SecondaryInfoOptions.Icon], selector: { icon: {} } }
+      }
     ]
   };
 }
