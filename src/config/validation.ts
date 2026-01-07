@@ -204,6 +204,7 @@ export const cardConfigStruct = assign(
   object({
     [GlobalOptions.Title]: optional(string()),
     [GlobalOptions.Display_Mode]: optional(string()),
+    [GlobalOptions.Use_HASS_Config]: optional(boolean()),
     [EditorPages.Appearance]: optional(appearanceConfigStruct),
     [EditorPages.Battery]: optional(batteryConfigStruct),
     [EditorPages.Gas]: optional(gasConfigStruct),

@@ -13,7 +13,8 @@ export interface DropdownValue {
 export function generalConfigSchema(config: EnergyFlowCardExtConfig | undefined): any[] {
   return [
     { name: GlobalOptions.Title, selector: { text: {} }, },
-    { name: GlobalOptions.Display_Mode, required: true, selector: { select: { mode: 'dropdown', options: getDropdownValues(DisplayMode) } } }
+    { name: GlobalOptions.Display_Mode, required: true, selector: { select: { mode: 'dropdown', options: getDropdownValues(DisplayMode) } } },
+    { name: GlobalOptions.Use_HASS_Config, selector: { boolean: {} } }
   ];
 }
 

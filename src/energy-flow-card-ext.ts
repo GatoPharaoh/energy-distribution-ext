@@ -2,7 +2,7 @@ import { CSSResult, html, LitElement, PropertyValues, TemplateResult } from "lit
 import { formatNumber, HomeAssistant, LovelaceConfig, LovelaceViewConfig, Panel, round } from "custom-card-helpers";
 import { Decimal } from "decimal.js";
 import { customElement, property, state } from "lit/decorators.js";
-import { getDefaultConfig, cleanupConfig, getCo2SignalEntity, getConfigValue, DEFAULT_CONFIG, DEFAULT_LOW_CARBON_CONFIG, DEFAULT_SOLAR_CONFIG, DEFAULT_GAS_CONFIG } from "@/config/config";
+import { cleanupConfig, getCo2SignalEntity, getConfigValue, DEFAULT_CONFIG, getMinimalConfig, getConfigObjects, DEFAULT_SECONDARY_INFO_CONFIG } from "@/config/config";
 import { SubscribeMixin } from "@/energy/subscribe-mixin";
 import { localize } from "@/localize/localize";
 import { styles } from "@/style";
@@ -17,7 +17,7 @@ import { ColourMode, DisplayMode, LowCarbonDisplayMode, UnitPosition, UnitPrefix
 import { HomeState } from "@/states/home";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
 import { CARD_NAME, CIRCLE_STROKE_WIDTH_SEGMENTS, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY, DOT_RADIUS, ICON_PADDING } from "@/const";
-import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, SecondaryInfoOptions, HomeOptions, DualValueNodeConfig, LowCarbonOptions } from "@/config";
+import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, SecondaryInfoOptions, HomeOptions, DualValueNodeConfig, LowCarbonOptions, HomeConfig } from "@/config";
 import { getColSpacing, MinMax, setDualValueNodeDynamicStyles, setDualValueNodeStaticStyles, setHomeNodeDynamicStyles, setHomeNodeStaticStyles, setLayout, setSingleValueNodeStyles } from "@/ui-helpers/styles";
 import { renderFlowLines, renderSegmentedCircle } from "@/ui-helpers/renderers";
 import { AnimationDurations, FlowLine, getGasSourcesMode, PathScaleFactors, SegmentGroup } from "@/ui-helpers";
@@ -43,8 +43,8 @@ function registerCustomCard(params: RegisterCardParams): void {
 
   windowWithCards.customCards.push({
     ...params,
-    preview: true,
-    documentationURL: `https://github.com/alex-taylor/energy-flow-card-plus`,
+    preview: false,
+    documentationURL: `https://github.com/alex-taylor/energy-flow-card-plus`
   });
 }
 
@@ -77,7 +77,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   //================================================================================================================================================================================//
 
   public static getStubConfig(hass: HomeAssistant): Record<string, unknown> {
-    return getDefaultConfig(hass);
+    return getMinimalConfig(hass);
   }
 
   //================================================================================================================================================================================//
@@ -91,7 +91,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config!: EnergyFlowCardExtConfig;
-  @state() private _loading: boolean = false;
 
   private _width: number = 0;
   private _gridToHomePath: string = "";
@@ -160,33 +159,25 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       throw new Error(localize("common.invalid_configuration"));
     }
 
-    this._configs = [config, DEFAULT_CONFIG];
-
-    if (getConfigValue(this._configs, [EditorPages.Battery, EntitiesOptions.Import_Entities, EntityOptions.Entity_Ids]).length === 0 &&
-      getConfigValue(this._configs, [EditorPages.Battery, EntitiesOptions.Export_Entities, EntityOptions.Entity_Ids]).length === 0 &&
-      getConfigValue(this._configs, [EditorPages.Grid, EntitiesOptions.Import_Entities, EntityOptions.Entity_Ids]).length === 0 &&
-      getConfigValue(this._configs, [EditorPages.Grid, EntitiesOptions.Export_Entities, EntityOptions.Entity_Ids]).length === 0 &&
-      getConfigValue(this._configs, [EditorPages.Solar, EntitiesOptions.Entities, EntityOptions.Entity_Ids]).length === 0 &&
-      getConfigValue(this._configs, [EditorPages.Gas, EntitiesOptions.Entities, EntityOptions.Entity_Ids]).length === 0) {
-      // TODO: this might not be entirely true once devices are present
-      throw new Error("At least one entity for battery, gas, grid or solar must be defined");
-    }
-
-    this._config = cleanupConfig(this.hass, config);
+    this._config = cleanupConfig(config);
+    this._configs = [this._config, DEFAULT_CONFIG];
     this.resetSubscriptions();
 
     this._displayMode = getConfigValue(this._configs, [GlobalOptions.Display_Mode]);
-    this._showZeroStates = getConfigValue(this._configs, [EditorPages.Appearance, GlobalOptions.Options, AppearanceOptions.Show_Zero_States]);
-    this._showSegmentGaps = getConfigValue(this._configs, [EditorPages.Appearance, GlobalOptions.Options, AppearanceOptions.Segment_Gaps]);
-    this._useHassStyles = getConfigValue(this._configs, [EditorPages.Appearance, GlobalOptions.Options, AppearanceOptions.Use_HASS_Style]);
-    this._clickableEntities = getConfigValue(this._configs, [EditorPages.Appearance, GlobalOptions.Options, AppearanceOptions.Clickable_Entities]);
-    this._scale = getConfigValue(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows, FlowsOptions.Scale], value => checkEnumValue(value, Scale));
 
-    this._dashboardLink = getConfigValue(this._configs, [EditorPages.Appearance, GlobalOptions.Options, AppearanceOptions.Dashboard_Link]);
-    this._dashboardLinkLabel = getConfigValue(this._configs, [EditorPages.Appearance, GlobalOptions.Options, AppearanceOptions.Dashboard_Link_Label]);
+    const appearanceConfig: AppearanceOptions[] = getConfigObjects(this._configs, [EditorPages.Appearance, GlobalOptions.Options]);
+    this._showZeroStates = getConfigValue(appearanceConfig, [AppearanceOptions.Show_Zero_States]);
+    this._showSegmentGaps = getConfigValue(appearanceConfig, [AppearanceOptions.Segment_Gaps]);
+    this._useHassStyles = getConfigValue(appearanceConfig, [AppearanceOptions.Use_HASS_Style]);
+    this._clickableEntities = getConfigValue(appearanceConfig, [AppearanceOptions.Clickable_Entities]);
+    this._dashboardLink = getConfigValue(appearanceConfig, [AppearanceOptions.Dashboard_Link]);
+    this._dashboardLinkLabel = getConfigValue(appearanceConfig, [AppearanceOptions.Dashboard_Link_Label]);
     this._dashboardLinkTitle = undefined;
 
-    switch (getConfigValue(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows, FlowsOptions.Inactive_Flows])) {
+    const flowsConfig: FlowsOptions[] = getConfigObjects(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows]);
+    this._scale = getConfigValue(flowsConfig, [FlowsOptions.Scale], value => checkEnumValue(value, Scale));
+
+    switch (getConfigValue(flowsConfig, [FlowsOptions.Inactive_Flows])) {
       case InactiveFlowsMode.Dimmed:
         this._inactiveFlowsCss = CssClass.Dimmed;
         break;
@@ -200,11 +191,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         break;
     }
 
-    const energyUnitsConfig: EnergyUnitsConfig[] = [
-      getConfigValue(this._configs, [EditorPages.Appearance, AppearanceOptions.Energy_Units]),
-      getConfigValue([DEFAULT_CONFIG], [EditorPages.Appearance, AppearanceOptions.Energy_Units])
-    ];
-
+    const energyUnitsConfig: EnergyUnitsConfig[] = getConfigObjects(this._configs, [EditorPages.Appearance, AppearanceOptions.Energy_Units]);
     this._energyUnits = getConfigValue(energyUnitsConfig, [EnergyUnitsOptions.Electric_Units], value => checkEnumValue(value, EnergyUnits));
     this._electricUnitPrefixes = getConfigValue(energyUnitsConfig, [EnergyUnitsOptions.Electric_Unit_Prefixes], value => checkEnumValue(value, UnitPrefixes));
     this._volumeUnits = getConfigValue(energyUnitsConfig, [EnergyUnitsOptions.Gas_Units], value => checkEnumValue(value, VolumeUnits));
@@ -215,11 +202,11 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     this._displayPrecisionUnder100 = getConfigValue(energyUnitsConfig, [EnergyUnitsOptions.Display_Precision_Under_100]);
     this._displayPrecision = getConfigValue(energyUnitsConfig, [EnergyUnitsOptions.Display_Precision_Default]);
 
-    setSingleValueNodeStyles(this._config?.[EditorPages.Low_Carbon]!, DEFAULT_LOW_CARBON_CONFIG, CssClass.Low_Carbon, this.style);
-    setSingleValueNodeStyles(this._config?.[EditorPages.Solar]!, DEFAULT_SOLAR_CONFIG, CssClass.Solar, this.style);
-    setSingleValueNodeStyles(this._config?.[EditorPages.Gas]!, DEFAULT_GAS_CONFIG, CssClass.Gas, this.style);
-    setDualValueNodeStaticStyles(this._config?.[EditorPages.Grid]!, CssClass.Grid, this.style);
-    setDualValueNodeStaticStyles(this._config?.[EditorPages.Battery]!, CssClass.Battery, this.style);
+    setSingleValueNodeStyles(getConfigObjects(this._configs, [EditorPages.Low_Carbon]), CssClass.Low_Carbon, this.style);
+    setSingleValueNodeStyles(getConfigObjects(this._configs, [EditorPages.Solar]), CssClass.Solar, this.style);
+    setSingleValueNodeStyles(getConfigObjects(this._configs, [EditorPages.Gas]), CssClass.Gas, this.style);
+    setDualValueNodeStaticStyles(getConfigObjects(this._configs, [EditorPages.Grid]), CssClass.Grid, this.style);
+    setDualValueNodeStaticStyles(getConfigObjects(this._configs, [EditorPages.Battery]), CssClass.Battery, this.style);
 
     this.style.setProperty("--clickable-cursor", this._clickableEntities ? "pointer" : "default");
     this.style.setProperty("--inactive-flow-color", this._useHassStyles && this._inactiveFlowsCss !== CssClass.Inactive ? "var(--primary-text-color)" : "var(--disabled-text-color)");
@@ -232,26 +219,14 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   //================================================================================================================================================================================//
 
   protected render(): TemplateResult {
-    if (!this._config || !this.hass || !this._entityStates) {
-      return html``;
-    }
-
-    if (this._loading) {
-      return html`<ha-card style="padding: 2rem">${this.hass.localize("ui.panel.lovelace.cards.energy.loading")}</ha-card>`;
-    }
-
-    if (!this._entityStates.isDatePickerPresent && this._displayMode !== DisplayMode.Today) {
-      return html`
-        <ha-card style="padding: 2rem">
-          ${this.hass.localize("ui.panel.lovelace.cards.energy.loading")}<br/>
-          Make sure you have the Energy Integration set up and a Date Selector in this View or set <pre>${GlobalOptions.Display_Mode}: ${DisplayMode.Today}</pre>
-        </ha-card>`;
+    if (!this._config || !this.hass || !this._entityStates || !this._entityStates.isConfigPresent) {
+      return html`<ha-card style="padding: 2rem">${localize("common.initialising")}</ha-card>`;
     }
 
     this._calculateLayout();
     this._getDashboardTitle(this._dashboardLink);
 
-    const states: States = this._entityStates.getStates();
+    const states: States = this._entityStates.getStates()!;
     const electricUnitPrefix: EnergyUnitPrefix | undefined = this._electricUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestElectricValue)) : undefined;
     const gasUnitPrefix: EnergyUnitPrefix | undefined = this._gasUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestGasValue)) : undefined;
     const animationDurations: AnimationDurations = this._calculateAnimationDurations(states);
@@ -333,6 +308,17 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         : ""}
       </ha-card>
     `;
+
+    /* TODO: turn into a translucent overlay
+     
+      if (!this._entityStates.isDatePickerPresent && this._displayMode !== DisplayMode.Today) {
+        return html`
+          <ha-card style="padding: 2rem">
+            ${this.hass.localize("ui.panel.lovelace.cards.energy.loading")}<br/>
+            Make sure you have the Energy Integration set up and a Date Selector in this View or set <pre>${GlobalOptions.Display_Mode}: ${DisplayMode.Today}</pre>
+          </ha-card>`;
+      }
+  */
   }
 
   //================================================================================================================================================================================//
@@ -522,7 +508,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       }
     }
 
-    setDualValueNodeDynamicStyles(this._config[EditorPages.Battery]!, CssClass.Battery, states.batteryExport, states.batteryImport, this.style);
+    setDualValueNodeDynamicStyles(getConfigObjects(this._configs, [EditorPages.Battery]), CssClass.Battery, states.batteryExport, states.batteryImport, this.style);
 
     const mainEntityId: string = state.firstImportEntity || state.firstExportEntity || "";
     const importState: number | undefined = state.firstImportEntity ? states.batteryImport : undefined;
@@ -607,7 +593,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       }
     }
 
-    setDualValueNodeDynamicStyles(this._config[EditorPages.Grid]!, CssClass.Grid, states.gridExport, states.gridImport, this.style);
+    setDualValueNodeDynamicStyles(getConfigObjects(this._configs, [EditorPages.Grid]), CssClass.Grid, states.gridExport, states.gridImport, this.style);
 
     const mainEntityId: string = state.firstImportEntity || state.firstExportEntity || "";
     const importState: number | undefined = state.firstImportEntity ? states.gridImport : undefined;
@@ -645,9 +631,11 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   private _renderHomeNode = (states: States, overrideElectricUnitPrefix: EnergyUnitPrefix | undefined, overrideGasUnitPrefix: EnergyUnitPrefix | undefined): TemplateResult => {
     const state: HomeState = this._entityStates.home;
-    const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Home, EntitiesOptions.Colours, ColourOptions.Circle]);
+    const homeConfig: HomeConfig[] = getConfigObjects(this._configs, [EditorPages.Home]);
+
+    const circleMode: ColourMode = getConfigValue(homeConfig, [EntitiesOptions.Colours, ColourOptions.Circle]);
     // TODO: gas-producing devices
-    const gasSourcesMode: GasSourcesMode = this._entityStates.gas.isPresent ? getGasSourcesMode(this._config, states) : GasSourcesMode.Do_Not_Show;
+    const gasSourcesMode: GasSourcesMode = this._entityStates.gas.isPresent ? getGasSourcesMode(homeConfig, states) : GasSourcesMode.Do_Not_Show;
     const segmentGroups: SegmentGroup[] = [];
 
     if (circleMode === ColourMode.Dynamic) {
@@ -688,8 +676,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       }
     }
 
-    setHomeNodeStaticStyles(this._config[EditorPages.Home]!, this.style);
-    setHomeNodeDynamicStyles(this._config, states, this.style);
+    setHomeNodeStaticStyles(homeConfig, this.style);
+    setHomeNodeDynamicStyles(homeConfig, states, this.style);
 
     const inactiveCss: string = states.homeElectric === 0 ? this._inactiveFlowsCss : "";
     const electricCss: string = CssClass.Home + " " + CssClass.Electric + " " + inactiveCss;
@@ -827,8 +815,10 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       return this._renderEnergyState(state, this._energyUnits);
     }
 
-    const units: string | undefined = getConfigValue([config], [SecondaryInfoOptions.Units]) || this.hass.states[entityId].attributes.unit_of_measurement;
-    const decimals: number = getConfigValue([config], [SecondaryInfoOptions.Display_Precision]) ?? this.hass["entities"][entityId].display_precision;
+    const secondaryInfoConfig: SecondaryInfoConfig[] = [config, DEFAULT_SECONDARY_INFO_CONFIG];
+
+    const units: string | undefined = getConfigValue(secondaryInfoConfig, [SecondaryInfoOptions.Units]) || this.hass.states[entityId].attributes.unit_of_measurement;
+    const decimals: number = getConfigValue(secondaryInfoConfig, [SecondaryInfoOptions.Display_Precision]) ?? this.hass["entities"][entityId].display_precision;
     const isCurrencyEntity: boolean = deviceClass === DEVICE_CLASS_MONETARY;
     let formattedValue: string;
 
@@ -838,7 +828,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       formattedValue = formatNumber(new Decimal(state).toDecimalPlaces(decimals).toString(), this.hass.locale);
     }
 
-    return this._formatState(formattedValue, units, getConfigValue([config], [SecondaryInfoOptions.Unit_Position]));
+    return this._formatState(formattedValue, units, getConfigValue(secondaryInfoConfig, [SecondaryInfoOptions.Unit_Position]));
   }
 
   //================================================================================================================================================================================//
@@ -1133,7 +1123,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   //================================================================================================================================================================================//
 
   private _calculateAnimationDurations = (states: States): AnimationDurations => {
-    const gasSourceMode: GasSourcesMode = getGasSourcesMode(this._config, states);
+    const gasSourceMode: GasSourcesMode = getGasSourcesMode(getConfigObjects(this._configs, [EditorPages.Home]), states);
     const flows: Flows = states.flows;
     const totalFlows: number = states.homeElectric
       + flows.batteryToGrid

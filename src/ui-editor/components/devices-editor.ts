@@ -10,6 +10,7 @@ import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STA
 import { repeat } from "lit/directives/repeat.js";
 import { localize } from "@/localize/localize";
 import { getDefaultDeviceConfig } from '@/config/config';
+import { DeviceState } from '@/states/device';
 
 //================================================================================================================================================================================//
 
@@ -114,7 +115,7 @@ export class DevicesEditor extends LitElement {
       this._devices,
       deviceConf => this._getKey(deviceConf),
       (deviceConf, index) => {
-        const statusIcon: Status = getStatusIcon(this.hass, deviceConf, ELECTRIC_ENTITY_CLASSES, true, true);
+        const statusIcon: Status = getStatusIcon(this.hass, new DeviceState(this.hass, deviceConf), ELECTRIC_ENTITY_CLASSES, true, true);
 
         return html`
           <div class="devices">
@@ -125,7 +126,7 @@ export class DevicesEditor extends LitElement {
               <div class="device-label">
                 <ha-icon class="device-icon" .icon=${deviceConf?.[DeviceOptions.Icon] || 'blank'}></ha-icon>
                 ${deviceConf?.[DeviceOptions.Name]}
-                ${statusIcon !== Status.Undefined ? html`<ha-icon class="${STATUS_CLASSES[statusIcon]}" .icon=${STATUS_ICONS[statusIcon]}></ha-icon>` : ``}
+                ${statusIcon !== Status.NotConfigured ? html`<ha-icon class="${STATUS_CLASSES[statusIcon]}" .icon=${STATUS_ICONS[statusIcon]}></ha-icon>` : ``}
               </div>
               <ha-icon .icon=${"mdi:chevron-right"}></ha-icon>
             </ha-control-button>

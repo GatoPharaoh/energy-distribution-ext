@@ -1,5 +1,5 @@
-import { HomeAssistant } from "custom-card-helpers";
 import { EntitiesOptions, OverridesOptions } from "@/config";
+import { getConfigValue } from "@/config/config";
 
 export interface Flows {
   solarToHome: number;
@@ -40,14 +40,16 @@ export interface States {
 
 export abstract class State {
   public isPresent: boolean;
+  public hassConfigPresent: boolean = false;
   public icon: string;
-  public mainEntities: string[];
+  public importEntities: string[];
+  public rawEntities: string[] = [];
   public firstImportEntity?: string;
 
-  protected constructor(hass: HomeAssistant, config: any, mainEntities: string[] = [], defaultIcon: string) {
-    this.mainEntities = mainEntities;
-    this.isPresent = mainEntities.length !== 0;
-    this.firstImportEntity = this.isPresent ? mainEntities[0] : undefined;
-    this.icon = config?.[EntitiesOptions.Overrides]?.[OverridesOptions.Icon] || defaultIcon;
+  protected constructor(config: any, importEntities: string[] = [], defaultIcon: string) {
+    this.importEntities = importEntities;
+    this.isPresent = importEntities.length !== 0;
+    this.firstImportEntity = this.isPresent ? importEntities[0] : undefined;
+    this.icon = getConfigValue([config], [EntitiesOptions.Overrides, OverridesOptions.Icon]) || defaultIcon;
   }
 }

@@ -25,6 +25,7 @@ export enum EditorPages {
 export enum GlobalOptions {
   Title = "title",
   Display_Mode = "display_mode",
+  Use_HASS_Config = "use_hass_config",
   Options = "options"
 };
 
@@ -136,6 +137,7 @@ export enum LowCarbonOptions {
 export interface EnergyFlowCardExtConfig extends LovelaceCardConfig {
   [GlobalOptions.Title]?: string;
   [GlobalOptions.Display_Mode]?: DisplayMode;
+  [GlobalOptions.Use_HASS_Config]?: boolean,
   [EditorPages.Appearance]?: AppearanceConfig;
   [EditorPages.Grid]?: GridConfig;
   [EditorPages.Gas]?: GasConfig;
@@ -337,13 +339,13 @@ export function isValidSecondaryEntity(hass: HomeAssistant, entityId: string = "
 //================================================================================================================================================================================//
 
 export function filterPrimaryEntities(hass: HomeAssistant, entityIds: string[] = [], deviceClasses: string[]): string[] {
-  return entityIds.filter(entityId => isValidPrimaryEntity(hass, entityId, deviceClasses));
+  return [...new Set(entityIds.filter(entityId => isValidPrimaryEntity(hass, entityId, deviceClasses)))];
 }
 
 //================================================================================================================================================================================//
 
 export function filterSecondaryEntity(hass: HomeAssistant, entityId: string = ""): string[] {
-  return isValidSecondaryEntity(hass, entityId) ? [entityId] : [];
+  return [...new Set(isValidSecondaryEntity(hass, entityId) ? [entityId] : [])];
 }
 
 //================================================================================================================================================================================//

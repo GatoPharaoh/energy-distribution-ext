@@ -1,5 +1,6 @@
 {
   "common": {
+    "initialising": "Initializing...",
     "invalid_configuration": "Invalid configuration",
     "unknown": "Unknown",
     "new_device": "New Device",
@@ -25,9 +26,8 @@
 
     "display_mode": "Display mode",
     "display_mode#helptext": "History and Hybrid modes require an energy-date-selection card to be present on the page",
-    "today": "Today",
-    "history": "History",
-    "hybrid": "Hybrid",
+    "use_hass_config": "Use the Energy Dashboard configuration",
+    "use_hass_config#helptext": "If enabled, the entities defined for the Energy Dashboard will be displayed",
 
     "appearance": "Appearance",
     "dashboard_link": "Dashboard link",

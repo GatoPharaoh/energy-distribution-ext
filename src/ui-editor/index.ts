@@ -1,6 +1,7 @@
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
-import { EntitiesOptions, EntityOptions, isValidPrimaryEntity, isValidSecondaryEntity } from "@/config";
+import { isValidPrimaryEntity, isValidSecondaryEntity } from "@/config";
+import { ValueState } from "@/states/state";
 
 export function computeLabelCallback(schema: any): string {
   return localize(`editor.${schema?.name}`);
@@ -11,7 +12,7 @@ export function computeHelperCallback(schema: any): string {
 }
 
 export enum Status {
-  Undefined = 0,
+  NotConfigured = 0,
   Valid,
   Warnings,
   Errors
@@ -20,15 +21,15 @@ export enum Status {
 export const STATUS_ICONS: string[] = ["", "mdi:check-circle", "mdi:alert", "mdi:alert-octagon"];
 export const STATUS_CLASSES: string[] = ["", "page-valid", "page-warning", "page-error"];
 
-export function getStatusIcon(hass: HomeAssistant, config: any, deviceClasses: string[], supportsPrimaries: boolean = true, requiresPrimaries: boolean = false): Status {
+export function getStatusIcon(hass: HomeAssistant, state: ValueState, deviceClasses: string[], supportsPrimaries: boolean = true, requiresPrimaries: boolean = false): Status {
   let primaryEntityCount: number = 0;
-  let secondaryEntityCount: number = 0;
+  let secondaryEntity: boolean = false;
   let validPrimaryEntityCount: number = 0;
   let invalidPrimaryEntityCount: number = 0;
-  let invalidSecondaryEntityCount: number = 0;
+  let invalidSecondaryEntity: boolean = false;
 
-  if (config?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids]) {
-    config?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids].forEach(entityId => {
+  if (state.rawEntities.length !== 0) {
+    state.rawEntities.forEach(entityId => {
       primaryEntityCount++;
 
       if (isValidPrimaryEntity(hass, entityId, deviceClasses)) {
@@ -39,51 +40,29 @@ export function getStatusIcon(hass: HomeAssistant, config: any, deviceClasses: s
     });
   }
 
-  if (config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids]) {
-    config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids].forEach(entityId => {
-      primaryEntityCount++;
+  if (state.secondary.rawEntities.length !== 0) {
+    secondaryEntity = true;
 
-      if (isValidPrimaryEntity(hass, entityId, deviceClasses)) {
-        validPrimaryEntityCount++;
-      } else {
-        invalidPrimaryEntityCount++;
-      }
-    });
-  }
-
-  if (config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids]) {
-    config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids].forEach(entityId => {
-      primaryEntityCount++;
-
-      if (isValidPrimaryEntity(hass, entityId, deviceClasses)) {
-        validPrimaryEntityCount++;
-      } else {
-        invalidPrimaryEntityCount++;
-      }
-    });
-  }
-
-  if (config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id]) {
-    secondaryEntityCount++;
-
-    if (!isValidSecondaryEntity(hass, config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id])) {
-      invalidSecondaryEntityCount++;
+    if (!isValidSecondaryEntity(hass, state.secondary.rawEntities[0])) {
+      invalidSecondaryEntity = true;
     }
   }
 
-  if (primaryEntityCount === 0 && requiresPrimaries) {
-    return Status.Errors;
+  if (!state.hassConfigPresent) {
+    if (primaryEntityCount === 0 && requiresPrimaries) {
+      return Status.Errors;
+    }
+
+    if (primaryEntityCount === 0 && !secondaryEntity) {
+      return Status.NotConfigured;
+    }
+
+    if ((primaryEntityCount > 0 || secondaryEntity) && validPrimaryEntityCount === 0 && supportsPrimaries) {
+      return Status.Errors;
+    }
   }
 
-  if (primaryEntityCount === 0 && secondaryEntityCount === 0) {
-    return Status.Undefined;
-  }
-
-  if ((primaryEntityCount > 0 || secondaryEntityCount > 0) && validPrimaryEntityCount === 0 && supportsPrimaries) {
-    return Status.Errors;
-  }
-
-  if (invalidPrimaryEntityCount > 0 || invalidSecondaryEntityCount > 0) {
+  if (invalidPrimaryEntityCount > 0 || invalidSecondaryEntity) {
     return Status.Warnings;
   }
 

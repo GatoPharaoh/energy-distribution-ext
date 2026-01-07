@@ -3,6 +3,7 @@ import { EntityOptions, GridConfig, PowerOutageConfig, PowerOutageOptions } from
 import { DualValueState } from "./state";
 import { HomeAssistant } from "custom-card-helpers";
 import { getConfigValue } from "@/config/config";
+import { EnergySource } from "@/hass";
 
 export class GridState extends DualValueState {
   config?: GridConfig;
@@ -23,10 +24,12 @@ export class GridState extends DualValueState {
     entity_id: string;
   };
 
-  public constructor(hass: HomeAssistant, config: GridConfig | undefined) {
+  public constructor(hass: HomeAssistant, config: GridConfig | undefined, energySources: EnergySource[]) {
     super(
       hass,
       config,
+      GridState._getHassImportEntities(energySources),
+      GridState._getHassExportEntities(energySources),
       localize("editor.grid"),
       "mdi:transmission-tower"
     );
@@ -50,5 +53,13 @@ export class GridState extends DualValueState {
       state: getConfigValue([powerOutageConfig], [PowerOutageOptions.Alert_State]),
       entity_id: getConfigValue([powerOutageConfig], [EntityOptions.Entity_Id])
     };
+  }
+
+  private static _getHassImportEntities = (energySources: EnergySource[]): string[] => {
+    return energySources?.filter(source => source.type === "grid" && source.flow_from).flatMap(source => source.flow_from!.map(from => from!.stat_energy_from!)) || [];
+  }
+
+  private static _getHassExportEntities = (energySources: EnergySource[]): string[] => {
+    return energySources?.filter(source => source.type === "grid" && source.flow_to).flatMap(source => source.flow_to!.map(to => to!.stat_energy_to!)) || [];
   }
 }

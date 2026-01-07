@@ -11,6 +11,7 @@ export class DeviceState extends SingleValueState {
     super(
       hass,
       config,
+      [],
       config?.[OverridesOptions.Name] || localize("common.new_device"),
       config?.[OverridesOptions.Icon] || "mdi:devices",
       ELECTRIC_ENTITY_CLASSES

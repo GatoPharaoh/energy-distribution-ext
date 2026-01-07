@@ -119,7 +119,7 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
         `;
       }
 
-      const segmentLengths: number = groupLength - (activeSegments - (segmentGroups.length === 1 ? 0 : 1)) * interSegmentLength;
+      const totalSegmentLengths: number = groupLength - (activeSegments === 1 ? 0 : (activeSegments - (segmentGroups.length === 1 ? 0 : 1)) * interSegmentLength);
       let segmentToRender: number = 0;
 
       return html`
@@ -138,7 +138,7 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
           }
 
           const interSegmentGap: number = segmentToRender++ > 0 || segmentGroups.length === 1 ? interSegmentLength : 0;
-          length = (scale === Scale.Linear ? segment.state : Math.log(segment.state)) / stateTotal * segmentLengths;
+          length = (scale === Scale.Linear ? segment.state : Math.log(segment.state)) / stateTotal * totalSegmentLengths;
           offset += interSegmentGap + length;
 
           return svg`

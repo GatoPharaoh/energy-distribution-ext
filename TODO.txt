@@ -14,8 +14,6 @@ Code:
 
 Display:
   - odd layout glitches when changing settings, refreshing the page, etc - the circles are small and squashed
-  - if data is still loading when we render, go ahead and render the diagram anyway, just put 'loading' for the values (or an overlay in the centre of the card?)
-    - related: also seeing the 'you are not configured' message
   - Flows:
     - in non-HASS mode, see if the grid->home flow can be made to alternate between high and low carbon colours on successive runs
       - ideally in proportion, but otherwise a simple 1:1 will do
