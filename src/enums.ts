@@ -151,7 +151,10 @@ export enum CssClass {
   Solar = "solar",
   Inactive = "inactive",
   Dimmed = "dimmed",
-  Hidden_Circle = "hidden-circle"
+  Hidden_Circle = "hidden-circle",
+  Hidden_Path = "hidden-path",
+  Grid_Battery_Anim = "grid-battery-anim",
+  Grid_To_Home_Anim = "grid-to-home-anim"
 }
 
 export enum EnergyUnitPrefix {

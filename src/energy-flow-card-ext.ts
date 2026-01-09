@@ -98,7 +98,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _solarToHomePath: string = "";
   private _solarToGridPath: string = "";
   private _batteryToHomePath: string = "";
-  private _batteryToGridPath: string = "";
   private _gridToBatteryPath: string = "";
   private _gasToHomePath: string = "";
   private _lowCarbonToGridPath: string = "";
@@ -125,6 +124,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _showSegmentGaps!: boolean;
   private _clickableEntities!: boolean;
   private _useHassStyles!: boolean;
+  private _animationEnabled!: boolean;
   private _scale!: Scale;
   private _dashboardLink!: string;
   private _dashboardLinkLabel!: string;
@@ -176,6 +176,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
     const flowsConfig: FlowsOptions[] = getConfigObjects(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows]);
     this._scale = getConfigValue(flowsConfig, [FlowsOptions.Scale], value => checkEnumValue(value, Scale));
+    this._animationEnabled = getConfigValue(flowsConfig, [FlowsOptions.Animation]);
 
     switch (getConfigValue(flowsConfig, [FlowsOptions.Inactive_Flows])) {
       case InactiveFlowsMode.Dimmed:
@@ -957,9 +958,18 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     if (grid.firstImportEntity) {
+      let cssClass: string;
+
+      if (!this._useHassStyles && this._animationEnabled && (states?.lowCarbon ?? 0) > 0) {
+        this.style.setProperty("--grid-to-home-anim-duration", `${(animationDurations?.gridToHome ?? 0) * 2}s`);
+        cssClass = CssClass.Grid_To_Home_Anim;
+      } else {
+        cssClass = CssClass.Grid_Import;
+      }
+
       lines.push({
-        cssLine: CssClass.Grid_Import,
-        cssDot: CssClass.Grid_Import,
+        cssLine: cssClass,
+        cssDot: cssClass,
         path: this._gridToHomePath,
         active: (flows?.gridToHome ?? 0) > 0,
         animDuration: animationDurations?.gridToHome ?? 0
@@ -996,9 +1006,13 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           cssBatteryToGrid = CssClass.Grid_Export;
         } else if (!batteryToGridActive && gridToBatteryActive) {
           cssGridToBattery = CssClass.Battery_Export;
+        } else if (this._animationEnabled) {
+          this.style.setProperty("--grid-battery-anim-duration", `${Math.max((animationDurations?.gridToBattery ?? 0), (animationDurations?.batteryToGrid ?? 0)) * 2}s`);
+          cssGridToBattery = CssClass.Grid_Battery_Anim;
+          cssBatteryToGrid = CssClass.Hidden_Path
         } else {
-          cssGridToBattery = CssClass.Battery_Export;
-          cssBatteryToGrid = CssClass.Grid_Export + " dashed";
+          cssGridToBattery = (flows?.gridToBattery ?? 0) > (flows?.batteryToGrid ?? 0) ? CssClass.Battery_Export : CssClass.Grid_Export;
+          cssBatteryToGrid = CssClass.Hidden_Path
         }
       }
 
@@ -1016,9 +1030,9 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         lines.push({
           cssLine: cssBatteryToGrid,
           cssDot: CssClass.Grid_Export,
-          path: this._batteryToGridPath,
+          path: this._gridToBatteryPath,
           active: batteryToGridActive,
-          animDuration: animationDurations?.batteryToGrid ?? 0
+          animDuration: -(animationDurations?.batteryToGrid ?? 0)
         });
       }
     }
@@ -1126,11 +1140,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
                                  c0,${-flowLineCurved} ${flowLineCurvedControl},${-flowLineCurved} ${flowLineCurved},${-flowLineCurved}
                                  H${col3X}`;
 
-        this._batteryToGridPath = `M${col2X - FLOW_LINE_SPACING * (solar ? 1 : 0.5)},${row3Y}
-                                 V${row2Y + flowLineCurved + FLOW_LINE_SPACING}
-                                 c0,${-flowLineCurved} ${-flowLineCurvedControl},${-flowLineCurved} ${-flowLineCurved},${-flowLineCurved}
-                                 H${col1X}`;
-
         this._gridToBatteryPath = `M${col1X},${row2Y + FLOW_LINE_SPACING}
                                  H${col2X - flowLineCurved - FLOW_LINE_SPACING * (solar ? 1 : 0.5)}
                                  c${flowLineCurvedControl * 2},0 ${flowLineCurved},0 ${flowLineCurved},${flowLineCurved}
@@ -1181,7 +1190,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       total = Math.log(total);
     }
 
-    return FLOW_RATE_MIN + (1 - (value / total)) * (FLOW_RATE_MAX - FLOW_RATE_MIN) * scale;
+    return round(FLOW_RATE_MIN + (1 - (value / total)) * (FLOW_RATE_MAX - FLOW_RATE_MIN) * scale, 1);
   };
 
   //================================================================================================================================================================================//

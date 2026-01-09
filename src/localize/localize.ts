@@ -1,14 +1,14 @@
-import * as en from "./languages/en.json";
+import * as en from "./languages/en";
 
 const LANGUAGES: Record<string, unknown> = {
   en
 };
 
-const DEFAULT_LANGUAGE = "en";
+const DEFAULT_LANGUAGE: string = "en";
 
 function getTranslatedString(key: string, lang: string): string | undefined {
   try {
-    return key.split(".").reduce((o, i) => (o as Record<string, unknown>)[i], LANGUAGES[lang]) as string;
+    return key.split(".").reduce((o, i) => (o as Record<string, unknown>)[i], (LANGUAGES[lang] as any).default) as string;
   } catch (_) {
     return undefined;
   }

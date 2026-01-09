@@ -12,3 +12,5 @@ export const DEVICE_CLASS_MONETARY: string = "monetary";
 
 export const ELECTRIC_ENTITY_CLASSES: string[] = [DEVICE_CLASS_ENERGY];
 export const GAS_ENTITY_CLASSES: string[] = [DEVICE_CLASS_ENERGY, DEVICE_CLASS_GAS];
+
+export const HELPTEXT_SUFFIX: string = "#helptext";

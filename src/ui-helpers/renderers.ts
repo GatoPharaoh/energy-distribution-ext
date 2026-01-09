@@ -17,38 +17,41 @@ export function renderFlowLines(config: EnergyFlowCardExtConfig, lines: FlowLine
 
   return html`
     <svg class="lines" xmlns="http://www.w3.org/2000/svg">
-    ${repeat(
-    lines,
-    _ => undefined,
-    (_, index) => {
-      const line: FlowLine = lines[index];
-      const isActive: boolean = line.active;
-      let cssLine: string = line.cssLine;
+    ${repeat(lines, _ => undefined, (_, index) => {
+    const line: FlowLine = lines[index];
+    let cssLine: string = line.cssLine;
 
-      if (!isActive) {
-        switch (inactiveFlowsMode) {
-          case InactiveFlowsMode.Dimmed:
-            cssLine += " " + CssClass.Dimmed;
-            break;
+    if (!line.active && cssLine !== CssClass.Hidden_Path) {
+      switch (inactiveFlowsMode) {
+        case InactiveFlowsMode.Dimmed:
+          cssLine += " " + CssClass.Dimmed;
+          break;
 
-          case InactiveFlowsMode.Greyed:
-            cssLine = CssClass.Inactive;
-            break;
-        }
+        case InactiveFlowsMode.Greyed:
+          cssLine = CssClass.Inactive;
+          break;
       }
-
-      return svg`
-          <path class="${cssLine}" d="${line.path}"></path>
-          ${animationEnabled && isActive ?
-          svg`
-            <circle r="${DOT_RADIUS}" class="${line.cssDot}">
-              <animateMotion path="${line.path}" dur="${line.animDuration}s" repeatCount="indefinite" calcMode="linear"></animateMotion>
-            </circle>
-          `
-          : ""}
-        `;
     }
-  )}
+
+    return svg`<path class="${cssLine}" d="${line.path}"></path>`;
+  })}
+    ${animationEnabled ?
+      repeat(lines, _ => undefined, (_, index) => {
+        const line: FlowLine = lines[index];
+
+        return svg`
+          ${line.active
+            ?
+            svg`
+              <circle r="${DOT_RADIUS}" class="${line.cssDot}">
+                <animateMotion path="${line.path}" dur="${Math.abs(line.animDuration)}s" repeatCount="indefinite" calcMode="linear" keyPoints="${line.animDuration < 0 ? '1;0' : '0;1'}" keyTimes="0; 1"></animateMotion>
+              </circle>
+            `
+            : ""}
+        `;
+      })
+      : ""
+    }
     </svg>
   `;
 }

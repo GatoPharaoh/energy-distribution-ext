@@ -42,7 +42,7 @@
     <None Include="src\energy\subscribe-mixin.ts" />
     <None Include="src\localize\localize.ts" />
     <None Include="src\ui-editor\ui-editor.ts" />
-    <Content Include="src\localize\languages\en.json" />
+    <Content Include="src\localize\languages\en.ts" />
     <None Include="src\ui-editor\schema\battery.ts" />
     <None Include="src\ui-editor\schema\low-carbon.ts" />
     <None Include="src\ui-editor\schema\grid.ts" />

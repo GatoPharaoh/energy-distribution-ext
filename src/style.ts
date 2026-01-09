@@ -250,9 +250,6 @@ export const styles: CSSResult = css`
   path.inactive {
     stroke: var(--inactive-flow-color) !important;
   }
-  path.dashed {
-    stroke-dasharray: 25px;
-  }
   path.solar {
     stroke: var(--flow-solar-color);
   }
@@ -273,6 +270,9 @@ export const styles: CSSResult = css`
   }
   path.non-fossil {
     stroke: var(--flow-non-fossil-color);
+  }
+  path.hidden {
+    opacity: 0%;
   }
 
   circle.inactive {
@@ -324,6 +324,30 @@ export const styles: CSSResult = css`
 
   ha-icon.inactive {
     color: var(--disabled-text-color) !important;
+  }
+
+  .grid-to-home-anim {
+    animation-duration: var(--grid-to-home-anim-duration);
+    animation-name: gridToHomeAnim;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes gridToHomeAnim {
+    0% { stroke: var(--flow-import-grid-color); fill: var(--flow-import-grid-color); }
+    50% { stroke: var(--flow-non-fossil-color); fill: var(--flow-non-fossil-color); }
+    100% { stroke: var(--flow-import-grid-color); fill: var(--flow-import-grid-color); }
+  }
+
+  .grid-battery-anim {
+    animation-duration: var(--grid-battery-anim-duration);
+    animation-name: gridBatteryAnim;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes gridBatteryAnim {
+    0% { stroke: var(--flow-export-grid-color); }
+    50% { stroke: var(--flow-export-battery-color); }
+    100% { stroke: var(--flow-export-grid-color); }
   }
 
 `;

@@ -2,13 +2,14 @@ import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
 import { isValidPrimaryEntity, isValidSecondaryEntity } from "@/config";
 import { ValueState } from "@/states/state";
+import { HELPTEXT_SUFFIX } from "@/const";
 
 export function computeLabelCallback(schema: any): string {
   return localize(`editor.${schema?.name}`);
 }
 
 export function computeHelperCallback(schema: any): string {
-  return localize(`editor.${schema?.name}#helptext`, "");
+  return localize(`editor.${schema?.name}${HELPTEXT_SUFFIX}`, "");
 }
 
 export enum Status {
