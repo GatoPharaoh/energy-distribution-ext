@@ -3,6 +3,7 @@ TODO
 
 Code:
   - add support for Power
+    - new 'mode' option: 'Energy' / 'Power'
     - single-entities for Grid/Battery/Devices
     - no stats-gathering, just sensors
     - sensor types are now Power and Measurement
@@ -10,16 +11,31 @@ Code:
       - this could be done using the secondary, although then we'd need to know that it was a SoC in order to manage the main icon
     - see what else should be changed/hidden
   - unit-testing
+  - the 'loading' state should not be displayed when rolling over to the next period
+    - this can be done by comparing the new 'startPeriod' to the previous 'endPeriod': if they are the same, it's a rollover rather than a new range
+      - note that 'endPeriod' needs to be incremented by 1 day and then reset to the start-of-day!
+      - problem: how to differentiate between an automatic rollover and a manual one?  We'd want the 'loading' display in the latter case, as it might be a slow load!
+        - only an issue for the date-picker mode, since there is no manual update possible otherwise
+          - the only one which is automated here is the daily-rollover, so that can be detected
+    - the state should also be an enum:
+      - requested (ie, 'loading')
+      - received (ie, ready for display)
+      - timed-out
+        - this then replaces the current log to the console
+  - layout:
+    - eliminate empty columns
 
 Editor:
   - dynamic labelling for, eg, Battery's import ('discharge') and export ('charge') fields in the UI
     - also for Devices, where 'export' ('consumption') and 'import' ('production') will be confusing!
+    - it's too much work to change the underlying config fields, so this is strictly a cosmetic thing in the UK
   - Devices page-link not showing its status-icon
 
 Config:
   - import Devices from the ED config
     - only those which do not have a parent
     - import entity and name
+    - this might be best driven by the user, rather that done automatically
   - for Devices, have a flag which specifies when it was imported from the Energy Dashboard config?
     - this would have several effects:
       - the name and entity would not be editable

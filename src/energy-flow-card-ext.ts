@@ -324,6 +324,9 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
             ${this._devicesLayout === DevicesLayout.Horizontal ? this._renderDeviceNodesHorizontally(1, CssClass.Bottom_Row) : nothing}
 
           </div>
+
+            <!-- devices -->
+          ${this._devicesLayout === DevicesLayout.Vertical ? this._renderDeviceNodesVertically() : nothing}
         </div>
 
         <!-- dashboard link -->
@@ -373,9 +376,33 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       }
 
       return html`${HORIZ_SPACER}${this._renderDeviceNode(index, cssClass)}`;
-    })
-      }
-`;
+    })}
+    `;
+  }
+
+  //================================================================================================================================================================================//
+
+  private _renderDeviceNodesVertically(): TemplateResult {
+    const rows: number = Math.ceil(NUM_DEVICES / 2);
+    const lastRowIndex: number = rows - 1;
+    let nodeIndex: number = 0;
+
+    // TODO: insert spacing at the start to allow for the device-bus
+    return html`
+      ${map(range(rows), rowIndex => {
+      const cssClass: CssClass = rowIndex === lastRowIndex ? CssClass.Bottom_Row : CssClass.None;
+
+      return html`
+          <div class="row">
+            ${this._renderDeviceNode(nodeIndex++, cssClass)}
+            ${HORIZ_SPACER}
+            ${NODE_SPACER}
+            ${HORIZ_SPACER}
+            ${nodeIndex === NUM_DEVICES ? html`${NODE_SPACER}` : this._renderDeviceNode(nodeIndex++, cssClass)}
+          </div>
+        `;
+    })}
+    `;
   }
 
   //================================================================================================================================================================================//
@@ -800,7 +827,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
             ${this._renderEnergyStateSpan(gasCss, this._getVolumeUnits(), undefined, gasIcon, gasTotal, overrideGasUnitPrefix)}
           </div>
         </div>
-        <span class="label ${inactiveCss}">${state.name}</span>
+        ${this._devicesLayout === DevicesLayout.Inline_Above || this._devicesLayout === DevicesLayout.Horizontal ? html`<span class="label ${inactiveCss}">${state.name}</span>` : nothing}
       </div>
     `;
   };
