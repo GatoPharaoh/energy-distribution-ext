@@ -246,8 +246,8 @@ export class EntityStates {
       let periodEnd: Date;
 
       if (this._dateRange === DateRange.Custom) {
-        periodStart = getConfigValue(config, GlobalOptions.Date_Range_From) || startOfToday();
-        periodEnd = getConfigValue(config, GlobalOptions.Date_Range_To) || endOfToday();
+        periodStart = new Date(getConfigValue(config, GlobalOptions.Date_Range_From) || startOfToday());
+        periodEnd = new Date(getConfigValue(config, GlobalOptions.Date_Range_To) || endOfToday());
       } else {
         [periodStart, periodEnd] = calculateDateRange(this.hass, this._dateRange);
       }

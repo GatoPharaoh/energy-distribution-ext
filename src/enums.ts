@@ -74,16 +74,16 @@ namespace Enums {
   } as const satisfies Record<string, string>;
 
   export const PrefixThreshold = {
-    Threshold_900: 900,
-    Threshold_925: 925,
-    Threshold_950: 950,
-    Threshold_975: 975,
-    Threshold_1000: 1000,
-    Threshold_1025: 1025,
-    Threshold_1050: 1050,
-    Threshold_1075: 1075,
-    Threshold_1100: 1100
-  } as const satisfies Record<string, number>;
+    Threshold_900: "900",
+    Threshold_925: "925",
+    Threshold_950: "950",
+    Threshold_975: "975",
+    Threshold_1000: "1000",
+    Threshold_1025: "1025",
+    Threshold_1050: "1050",
+    Threshold_1075: "1075",
+    Threshold_1100: "1100"
+  } as const satisfies Record<string, string>;
 
   export const Scale = {
     Linear: "linear",

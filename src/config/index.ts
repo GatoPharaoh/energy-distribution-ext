@@ -1,9 +1,9 @@
 import { HomeAssistant, LovelaceCard, LovelaceCardConfig } from 'custom-card-helpers';
-import { ColourMode, LowCarbonDisplayMode, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, DateRange, DateRangeDisplayMode } from '@/enums';
+import { ColourMode, LowCarbonDisplayMode, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, DateRange, DateRangeDisplayMode, PrefixThreshold } from '@/enums';
 
 declare global {
   interface HTMLElementTagNameMap {
-    'hui-error-card': LovelaceCard;
+    "hui-error-card": LovelaceCard;
   }
 }
 
@@ -227,7 +227,7 @@ export interface EnergyUnitsConfig {
   [EnergyUnitsOptions.Display_Precision_Under_10]?: number;
   [EnergyUnitsOptions.Display_Precision_Under_100]?: number;
   [EnergyUnitsOptions.Display_Precision_Default]?: number;
-  [EnergyUnitsOptions.Prefix_Threshold]?: number;
+  [EnergyUnitsOptions.Prefix_Threshold]?: PrefixThreshold;
   [EnergyUnitsOptions.Gas_Calorific_Value]?: number;
 };
 
