@@ -2,7 +2,7 @@ import { ColourMode, LowCarbonDisplayMode, UnitPosition, GasSourcesMode, EnergyT
 import { HomeAssistant } from 'custom-card-helpers';
 import { AppearanceConfig, BatteryConfig, DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, GasConfig, GridConfig, HomeConfig, HomeOptions, LowCarbonConfig, LowCarbonOptions, SecondaryInfoConfig, SecondaryInfoOptions, SolarConfig } from ".";
 import { CARD_NAME } from "@/const";
-import { AppearanceOptions, ColourOptions, EditorPages, EnergyUnitsOptions, EntitiesOptions, EntityOptions, FlowsOptions, GlobalOptions } from "@/config";
+import { AppearanceOptions, ColourOptions, EditorPages, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions } from "@/config";
 import { localize } from "@/localize/localize";
 import { getEnergyDataCollection } from "@/energy";
 import { HassEntity } from "home-assistant-js-websocket";
@@ -216,13 +216,13 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
 
 export function getDefaultGridConfig(): GridConfig {
   return {
-    [EntitiesOptions.Import_Entities]: {
-      [EntityOptions.Entity_Ids]: []
+    [NodeOptions.Import_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
     },
-    [EntitiesOptions.Export_Entities]: {
-      [EntityOptions.Entity_Ids]: []
+    [NodeOptions.Export_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
     },
-    [EntitiesOptions.Colours]: {
+    [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Flow_Export]: ColourMode.Default,
       [ColourOptions.Circle]: ColourMode.Import,
@@ -231,7 +231,7 @@ export function getDefaultGridConfig(): GridConfig {
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
       [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
-    [EntitiesOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
+    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
 }
 
@@ -239,13 +239,13 @@ export function getDefaultGridConfig(): GridConfig {
 
 export function getDefaultBatteryConfig(): BatteryConfig {
   return {
-    [EntitiesOptions.Import_Entities]: {
-      [EntityOptions.Entity_Ids]: []
+    [NodeOptions.Import_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
     },
-    [EntitiesOptions.Export_Entities]: {
-      [EntityOptions.Entity_Ids]: []
+    [NodeOptions.Export_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
     },
-    [EntitiesOptions.Colours]: {
+    [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Flow_Export]: ColourMode.Default,
       [ColourOptions.Circle]: ColourMode.Export,
@@ -254,7 +254,7 @@ export function getDefaultBatteryConfig(): BatteryConfig {
       [ColourOptions.Value_Export]: ColourMode.Flow,
       [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
-    [EntitiesOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
+    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
 }
 
@@ -262,17 +262,17 @@ export function getDefaultBatteryConfig(): BatteryConfig {
 
 export function getDefaultSolarConfig(): SolarConfig {
   return {
-    [EntitiesOptions.Entities]: {
-      [EntityOptions.Entity_Ids]: []
+    [NodeOptions.Import_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
     },
-    [EntitiesOptions.Colours]: {
-      [ColourOptions.Flow]: ColourMode.Default,
+    [NodeOptions.Colours]: {
+      [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Value]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
       [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
-    [EntitiesOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
+    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
 }
 
@@ -280,17 +280,17 @@ export function getDefaultSolarConfig(): SolarConfig {
 
 export function getDefaultGasConfig(): GasConfig {
   return {
-    [EntitiesOptions.Entities]: {
-      [EntityOptions.Entity_Ids]: []
+    [NodeOptions.Import_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
     },
-    [EntitiesOptions.Colours]: {
-      [ColourOptions.Flow]: ColourMode.Default,
+    [NodeOptions.Colours]: {
+      [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Value]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
       [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
-    [EntitiesOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
+    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
 }
 
@@ -298,10 +298,10 @@ export function getDefaultGasConfig(): GasConfig {
 
 export function getDefaultHomeConfig(): HomeConfig {
   return {
-    [EntitiesOptions.Colours]: {
+    [NodeOptions.Colours]: {
       [ColourOptions.Circle]: ColourMode.Dynamic,
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Value]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
       [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [GlobalOptions.Options]: {
@@ -309,7 +309,7 @@ export function getDefaultHomeConfig(): HomeConfig {
       [HomeOptions.Gas_Sources_Threshold]: 33,
       [HomeOptions.Subtract_Consumers]: false
     },
-    [EntitiesOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
+    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
 }
 
@@ -317,17 +317,17 @@ export function getDefaultHomeConfig(): HomeConfig {
 
 export function getDefaultLowCarbonConfig(): LowCarbonConfig {
   return {
-    [EntitiesOptions.Colours]: {
-      [ColourOptions.Flow]: ColourMode.Default,
+    [NodeOptions.Colours]: {
+      [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Circle]: ColourMode.Flow,
       [ColourOptions.Icon]: ColourMode.Flow,
-      [ColourOptions.Value]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
       [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
     [GlobalOptions.Options]: {
       [LowCarbonOptions.Low_Carbon_Mode]: LowCarbonDisplayMode.Energy
     },
-    [EntitiesOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
+    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
 }
 
@@ -335,13 +335,13 @@ export function getDefaultLowCarbonConfig(): LowCarbonConfig {
 
 export function getDefaultDeviceConfig(importColour: number[], exportColour: number[]): DeviceConfig {
   return {
-    [EntitiesOptions.Import_Entities]: {
-      [EntityOptions.Entity_Ids]: []
+    [NodeOptions.Import_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
     },
-    [EntitiesOptions.Export_Entities]: {
-      [EntityOptions.Entity_Ids]: []
+    [NodeOptions.Export_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
     },
-    [EntitiesOptions.Colours]: {
+    [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Flow_Import_Colour]: importColour,
       [ColourOptions.Flow_Export]: ColourMode.Default,
@@ -352,7 +352,7 @@ export function getDefaultDeviceConfig(importColour: number[], exportColour: num
       [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
       [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
     },
-    [EntitiesOptions.Secondary_Info]: getDefaultSecondaryInfoConfig(),
+    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig(),
     [DeviceOptions.Name]: localize("common.new_device"),
     [DeviceOptions.Icon]: "mdi:devices",
     [DeviceOptions.Energy_Type]: EnergyType.Electric,

@@ -1,6 +1,6 @@
 import { colourSchema, dropdownSelector, getDropdownValues, nodeConfigSchema, SchemaTypes, SelectorModes } from '.';
 import { ColourMode, GasSourcesMode } from '@/enums';
-import { ColourOptions, EntitiesOptions, HomeConfig, GlobalOptions, HomeOptions, EnergyFlowCardExtConfig, EditorPages } from '@/config';
+import { ColourOptions, NodeOptions, HomeConfig, GlobalOptions, HomeOptions, EnergyFlowCardExtConfig, EditorPages } from '@/config';
 import { DEFAULT_HOME_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
@@ -10,8 +10,8 @@ export const homeSchema = memoizeOne((config: EnergyFlowCardExtConfig): any[] =>
   return nodeConfigSchema()
     .concat(
       {
-        key: EntitiesOptions,
-        name: EntitiesOptions.Colours,
+        key: NodeOptions,
+        name: NodeOptions.Colours,
         type: SchemaTypes.Expandable,
         schema: [
           {
@@ -24,7 +24,7 @@ export const homeSchema = memoizeOne((config: EnergyFlowCardExtConfig): any[] =>
               ),
               ...colourSchema(
                 homeConfig,
-                ColourOptions.Value,
+                ColourOptions.Value_Export,
                 getDropdownValues(ColourMode, [ColourMode.Do_Not_Colour, ColourMode.Largest_Value, ColourMode.Solar, ColourMode.High_Carbon, ColourMode.Low_Carbon, ColourMode.Battery, ColourMode.Gas, ColourMode.Custom])
               ),
               ...colourSchema(

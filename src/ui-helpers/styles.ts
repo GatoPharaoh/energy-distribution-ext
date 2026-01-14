@@ -1,4 +1,4 @@
-import { ColourOptions, DualValueColourConfig, DualValueNodeConfig, EntitiesOptions, HomeColourConfig, HomeConfig, SingleValueColourConfig, SingleValueNodeConfig } from "@/config";
+import { ColourOptions, ColoursConfig, NodeConfig, NodeOptions, HomeConfig } from "@/config";
 import { ColourMode, CssClass, GasSourcesMode } from "@/enums";
 import { Flows, States } from "@/states";
 import { getGasSourcesMode } from ".";
@@ -25,8 +25,8 @@ const STYLE_ENERGY_BATTERY_EXPORT_COLOR: string = "var(--energy-battery-in-color
 const STYLE_ENERGY_GRID_IMPORT_COLOR: string = "var(--energy-grid-consumption-color)";
 const STYLE_ENERGY_GRID_EXPORT_COLOR: string = "var(--energy-grid-return-color)";
 
-const HOME_UI_ELEMENTS: ColourOptions[] = [ColourOptions.Circle, ColourOptions.Icon, ColourOptions.Value, ColourOptions.Secondary];
-const SINGLE_NODE_UI_ELEMENTS: ColourOptions[] = [ColourOptions.Circle, ColourOptions.Icon, ColourOptions.Value, ColourOptions.Secondary];
+const HOME_UI_ELEMENTS: ColourOptions[] = [ColourOptions.Circle, ColourOptions.Icon, ColourOptions.Value_Export, ColourOptions.Secondary];
+const SINGLE_NODE_UI_ELEMENTS: ColourOptions[] = [ColourOptions.Circle, ColourOptions.Icon, ColourOptions.Value_Import, ColourOptions.Secondary];
 const DUAL_NODE_UI_ELEMENTS: ColourOptions[] = [ColourOptions.Circle, ColourOptions.Icon, ColourOptions.Value_Import, ColourOptions.Value_Export, ColourOptions.Secondary];
 
 //================================================================================================================================================================================//
@@ -50,7 +50,7 @@ export function setLayout(style: CSSStyleDeclaration, circleSize: number): void 
 //================================================================================================================================================================================//
 
 export function setHomeNodeStaticStyles(configs: HomeConfig[], style: CSSStyleDeclaration): void {
-  const colourConfig: HomeColourConfig[] = getConfigObjects(configs, EntitiesOptions.Colours);
+  const colourConfig: ColoursConfig[] = getConfigObjects(configs, NodeOptions.Colours);
 
   HOME_UI_ELEMENTS.forEach(options => {
     const mode: ColourMode = getConfigValue(colourConfig, options);
@@ -71,7 +71,7 @@ export function setHomeNodeStaticStyles(configs: HomeConfig[], style: CSSStyleDe
         break;
     }
 
-    if (options === ColourOptions.Value) {
+    if (options === ColourOptions.Value_Export) {
       style.setProperty(`--value-electric-home-color`, colour);
       style.setProperty(`--value-gas-home-color`, colour);
     } else {
@@ -130,11 +130,11 @@ export function setHomeNodeDynamicStyles(configs: HomeConfig[], states: States, 
   const gasLargestSource: string = Object.keys(gasSources).reduce((a, b) => gasSources[a].value > gasSources[b].value ? a : b);
   const gasLargestColour: string = gasSources[gasLargestSource].colour;
   const homeLargestColour: string = gasSourcesMode === GasSourcesMode.Do_Not_Show || electricSources[electricLargestSource].value >= gasSources[gasLargestSource].value ? electricLargestColour : gasLargestColour;
-  const colourConfig: HomeColourConfig[] = getConfigObjects(configs, EntitiesOptions.Colours);
+  const colourConfig: ColoursConfig[] = getConfigObjects(configs, NodeOptions.Colours);
 
   HOME_UI_ELEMENTS.forEach(options => {
     if (getConfigValue(colourConfig, options) === ColourMode.Largest_Value) {
-      if (options === ColourOptions.Value) {
+      if (options === ColourOptions.Value_Export) {
         if (gasSourcesMode === GasSourcesMode.Show_Separately) {
           style.setProperty(`--value-electric-home-color`, electricLargestColour);
           style.setProperty(`--value-gas-home-color`, gasLargestColour);
@@ -151,13 +151,13 @@ export function setHomeNodeDynamicStyles(configs: HomeConfig[], states: States, 
 
 //================================================================================================================================================================================//
 
-export function setSingleValueNodeStyles(configs: SingleValueNodeConfig[], cssClass: CssClass, style: CSSStyleDeclaration): void {
+export function setSingleValueNodeStyles(configs: NodeConfig[], cssClass: CssClass, style: CSSStyleDeclaration): void {
   const energyColour: string = `var(--energy-${cssClass}-color)`;
-  const colourConfig: SingleValueColourConfig[] = getConfigObjects(configs, EntitiesOptions.Colours);
+  const colourConfig: ColoursConfig[] = getConfigObjects(configs, NodeOptions.Colours);
   let flowColour: string;
 
-  if (getConfigValue(configs, [EntitiesOptions.Colours, ColourOptions.Flow]) === ColourMode.Custom) {
-    flowColour = convertColourListToHex(getConfigValue(colourConfig, ColourOptions.Flow_Colour)) || energyColour;
+  if (getConfigValue(configs, [NodeOptions.Colours, ColourOptions.Flow_Import]) === ColourMode.Custom) {
+    flowColour = convertColourListToHex(getConfigValue(colourConfig, ColourOptions.Flow_Import_Colour)) || energyColour;
   } else {
     flowColour = energyColour;
   }
@@ -189,8 +189,8 @@ export function setSingleValueNodeStyles(configs: SingleValueNodeConfig[], cssCl
 
 //================================================================================================================================================================================//
 
-export function setDualValueNodeStaticStyles(configs: DualValueNodeConfig[], cssClass: CssClass, style: CSSStyleDeclaration): void {
-  const colourConfig: DualValueColourConfig[] = getConfigObjects(configs, EntitiesOptions.Colours);
+export function setDualValueNodeStaticStyles(configs: NodeConfig[], cssClass: CssClass, style: CSSStyleDeclaration): void {
+  const colourConfig: ColoursConfig[] = getConfigObjects(configs, NodeOptions.Colours);
   const energyImportColour: string = cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_IMPORT_COLOR : STYLE_ENERGY_GRID_IMPORT_COLOR;
   const energyExportColour: string = cssClass === CssClass.Battery ? STYLE_ENERGY_BATTERY_EXPORT_COLOR : STYLE_ENERGY_GRID_EXPORT_COLOR;
   let flowImportColour: string;
@@ -245,8 +245,8 @@ export function setDualValueNodeStaticStyles(configs: DualValueNodeConfig[], css
 
 //================================================================================================================================================================================//
 
-export function setDualValueNodeDynamicStyles(configs: DualValueNodeConfig[], cssClass: CssClass, exportState: number, importState: number, style: CSSStyleDeclaration): void {
-  const colourConfig: DualValueColourConfig[] = getConfigObjects(configs, [EntitiesOptions.Colours]);
+export function setDualValueNodeDynamicStyles(configs: NodeConfig[], cssClass: CssClass, exportState: number, importState: number, style: CSSStyleDeclaration): void {
+  const colourConfig: ColoursConfig[] = getConfigObjects(configs, [NodeOptions.Colours]);
   const importColour = `var(--flow-import-${cssClass}-color)`;
   const exportColour = `var(--flow-export-${cssClass}-color)`;
 

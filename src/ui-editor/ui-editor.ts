@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, TemplateResult, CSSResultGroup } from '
 import { customElement, state } from 'lit/decorators.js';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { assert } from 'superstruct';
-import { EditorPages, EnergyFlowCardExtConfig, EntitiesOptions, EntityOptions, GlobalOptions, HomeConfig } from '@/config';
+import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, HomeConfig, SecondaryInfoOptions } from '@/config';
 import { appearanceSchema, dateRangeSchema, generalConfigSchema } from './schema';
 import { localize } from '@/localize/localize';
 import { gridSchema } from './schema/grid';
@@ -317,28 +317,28 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
     const errors: object = {};
 
     if (this._currentConfigPage) {
-      const secondaryEntityId: string | undefined = config?.[this._currentConfigPage]?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id];
+      const secondaryEntityId: string | undefined = getConfigValue(config, [this._currentConfigPage, NodeOptions.Secondary_Info, SecondaryInfoOptions.Entity_Id]);
 
       switch (this._currentConfigPage) {
         case EditorPages.Battery:
         case EditorPages.Grid:
-          const importEntityIds: string[] = config?.[this._currentConfigPage]?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids] || [];
-          const exportEntityIds: string[] = config?.[this._currentConfigPage]?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids] || [];
+          const importEntityIds: string[] = getConfigValue(config, [this._currentConfigPage, NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]) || [];
+          const exportEntityIds: string[] = getConfigValue(config, [this._currentConfigPage, NodeOptions.Export_Entities, EntitiesOptions.Entity_Ids]) || [];
           const entityIds: string[] = [...importEntityIds, ...exportEntityIds];
-          validatePrimaryEntities(this.hass, EntitiesOptions.Import_Entities, entityIds, ELECTRIC_ENTITY_CLASSES, !!secondaryEntityId, errors);
+          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, entityIds, ELECTRIC_ENTITY_CLASSES, !!secondaryEntityId, errors);
           break;
 
         case EditorPages.Gas:
-          validatePrimaryEntities(this.hass, EntitiesOptions.Entities, config?.[this._currentConfigPage]?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids], GAS_ENTITY_CLASSES, !!secondaryEntityId, errors);
+          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, getConfigValue(config, [this._currentConfigPage, NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]), GAS_ENTITY_CLASSES, !!secondaryEntityId, errors);
           break;
 
         case EditorPages.Solar:
-          validatePrimaryEntities(this.hass, EntitiesOptions.Entities, config?.[this._currentConfigPage]?.[EntitiesOptions.Entities]?.[EntityOptions.Entity_Ids], ELECTRIC_ENTITY_CLASSES, !!secondaryEntityId, errors);
+          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, getConfigValue(config, [this._currentConfigPage, NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]), ELECTRIC_ENTITY_CLASSES, !!secondaryEntityId, errors);
           break;
       }
 
       if (secondaryEntityId) {
-        validateSecondaryEntity(this.hass, EntitiesOptions.Secondary_Info, secondaryEntityId, errors);
+        validateSecondaryEntity(this.hass, NodeOptions.Secondary_Info, secondaryEntityId, errors);
       }
     }
 

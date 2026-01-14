@@ -1,4 +1,4 @@
-import { EditorPages, PowerOutageOptions, EnergyFlowCardExtConfig, EntityOptions, GridConfig, GridOptions } from '@/config';
+import { EditorPages, PowerOutageOptions, EnergyFlowCardExtConfig, GridConfig, GridOptions } from '@/config';
 import { dualValueNodeSchema, nodeConfigSchema, SchemaTypes } from '.';
 import { DEFAULT_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
@@ -13,7 +13,7 @@ export const gridSchema = memoizeOne((config: EnergyFlowCardExtConfig): any[] =>
         name: GridOptions.Power_Outage,
         type: SchemaTypes.Expandable,
         schema: [
-          { key: EntityOptions, name: EntityOptions.Entity_Id, selector: { entity: {} }, },
+          { key: PowerOutageOptions, name: PowerOutageOptions.Entity_Id, selector: { entity: {} }, },
           {
             type: SchemaTypes.Grid,
             schema: [

@@ -1,4 +1,4 @@
-import { AppearanceOptions, ColourOptions, EnergyUnitsOptions, EntitiesOptions, EntityOptions, FlowsOptions, GlobalOptions, OverridesOptions, SecondaryInfoOptions, AppearanceConfig, DualValueNodeConfig, EnergyUnitsConfig, SingleValueNodeConfig, LowCarbonConfig } from '@/config';
+import { AppearanceOptions, ColourOptions, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions, OverridesOptions, SecondaryInfoOptions, AppearanceConfig, NodeConfig, EnergyUnitsConfig, LowCarbonConfig } from '@/config';
 import { ColourMode, EnergyUnits, VolumeUnits, InactiveFlowsMode, PrefixThreshold, Scale, UnitPosition, UnitPrefixes, DateRangeDisplayMode } from '@/enums';
 import { DEVICE_CLASS_ENERGY } from '@/const';
 import { localize } from '@/localize/localize';
@@ -132,8 +132,8 @@ export const nodeConfigSchema = memoizeOne((entitySchema: any[] = []): any[] => 
 
   result.push(
     {
-      key: EntitiesOptions,
-      name: EntitiesOptions.Overrides,
+      key: NodeOptions,
+      name: NodeOptions.Overrides,
       type: SchemaTypes.Expandable,
       schema: [
         {
@@ -153,14 +153,14 @@ export const nodeConfigSchema = memoizeOne((entitySchema: any[] = []): any[] => 
 
 //================================================================================================================================================================================//
 
-export const singleValueNodeSchema = memoizeOne((schemaConfig: SingleValueNodeConfig, deviceClasses: string[], isSolarNode: boolean = false): any[] => {
+export const singleValueNodeSchema = memoizeOne((schemaConfig: NodeConfig, deviceClasses: string[], isSolarNode: boolean = false): any[] => {
   return [
     {
-      key: EntitiesOptions,
-      name: EntitiesOptions.Entities,
+      key: NodeOptions,
+      name: NodeOptions.Import_Entities,
       type: SchemaTypes.Expandable,
       schema: [
-        { key: EntityOptions, name: EntityOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: deviceClasses } } }
+        { key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: deviceClasses } } }
       ]
     },
     singleValueColourSchema(schemaConfig, isSolarNode)
@@ -169,10 +169,10 @@ export const singleValueNodeSchema = memoizeOne((schemaConfig: SingleValueNodeCo
 
 //================================================================================================================================================================================//
 
-export const singleValueColourSchema = memoizeOne((schemaConfig: SingleValueNodeConfig | LowCarbonConfig, isSolarNode: boolean = false): {} => {
+export const singleValueColourSchema = memoizeOne((schemaConfig: NodeConfig, isSolarNode: boolean = false): {} => {
   return {
-    key: EntitiesOptions,
-    name: EntitiesOptions.Colours,
+    key: NodeOptions,
+    name: NodeOptions.Colours,
     type: SchemaTypes.Expandable,
     schema: [
       {
@@ -180,7 +180,7 @@ export const singleValueColourSchema = memoizeOne((schemaConfig: SingleValueNode
         schema: [
           ...colourSchema(
             schemaConfig,
-            ColourOptions.Flow,
+            ColourOptions.Flow_Import,
             getDropdownValues(ColourMode, [ColourMode.Default, ColourMode.Custom]),
           ),
           ...colourSchema(
@@ -192,7 +192,7 @@ export const singleValueColourSchema = memoizeOne((schemaConfig: SingleValueNode
           ),
           ...colourSchema(
             schemaConfig,
-            ColourOptions.Value,
+            ColourOptions.Value_Import,
             getDropdownValues(ColourMode, [ColourMode.Do_Not_Colour, ColourMode.Flow, ColourMode.Custom])
           ),
           ...colourSchema(
@@ -213,27 +213,27 @@ export const singleValueColourSchema = memoizeOne((schemaConfig: SingleValueNode
 
 //================================================================================================================================================================================//
 
-export const dualValueNodeSchema = memoizeOne((schemaConfig: DualValueNodeConfig): any[] => {
+export const dualValueNodeSchema = memoizeOne((schemaConfig: NodeConfig): any[] => {
   return [
     {
-      key: EntitiesOptions,
-      name: EntitiesOptions.Import_Entities,
+      key: NodeOptions,
+      name: NodeOptions.Import_Entities,
       type: SchemaTypes.Expandable,
       schema: [
-        { key: EntityOptions, name: EntityOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }
+        { key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }
       ]
     },
     {
-      key: EntitiesOptions,
-      name: EntitiesOptions.Export_Entities,
+      key: NodeOptions,
+      name: NodeOptions.Export_Entities,
       type: SchemaTypes.Expandable,
       schema: [
-        { key: EntityOptions, name: EntityOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }
+        { key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }
       ]
     },
     {
-      key: EntitiesOptions,
-      name: EntitiesOptions.Colours,
+      key: NodeOptions,
+      name: NodeOptions.Colours,
       type: SchemaTypes.Expandable,
       schema: [
         {
@@ -283,7 +283,7 @@ export const dualValueNodeSchema = memoizeOne((schemaConfig: DualValueNodeConfig
 
 //================================================================================================================================================================================//
 
-export const colourSchema = memoizeOne((config: SingleValueNodeConfig | DualValueNodeConfig, name: ColourOptions, options: DropdownValue[]): any[] => {
+export const colourSchema = memoizeOne((config: NodeConfig, name: ColourOptions, options: DropdownValue[]): any[] => {
   return [
     {
       key: ColourOptions,
@@ -296,7 +296,7 @@ export const colourSchema = memoizeOne((config: SingleValueNodeConfig | DualValu
         }
       }
     },
-    getConfigValue(config, [EntitiesOptions.Colours, name]) === ColourMode.Custom ? { key: EntitiesOptions, name: name.replace("mode", "colour"), selector: { color_rgb: {} } } : {}
+    getConfigValue(config, [NodeOptions.Colours, name]) === ColourMode.Custom ? { key: NodeOptions, name: name.replace("mode", "colour"), selector: { color_rgb: {} } } : {}
   ];
 });
 
@@ -304,11 +304,11 @@ export const colourSchema = memoizeOne((config: SingleValueNodeConfig | DualValu
 
 export const secondaryInfoSchema = memoizeOne((): {} => {
   return {
-    key: EntitiesOptions,
-    name: EntitiesOptions.Secondary_Info,
+    key: NodeOptions,
+    name: NodeOptions.Secondary_Info,
     type: SchemaTypes.Expandable,
     schema: [
-      { key: EntityOptions, name: EntityOptions.Entity_Id, selector: { entity: {} } },
+      { key: SecondaryInfoOptions, name: SecondaryInfoOptions.Entity_Id, selector: { entity: {} } },
       {
         type: SchemaTypes.Grid,
         column_min_width: '150px',

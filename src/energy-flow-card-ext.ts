@@ -17,7 +17,7 @@ import { ColourMode, LowCarbonDisplayMode, UnitPosition, UnitPrefixes, CssClass,
 import { HomeState } from "@/states/home";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
 import { CARD_NAME, CIRCLE_STROKE_WIDTH_SEGMENTS, DEVICE_CLASS_ENERGY, DEVICE_CLASS_MONETARY, DOT_RADIUS, ICON_PADDING } from "@/const";
-import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, EntitiesOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, EntityOptions, EnergyUnitsConfig, SecondaryInfoConfig, SecondaryInfoOptions, HomeOptions, DualValueNodeConfig, LowCarbonOptions, HomeConfig } from "@/config";
+import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, NodeOptions, GlobalOptions, FlowsOptions, ColourOptions, EnergyUnitsOptions, EnergyUnitsConfig, SecondaryInfoConfig, SecondaryInfoOptions, HomeOptions, NodeConfig, LowCarbonOptions, HomeConfig, EntitiesOptions } from "@/config";
 import { getColSpacing, MinMax, setDualValueNodeDynamicStyles, setDualValueNodeStaticStyles, setHomeNodeDynamicStyles, setHomeNodeStaticStyles, setLayout, setSingleValueNodeStyles } from "@/ui-helpers/styles";
 import { getRangePresetName, renderDateRange, renderFlowLines, renderSegmentedCircle } from "@/ui-helpers/renderers";
 import { AnimationDurations, FlowLine, getGasSourcesMode, PathScaleFactors, SegmentGroup } from "@/ui-helpers";
@@ -475,7 +475,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       return NODE_SPACER;
     }
 
-    const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Solar, EntitiesOptions.Colours, ColourOptions.Circle]);
+    const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Solar, NodeOptions.Colours, ColourOptions.Circle]);
     const segmentGroups: SegmentGroup[] = [];
 
     if (states) {
@@ -570,7 +570,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       return NODE_SPACER;
     }
 
-    const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Battery, EntitiesOptions.Colours, ColourOptions.Circle]);
+    const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Battery, NodeOptions.Colours, ColourOptions.Circle]);
     const segmentGroups: SegmentGroup[] = [];
 
     if (states) {
@@ -657,7 +657,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       return NODE_SPACER;
     }
 
-    const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Grid, EntitiesOptions.Colours, ColourOptions.Circle]);
+    const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Grid, NodeOptions.Colours, ColourOptions.Circle]);
     const segmentGroups: SegmentGroup[] = [];
 
     if (states) {
@@ -746,7 +746,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _renderHomeNode = (states?: States, overrideElectricUnitPrefix?: EnergyUnitPrefix, overrideGasUnitPrefix?: EnergyUnitPrefix): TemplateResult => {
     const state: HomeState = this._entityStates.home;
     const homeConfig: HomeConfig[] = getConfigObjects(this._configs, EditorPages.Home);
-    const circleMode: ColourMode = getConfigValue(homeConfig, [EntitiesOptions.Colours, ColourOptions.Circle]);
+    const circleMode: ColourMode = getConfigValue(homeConfig, [NodeOptions.Colours, ColourOptions.Circle]);
     const segmentGroups: SegmentGroup[] = [];
     let electricIcon: string | undefined;
     let gasIcon: string | undefined;
@@ -1388,17 +1388,17 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       return 1;
     }
 
-    const dualPrimaries: DualValueNodeConfig[] = [
-      this._config?.[EditorPages.Battery]!,
-      this._config?.[EditorPages.Grid]!,
+    const dualPrimaries: NodeConfig[] = [
+      getConfigValue(this._config, EditorPages.Battery),
+      getConfigValue(this._config, EditorPages.Grid),
 
       // TODO: devices
     ];
 
     for (let n: number = 0; n < dualPrimaries.length; n++) {
-      const dualPrimary: DualValueNodeConfig = dualPrimaries[n]!;
+      const dualPrimary: NodeConfig = dualPrimaries[n]!;
 
-      if (dualPrimary?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids]?.length !== 0 && dualPrimary?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids]?.length !== 0) {
+      if (getConfigValue(dualPrimary, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]).length !== 0 && getConfigValue(dualPrimary, [NodeOptions.Export_Entities, EntitiesOptions.Entity_Ids]).length !== 0) {
         return 1;
       }
     }
@@ -1410,18 +1410,18 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   private _hasSecondaryState = (): number => {
     const secondaries: SecondaryInfoConfig[] = [
-      this._config?.[EditorPages.Battery]?.[EntitiesOptions.Secondary_Info]!,
-      this._config?.[EditorPages.Gas]?.[EntitiesOptions.Secondary_Info]!,
-      this._config?.[EditorPages.Grid]?.[EntitiesOptions.Secondary_Info]!,
-      this._config?.[EditorPages.Home]?.[EntitiesOptions.Secondary_Info]!,
-      this._config?.[EditorPages.Low_Carbon]?.[EntitiesOptions.Secondary_Info]!,
-      this._config?.[EditorPages.Solar]?.[EntitiesOptions.Secondary_Info]!,
+      getConfigValue(this._config, [EditorPages.Battery, NodeOptions.Secondary_Info]),
+      getConfigValue(this._config, [EditorPages.Gas, NodeOptions.Secondary_Info]),
+      getConfigValue(this._config, [EditorPages.Grid, NodeOptions.Secondary_Info]),
+      getConfigValue(this._config, [EditorPages.Home, NodeOptions.Secondary_Info]),
+      getConfigValue(this._config, [EditorPages.Low_Carbon, NodeOptions.Secondary_Info]),
+      getConfigValue(this._config, [EditorPages.Solar, NodeOptions.Secondary_Info]),
 
       // TODO: devices
     ];
 
     for (let n: number = 0; n < secondaries.length; n++) {
-      if (secondaries[n]?.[EntityOptions.Entity_Id]) {
+      if (secondaries[n]) {
         return 1;
       }
     }

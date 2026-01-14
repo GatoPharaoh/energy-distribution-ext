@@ -1,4 +1,4 @@
-import { AppearanceOptions, ColourOptions, DeviceOptions, EditorPages, EnergyUnitsOptions, EntitiesOptions, EntityOptions, FlowsOptions, GlobalOptions, GridOptions, HomeOptions, LowCarbonOptions, OverridesOptions, PowerOutageOptions, SecondaryInfoOptions } from "@/config";
+import { AppearanceOptions, ColourOptions, DeviceOptions, EditorPages, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions, GridOptions, HomeOptions, LowCarbonOptions, OverridesOptions, PowerOutageOptions, SecondaryInfoOptions } from "@/config";
 import { ColourMode, DateRangeDisplayMode, EnergyDirection, EnergyType, EnergyUnits, GasSourcesMode, InactiveFlowsMode, LowCarbonDisplayMode, Scale, UnitPosition, UnitPrefixes, VolumeUnits } from "@/enums";
 import { HELPTEXT_SUFFIX } from "@/const";
 
@@ -58,8 +58,6 @@ export default {
   "ColourOptions": {
     [ColourOptions.Circle]: "Circle",
     [ColourOptions.Circle_Colour]: "Circle color",
-    [ColourOptions.Flow]: "Flow",
-    [ColourOptions.Flow_Colour]: "Flow color",
     [ColourOptions.Flow_Export]: "Export flow",
     [ColourOptions.Flow_Export_Colour]: "Export color",
     [ColourOptions.Flow_Import]: "Import flow",
@@ -68,8 +66,6 @@ export default {
     [ColourOptions.Icon_Colour]: "Icon color",
     [ColourOptions.Secondary]: "Secondary value",
     [ColourOptions.Secondary_Colour]: "Secondary value color",
-    [ColourOptions.Value]: "Value",
-    [ColourOptions.Value_Colour]: "Value color",
     [ColourOptions.Value_Export]: "Export value",
     [ColourOptions.Value_Export_Colour]: "Export color",
     [ColourOptions.Value_Import]: "Import value",
@@ -133,19 +129,16 @@ export default {
   },
 
   "EntitiesOptions": {
-    [EntitiesOptions.Colours]: "Colors",
-    [EntitiesOptions.Entities]: "Entities",
-    [EntitiesOptions.Export_Entities]: "Export Entities",
-    [EntitiesOptions.Import_Entities]: "Import Entities",
-    [EntitiesOptions.Overrides]: "Overrides",
-    [EntitiesOptions.Secondary_Info]: "Secondary Info"
+    [NodeOptions.Colours]: "Colors",
+    [NodeOptions.Export_Entities]: "Export Entities",
+    [NodeOptions.Import_Entities]: "Import Entities",
+    [NodeOptions.Overrides]: "Overrides",
+    [NodeOptions.Secondary_Info]: "Secondary Info"
   },
 
   "EntityOptions": {
-    [EntityOptions.Entity_Id]: "",
-    [EntityOptions.Entity_Ids]: ""
+    [EntitiesOptions.Entity_Ids]: ""
   },
-
   "FlowsOptions": {
     [FlowsOptions.Animation]: "Animation",
     [FlowsOptions.Inactive_Flows]: "Inactive flows",
@@ -209,6 +202,7 @@ export default {
   },
 
   "PowerOutageOptions": {
+    [PowerOutageOptions.Entity_Id]: "Entity",
     [PowerOutageOptions.Alert_Icon]: "Override icon",
     [PowerOutageOptions.Alert_State]: "State of alert",
     [PowerOutageOptions.Alert_State + HELPTEXT_SUFFIX]: "The entity state which indicates an outage"
@@ -221,6 +215,7 @@ export default {
 
   "SecondaryInfoOptions": {
     [SecondaryInfoOptions.Display_Precision]: "Override display precision",
+    [SecondaryInfoOptions.Entity_Id]: "Entity",
     [SecondaryInfoOptions.Icon]: "Icon",
     [SecondaryInfoOptions.Units]: "Override units",
     [SecondaryInfoOptions.Unit_Position]: "Show units"

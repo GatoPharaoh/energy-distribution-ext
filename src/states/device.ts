@@ -1,4 +1,4 @@
-import { ColourOptions, DeviceConfig, DeviceOptions, DualValueColourConfig, EntitiesOptions } from "@/config";
+import { ColourOptions, DeviceConfig, DeviceOptions, ColoursConfig, NodeOptions } from "@/config";
 import { HomeAssistant } from "custom-card-helpers";
 import { DualValueState, DynamicColour, SimpleColour, StaticColour } from "./state";
 import { DEFAULT_DEVICE_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
@@ -39,7 +39,7 @@ export class DeviceState extends DualValueState {
     this.type = getConfigValue(configs, DeviceOptions.Energy_Type);
     this.direction = getConfigValue(configs, DeviceOptions.Energy_Direction);
 
-    const colourConfigs: DualValueColourConfig[] = getConfigObjects(configs, EntitiesOptions.Colours);
+    const colourConfigs: ColoursConfig[] = getConfigObjects(configs, NodeOptions.Colours);
 
     this.colours = {
       importFlow: new SimpleColour(colourConfigs, ColourOptions.Flow_Import_Colour),

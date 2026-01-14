@@ -1,4 +1,4 @@
-import { ColourOptions, DualValueColourConfig, DualValueNodeConfig, EntitiesOptions, EntityOptions, filterPrimaryEntities, NodeConfig, OverridesOptions, SingleValueColourConfig, SingleValueNodeConfig } from "@/config";
+import { ColourOptions, ColoursConfig, NodeOptions, EntitiesOptions, filterPrimaryEntities, NodeConfig, OverridesOptions } from "@/config";
 import { HomeAssistant } from "custom-card-helpers";
 import { BiDiState, State } from ".";
 import { ELECTRIC_ENTITY_CLASSES } from "@/const";
@@ -13,8 +13,8 @@ export abstract class ValueState extends State {
 
   protected constructor(hass: HomeAssistant, config: NodeConfig[], importEntities: string[], defaultName: string, defaultIcon: string) {
     super(config, importEntities, defaultIcon);
-    this.name = getConfigValue(config, [EntitiesOptions.Overrides, OverridesOptions.Name]) || defaultName;
-    this.secondary = new SecondaryInfoState(hass, getConfigValue(config, EntitiesOptions.Secondary_Info));
+    this.name = getConfigValue(config, [NodeOptions.Overrides, OverridesOptions.Name]) || defaultName;
+    this.secondary = new SecondaryInfoState(hass, getConfigValue(config, NodeOptions.Secondary_Info));
   }
 }
 
@@ -24,11 +24,11 @@ export abstract class SingleValueState extends ValueState {
     importVolume: number;
   };
 
-  protected constructor(hass: HomeAssistant, config: SingleValueNodeConfig[], hassEntityIds: string[], defaultName: string, defaultIcon: string, deviceClasses: string[]) {
+  protected constructor(hass: HomeAssistant, config: NodeConfig[], hassEntityIds: string[], defaultName: string, defaultIcon: string, deviceClasses: string[]) {
     super(
       hass,
       config,
-      filterPrimaryEntities(hass, [...hassEntityIds, ...(getConfigValue(config, [EntitiesOptions.Entities, EntityOptions.Entity_Ids])) || []], deviceClasses),
+      filterPrimaryEntities(hass, [...hassEntityIds, ...(getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]) || [])], deviceClasses),
       defaultName,
       defaultIcon
     );
@@ -38,7 +38,7 @@ export abstract class SingleValueState extends ValueState {
       importVolume: 0
     };
 
-    this.rawEntities.push(...(getConfigValue(config, [EntitiesOptions.Entities, EntityOptions.Entity_Ids])) || []);
+    this.rawEntities.push(...(getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids])) || []);
     this.hassConfigPresent = hassEntityIds.length !== 0;
   }
 }
@@ -47,19 +47,19 @@ export abstract class DualValueState extends ValueState {
   public exportEntities: string[]
   public firstExportEntity?: string;
 
-  protected constructor(hass: HomeAssistant, config: DualValueNodeConfig[], hassImportEntityIds: string[], hassExportEntityIds: string[], defaultName: string, defaultIcon: string) {
+  protected constructor(hass: HomeAssistant, config: NodeConfig[], hassImportEntityIds: string[], hassExportEntityIds: string[], defaultName: string, defaultIcon: string) {
     super(
       hass,
       config,
       // TODO: deviceClasses needs to be a parameter
-      filterPrimaryEntities(hass, [...hassImportEntityIds, ...(getConfigValue(config, [EntitiesOptions.Import_Entities, EntityOptions.Entity_Ids])) || []], ELECTRIC_ENTITY_CLASSES),
+      filterPrimaryEntities(hass, [...hassImportEntityIds, ...(getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]) || [])], ELECTRIC_ENTITY_CLASSES),
       defaultName,
       defaultIcon
     );
 
-    const exportEntities: string[] = getConfigValue(config, [EntitiesOptions.Export_Entities, EntityOptions.Entity_Ids]) || [];
+    const exportEntities: string[] = getConfigValue(config, [NodeOptions.Export_Entities, EntitiesOptions.Entity_Ids]) || [];
 
-    this.rawEntities.push(...(getConfigValue(config, [EntitiesOptions.Import_Entities, EntityOptions.Entity_Ids])) || []);
+    this.rawEntities.push(...(getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids])) || []);
     this.rawEntities.push(...exportEntities);
     this.exportEntities = filterPrimaryEntities(hass, [...hassExportEntityIds, ...exportEntities], ELECTRIC_ENTITY_CLASSES);
     this.firstExportEntity = this.exportEntities.length !== 0 ? this.exportEntities[0] : undefined;
@@ -69,7 +69,7 @@ export abstract class DualValueState extends ValueState {
 }
 
 class Colour {
-  protected _getCustomColour(configs: DualValueColourConfig[], path: string): string {
+  protected _getCustomColour(configs: ColoursConfig[], path: string): string {
     return convertColourListToHex(getConfigValue(configs, path)) || STYLE_PRIMARY_TEXT_COLOR;
   }
 }
@@ -80,7 +80,7 @@ export class SimpleColour extends Colour {
   }
   private _value: string;
 
-  public constructor(config: SingleValueColourConfig[] | DualValueColourConfig[], option: ColourOptions) {
+  public constructor(config: ColoursConfig[], option: ColourOptions) {
     super();
     this._value = this._getCustomColour(config, option.replace("mode", "colour"));;
   }
@@ -92,7 +92,7 @@ export class StaticColour extends Colour {
   }
   private _value: string;
 
-  public constructor(config: SingleValueColourConfig[] | DualValueColourConfig[], option: ColourOptions, flowOption: ColourOptions) {
+  public constructor(config: ColoursConfig[], option: ColourOptions, flowOption: ColourOptions) {
     super();
 
     switch (getConfigValue(config, option)) {
@@ -127,7 +127,7 @@ export class DynamicColour extends Colour {
   private _importColour: string;
   private _exportColour: string;
 
-  public constructor(config: DualValueColourConfig[], state: BiDiState, option: ColourOptions, direction: EnergyDirection) {
+  public constructor(config: ColoursConfig[], state: BiDiState, option: ColourOptions, direction: EnergyDirection) {
     super();
     this._state = state;
     this._direction = direction;

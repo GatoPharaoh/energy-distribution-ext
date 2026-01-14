@@ -4,7 +4,7 @@ import { HomeAssistant, fireEvent } from "custom-card-helpers";
 import { css, CSSResultGroup, html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { CARD_NAME, ELECTRIC_ENTITY_CLASSES } from "@/const";
-import { ColourOptions, DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, EntitiesOptions, EntityOptions } from "@/config";
+import { ColourOptions, DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, SecondaryInfoOptions } from "@/config";
 import { deviceSchema } from "../schema/device";
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from "..";
 import { repeat } from "lit/directives/repeat.js";
@@ -127,7 +127,7 @@ export class DevicesEditor extends LitElement {
             </div>
             <ha-control-button class="device-button" @click=${() => this._onEditDevice(index)}>
               <div class="device-label">
-                <ha-icon class="device-icon" .icon=${deviceConf?.[DeviceOptions.Icon] || 'blank'}></ha-icon>
+                <ha-icon class="device-icon" .icon=${getConfigValue(deviceConf, DeviceOptions.Icon) || 'blank'}></ha-icon>
                 ${getConfigValue(deviceConf, DeviceOptions.Name)}
                 ${statusIcon !== Status.NotConfigured ? html`<ha-icon class="${STATUS_CLASSES[statusIcon]}" .icon=${STATUS_ICONS[statusIcon]}></ha-icon>` : nothing}
               </div>
@@ -157,13 +157,13 @@ export class DevicesEditor extends LitElement {
     }
 
     const errors: object = {};
-    const secondaryEntityId: string | undefined = config?.[EntitiesOptions.Secondary_Info]?.[EntityOptions.Entity_Id];
+    const secondaryEntityId: string | undefined = getConfigValue(config, [NodeOptions.Secondary_Info, SecondaryInfoOptions.Entity_Id]);
 
-    validatePrimaryEntities(this.hass, EntitiesOptions.Import_Entities, config?.[EntitiesOptions.Import_Entities]?.[EntityOptions.Entity_Ids], ELECTRIC_ENTITY_CLASSES, true, errors);
-    validatePrimaryEntities(this.hass, EntitiesOptions.Export_Entities, config?.[EntitiesOptions.Export_Entities]?.[EntityOptions.Entity_Ids], ELECTRIC_ENTITY_CLASSES, true, errors);
+    validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]), ELECTRIC_ENTITY_CLASSES, true, errors);
+    validatePrimaryEntities(this.hass, NodeOptions.Export_Entities, getConfigValue(config, [NodeOptions.Export_Entities, EntitiesOptions.Entity_Ids]), ELECTRIC_ENTITY_CLASSES, true, errors);
 
     if (secondaryEntityId) {
-      validateSecondaryEntity(this.hass, EntitiesOptions.Secondary_Info, secondaryEntityId, errors);
+      validateSecondaryEntity(this.hass, NodeOptions.Secondary_Info, secondaryEntityId, errors);
     }
 
     return errors;
@@ -253,21 +253,22 @@ export class DevicesEditor extends LitElement {
   //================================================================================================================================================================================//
 
   private _onUpdateConfig(updatedDevices: DeviceConfig[]): void {
-    fireEvent(this, 'value-changed', { value: updatedDevices });
+    fireEvent(this, "value-changed", { value: updatedDevices });
   }
 
   //================================================================================================================================================================================//
 
   private _fixInvalidColourValues(config: DeviceConfig, option: ColourOptions): void {
-    const circleMode: ColourMode = getConfigValue(config, [EntitiesOptions.Colours, option]);
+    const coloursConfig: ColourOptions = getConfigValue(config, NodeOptions.Colours);
+    const mode: ColourMode = getConfigValue(coloursConfig, option);
 
-    if (circleMode) {
-      if (getConfigValue(config, DeviceOptions.Energy_Direction) == EnergyDirection.Both) {
-        if (!BASIC_COLOUR_MODES_DUAL.includes(circleMode)) {
-          config[EntitiesOptions.Colours]![option] = ColourMode.Larger_Value;
+    if (mode) {
+      if (getConfigValue(config, DeviceOptions.Energy_Direction) === EnergyDirection.Both) {
+        if (!BASIC_COLOUR_MODES_DUAL.includes(mode)) {
+          coloursConfig[option] = ColourMode.Larger_Value;
         }
-      } else if (!BASIC_COLOUR_MODES_SINGLE.includes(circleMode)) {
-        config[EntitiesOptions.Colours]![option] = ColourMode.Flow;
+      } else if (!BASIC_COLOUR_MODES_SINGLE.includes(mode)) {
+        coloursConfig[option] = ColourMode.Flow;
       }
     }
   }

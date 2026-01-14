@@ -1,4 +1,4 @@
-import { EntitiesOptions, OverridesOptions } from "@/config";
+import { NodeOptions, OverridesOptions } from "@/config";
 import { getConfigValue } from "@/config/config";
 
 export type BiDiState = {
@@ -55,6 +55,6 @@ export abstract class State {
     this.importEntities = importEntities;
     this.isPresent = importEntities.length !== 0;
     this.firstImportEntity = this.isPresent ? importEntities[0] : undefined;
-    this.icon = getConfigValue(config, [EntitiesOptions.Overrides, OverridesOptions.Icon]) || defaultIcon;
+    this.icon = getConfigValue(config, [NodeOptions.Overrides, OverridesOptions.Icon]) || defaultIcon;
   }
 }

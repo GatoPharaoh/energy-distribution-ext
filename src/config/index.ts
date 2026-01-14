@@ -26,8 +26,6 @@ namespace ConfigKeys {
   export const ColourOptions = {
     Circle: "circle_mode",
     Circle_Colour: "circle_colour",
-    Flow: "flow_mode",
-    Flow_Colour: "flow_colour",
     Flow_Export: "flow_export_mode",
     Flow_Export_Colour: "flow_export_colour",
     Flow_Import: "flow_import_mode",
@@ -36,8 +34,6 @@ namespace ConfigKeys {
     Icon_Colour: "icon_colour",
     Secondary: "secondary_mode",
     Secondary_Colour: "secondary_colour",
-    Value: "value_mode",
-    Value_Colour: "value_colour",
     Value_Export: "value_export_mode",
     Value_Export_Colour: "value_export_colour",
     Value_Import: "value_import_mode",
@@ -76,16 +72,6 @@ namespace ConfigKeys {
   } as const satisfies Record<string, string>;
 
   export const EntitiesOptions = {
-    Colours: "colours",
-    Entities: "entities",
-    Export_Entities: "export_entities",
-    Import_Entities: "import_entities",
-    Overrides: "overrides",
-    Secondary_Info: "secondary_info"
-  } as const satisfies Record<string, string>;
-
-  export const EntityOptions = {
-    Entity_Id: "entity_id",
     Entity_Ids: "entity_ids"
   } as const satisfies Record<string, string>;
 
@@ -121,18 +107,28 @@ namespace ConfigKeys {
     Low_Carbon_Mode: "low_carbon_mode"
   } as const satisfies Record<string, string>;
 
+  export const NodeOptions = {
+    Colours: "colours",
+    Export_Entities: "export_entities",
+    Import_Entities: "import_entities",
+    Overrides: "overrides",
+    Secondary_Info: "secondary_info"
+  } as const satisfies Record<string, string>;
+
   export const OverridesOptions = {
     Icon: "icon",
     Name: "name"
   } as const satisfies Record<string, string>;
 
   export const PowerOutageOptions = {
+    Entity_Id: "entity_id",
     Alert_Icon: "alert_icon",
     Alert_State: "alert_state"
   } as const satisfies Record<string, string>;
 
   export const SecondaryInfoOptions = {
     Display_Precision: "display_precision",
+    Entity_Id: "entity_id",
     Icon: "icon",
     Units: "units",
     Unit_Position: "unit_position"
@@ -151,8 +147,6 @@ export const EnergyUnitsOptions = ConfigKeys.EnergyUnitsOptions;
 export type EnergyUnitsOptions = typeof EnergyUnitsOptions[keyof typeof EnergyUnitsOptions];
 export const EntitiesOptions = ConfigKeys.EntitiesOptions;
 export type EntitiesOptions = typeof EntitiesOptions[keyof typeof EntitiesOptions];
-export const EntityOptions = ConfigKeys.EntityOptions;
-export type EntityOptions = typeof EntityOptions[keyof typeof EntityOptions];
 export const FlowsOptions = ConfigKeys.FlowsOptions;
 export type FlowsOptions = typeof FlowsOptions[keyof typeof FlowsOptions];
 export const GlobalOptions = ConfigKeys.GlobalOptions;
@@ -163,6 +157,8 @@ export const HomeOptions = ConfigKeys.HomeOptions;
 export type HomeOptions = typeof HomeOptions[keyof typeof HomeOptions];
 export const LowCarbonOptions = ConfigKeys.LowCarbonOptions;
 export type LowCarbonOptions = typeof LowCarbonOptions[keyof typeof LowCarbonOptions];
+export const NodeOptions = ConfigKeys.NodeOptions;
+export type NodeOptions = typeof NodeOptions[keyof typeof NodeOptions];
 export const OverridesOptions = ConfigKeys.OverridesOptions;
 export type OverridesOptions = typeof OverridesOptions[keyof typeof OverridesOptions];
 export const PowerOutageOptions = ConfigKeys.PowerOutageOptions;
@@ -238,38 +234,8 @@ export interface FlowsConfig {
   [FlowsOptions.Scale]?: Scale;
 };
 
-export interface GridConfig extends DualValueNodeConfig {
-  [GridOptions.Power_Outage]?: PowerOutageConfig;
-};
-
-export interface GasConfig extends SingleValueNodeConfig {
-};
-
-export interface LowCarbonConfig extends NodeConfig {
-  [EntitiesOptions.Colours]?: SingleValueColourConfig;
-  [GlobalOptions.Options]?: LowCarbonOptionsConfig;
-};
-
 export interface LowCarbonOptionsConfig {
   [LowCarbonOptions.Low_Carbon_Mode]?: LowCarbonDisplayMode;
-};
-
-export interface SolarConfig extends SingleValueNodeConfig {
-};
-
-export interface BatteryConfig extends DualValueNodeConfig {
-};
-
-export interface HomeColourConfig {
-  [ColourOptions.Circle]?: ColourMode;
-  [ColourOptions.Icon]?: ColourMode;
-  [ColourOptions.Secondary]?: ColourMode;
-  [ColourOptions.Value]?: ColourMode;
-};
-
-export interface HomeConfig extends NodeConfig {
-  [EntitiesOptions.Colours]?: HomeColourConfig;
-  [GlobalOptions.Options]?: HomeOptionsConfig;
 };
 
 export interface HomeOptionsConfig {
@@ -278,20 +244,12 @@ export interface HomeOptionsConfig {
   [HomeOptions.Subtract_Consumers]?: boolean;
 };
 
-export interface DeviceConfig {
-  [DeviceOptions.Name]?: string;
-  [DeviceOptions.Icon]?: string;
-  [DeviceOptions.Energy_Type]?: EnergyType;
-  [DeviceOptions.Energy_Direction]?: EnergyDirection;
-  [EntitiesOptions.Import_Entities]?: EntityConfig;
-  [EntitiesOptions.Export_Entities]?: EntityConfig;
-  [EntitiesOptions.Colours]?: DualValueColourConfig;
-  [EntitiesOptions.Secondary_Info]?: SecondaryInfoConfig;
-};
-
 export interface NodeConfig {
-  [EntitiesOptions.Overrides]?: OverridesConfig;
-  [EntitiesOptions.Secondary_Info]?: SecondaryInfoConfig;
+  [NodeOptions.Export_Entities]?: EntityConfig;
+  [NodeOptions.Import_Entities]?: EntityConfig;
+  [NodeOptions.Overrides]?: OverridesConfig;
+  [NodeOptions.Secondary_Info]?: SecondaryInfoConfig;
+  [NodeOptions.Colours]?: ColoursConfig;
 };
 
 export interface OverridesConfig {
@@ -299,31 +257,7 @@ export interface OverridesConfig {
   [OverridesOptions.Icon]?: string;
 };
 
-export interface SingleValueNodeConfig extends NodeConfig {
-  [EntitiesOptions.Entities]?: EntityConfig;
-  [EntitiesOptions.Colours]?: SingleValueColourConfig;
-};
-
-export interface DualValueNodeConfig extends NodeConfig {
-  [EntitiesOptions.Export_Entities]?: EntityConfig;
-  [EntitiesOptions.Import_Entities]?: EntityConfig;
-  [EntitiesOptions.Colours]?: DualValueColourConfig;
-};
-
-export interface SingleValueColourConfig {
-  [ColourOptions.Circle]?: ColourMode;
-  [ColourOptions.Circle_Colour]?: number[];
-  [ColourOptions.Flow]?: ColourMode;
-  [ColourOptions.Flow_Colour]?: number[];
-  [ColourOptions.Icon]?: ColourMode;
-  [ColourOptions.Icon_Colour]?: number[];
-  [ColourOptions.Secondary]?: ColourMode;
-  [ColourOptions.Secondary_Colour]?: number[];
-  [ColourOptions.Value]?: ColourMode;
-  [ColourOptions.Value_Colour]?: number[];
-};
-
-export interface DualValueColourConfig {
+export interface ColoursConfig {
   [ColourOptions.Circle]?: ColourMode;
   [ColourOptions.Circle_Colour]?: number[];
   [ColourOptions.Flow_Export]?: ColourMode;
@@ -339,23 +273,52 @@ export interface DualValueColourConfig {
   [ColourOptions.Value_Import]?: ColourMode;
   [ColourOptions.Value_Export_Colour]?: number[];
 };
-
 export interface EntityConfig {
-  [EntityOptions.Entity_Ids]?: string[];
+  [EntitiesOptions.Entity_Ids]?: string[];
 }
 
 export interface PowerOutageConfig {
-  [EntityOptions.Entity_Id]?: string;
+  [PowerOutageOptions.Entity_Id]?: string;
   [PowerOutageOptions.Alert_State]?: string;
   [PowerOutageOptions.Alert_Icon]?: string;
 };
 
 export interface SecondaryInfoConfig {
-  [EntityOptions.Entity_Id]?: string;
+  [SecondaryInfoOptions.Entity_Id]?: string;
   [SecondaryInfoOptions.Units]?: string;
   [SecondaryInfoOptions.Unit_Position]?: UnitPosition;
   [SecondaryInfoOptions.Display_Precision]?: number;
   [SecondaryInfoOptions.Icon]?: string;
+};
+
+//================================================================================================================================================================================//
+
+export interface BatteryConfig extends NodeConfig {
+};
+
+export interface DeviceConfig extends NodeConfig {
+  [DeviceOptions.Name]?: string;
+  [DeviceOptions.Icon]?: string;
+  [DeviceOptions.Energy_Type]?: EnergyType;
+  [DeviceOptions.Energy_Direction]?: EnergyDirection;
+};
+
+export interface GasConfig extends NodeConfig {
+};
+
+export interface GridConfig extends NodeConfig {
+  [GridOptions.Power_Outage]?: PowerOutageConfig;
+};
+
+export interface HomeConfig extends NodeConfig {
+  [GlobalOptions.Options]?: HomeOptionsConfig;
+};
+
+export interface LowCarbonConfig extends NodeConfig {
+  [GlobalOptions.Options]?: LowCarbonOptionsConfig;
+};
+
+export interface SolarConfig extends NodeConfig {
 };
 
 //================================================================================================================================================================================//

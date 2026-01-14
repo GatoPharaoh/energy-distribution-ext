@@ -1,4 +1,4 @@
-import { ColourOptions, DeviceConfig, DeviceOptions, EntitiesOptions, EntityOptions } from '@/config';
+import { ColourOptions, DeviceConfig, DeviceOptions, NodeOptions, EntitiesOptions } from '@/config';
 import { colourSchema, dropdownSelector, getDropdownValues, SchemaTypes, secondaryInfoSchema } from '.';
 import { ColourMode, EnergyDirection, EnergyType } from '@/enums';
 import { DEVICE_CLASS_ENERGY } from '@/const';
@@ -22,21 +22,21 @@ export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig): any[] => {
     },
     energyDirection !== EnergyDirection.Consumer ?
       {
-        key: EntitiesOptions,
-        name: EntitiesOptions.Import_Entities,
+        key: NodeOptions,
+        name: NodeOptions.Import_Entities,
         type: SchemaTypes.Expandable,
-        schema: [{ key: EntityOptions, name: EntityOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }]
+        schema: [{ key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }]
       } : {},
     energyDirection !== EnergyDirection.Source ?
       {
-        key: EntitiesOptions,
-        name: EntitiesOptions.Export_Entities,
+        key: NodeOptions,
+        name: NodeOptions.Export_Entities,
         type: SchemaTypes.Expandable,
-        schema: [{ key: EntityOptions, name: EntityOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }]
+        schema: [{ key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }]
       } : {},
     {
-      key: EntitiesOptions,
-      name: EntitiesOptions.Colours,
+      key: NodeOptions,
+      name: NodeOptions.Colours,
       type: SchemaTypes.Expandable,
       schema: [{ type: SchemaTypes.Grid, schema: colourSchemas }]
     },
