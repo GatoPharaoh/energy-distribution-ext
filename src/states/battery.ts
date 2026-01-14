@@ -1,11 +1,14 @@
-import { BatteryConfig } from "@/config";
-import { DualValueState } from "./state";
+import { BatteryConfig, ColoursConfig, NodeOptions } from "@/config";
+import { Colours, State } from "./state";
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
 import { EnergySource } from "@/hass";
-import { DEFAULT_BATTERY_CONFIG } from "@/config/config";
+import { DEFAULT_BATTERY_CONFIG, getConfigObjects } from "@/config/config";
+import { ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
 
-export class BatteryState extends DualValueState {
+export class BatteryState extends State {
+  public readonly colours: Colours;
+
   state: {
     import: number;
     export: number;
@@ -13,14 +16,21 @@ export class BatteryState extends DualValueState {
     fromGrid: number;
   };
 
+  protected get defaultName(): string {
+    return localize("EditorPages.battery");
+  }
+
+  protected get defaultIcon(): string {
+    return "mdi:battery-high";
+  }
+
   public constructor(hass: HomeAssistant, config: BatteryConfig, energySources: EnergySource[]) {
     super(
       hass,
       [config, DEFAULT_BATTERY_CONFIG],
+      ELECTRIC_ENTITY_CLASSES,
       BatteryState._getHassImportEntities(energySources),
-      BatteryState._getHassExportEntities(energySources),
-      localize("EditorPages.battery"),
-      "mdi:battery-high"
+      BatteryState._getHassExportEntities(energySources)
     );
 
     this.state = {
@@ -29,6 +39,9 @@ export class BatteryState extends DualValueState {
       fromSolar: 0,
       fromGrid: 0
     };
+
+    const coloursConfig: ColoursConfig[] = getConfigObjects([config, DEFAULT_BATTERY_CONFIG], NodeOptions.Colours);
+    this.colours = new Colours(coloursConfig, EnergyDirection.Both, this.state, "var(--energy-battery-out-color)", "var(--energy-battery-in-color)");
   }
 
   private static _getHassImportEntities = (energySources: EnergySource[]): string[] => {

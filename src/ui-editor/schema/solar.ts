@@ -1,6 +1,6 @@
 import { EditorPages, EnergyFlowCardExtConfig, SolarConfig } from '@/config';
 import { nodeConfigSchema, singleValueNodeSchema } from '.';
-import { ELECTRIC_ENTITY_CLASSES } from '@/const';
+import { ELECTRIC_ENTITY_CLASSES } from '@/enums';
 import { DEFAULT_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 

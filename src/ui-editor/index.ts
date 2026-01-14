@@ -1,7 +1,7 @@
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
 import { isValidPrimaryEntity, isValidSecondaryEntity } from "@/config";
-import { ValueState } from "@/states/state";
+import { State } from "@/states/state";
 import { HELPTEXT_SUFFIX } from "@/const";
 import memoizeOne from "memoize-one";
 
@@ -39,15 +39,15 @@ export enum Status {
 export const STATUS_ICONS: string[] = ["", "mdi:check-circle", "mdi:alert", "mdi:alert-octagon"];
 export const STATUS_CLASSES: string[] = ["", "page-valid", "page-warning", "page-error"];
 
-export function getStatusIcon(hass: HomeAssistant, state: ValueState, deviceClasses: string[], supportsPrimaries: boolean = true, requiresPrimaries: boolean = false): Status {
+export function getStatusIcon(hass: HomeAssistant, state: State, deviceClasses: string[], supportsPrimaries: boolean = true, requiresPrimaries: boolean = false): Status {
   let primaryEntityCount: number = 0;
   let secondaryEntity: boolean = false;
   let validPrimaryEntityCount: number = 0;
   let invalidPrimaryEntityCount: number = 0;
   let invalidSecondaryEntity: boolean = false;
 
-  if (state.rawEntities.length !== 0) {
-    state.rawEntities.forEach(entityId => {
+  if (state.configEntities.length !== 0) {
+    state.configEntities.forEach(entityId => {
       primaryEntityCount++;
 
       if (isValidPrimaryEntity(hass, entityId, deviceClasses)) {
@@ -58,10 +58,10 @@ export function getStatusIcon(hass: HomeAssistant, state: ValueState, deviceClas
     });
   }
 
-  if (state.secondary.rawEntities.length !== 0) {
+  if (state.secondary.configEntity) {
     secondaryEntity = true;
 
-    if (!isValidSecondaryEntity(hass, state.secondary.rawEntities[0])) {
+    if (!isValidSecondaryEntity(hass, state.secondary.configEntity)) {
       invalidSecondaryEntity = true;
     }
   }

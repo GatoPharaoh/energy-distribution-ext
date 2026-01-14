@@ -1,6 +1,6 @@
 import { EditorPages, EnergyFlowCardExtConfig, GasConfig } from '@/config';
 import { nodeConfigSchema, singleValueNodeSchema } from '.';
-import { GAS_ENTITY_CLASSES } from '@/const';
+import { GAS_ENTITY_CLASSES } from '@/enums';
 import { DEFAULT_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 

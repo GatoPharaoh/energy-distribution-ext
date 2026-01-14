@@ -26,6 +26,7 @@ Code:
     - eliminate empty columns
   - editor:
     - refactor out the dropdown options lists, there's a lot of duplication going on!
+  - BUG: clicking on the low-carbon secondary opens both the entity viewer and the map...
 
 Editor:
   - dynamic labelling for, eg, Battery's import ('discharge') and export ('charge') fields in the UI

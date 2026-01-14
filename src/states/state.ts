@@ -1,164 +1,165 @@
-import { ColourOptions, ColoursConfig, NodeOptions, EntitiesOptions, filterPrimaryEntities, NodeConfig, OverridesOptions } from "@/config";
+import { ColourOptions, ColoursConfig, NodeOptions, EntitiesOptions, OverridesOptions, isValidPrimaryEntity } from "@/config";
 import { HomeAssistant } from "custom-card-helpers";
-import { BiDiState, State } from ".";
-import { ELECTRIC_ENTITY_CLASSES } from "@/const";
 import { SecondaryInfoState } from "./secondary-info";
 import { getConfigValue } from "@/config/config";
-import { convertColourListToHex, STYLE_PRIMARY_TEXT_COLOR } from "@/ui-helpers/styles";
-import { ColourMode, EnergyDirection } from "@/enums";
+import { COLOUR_MAPPINGS, convertColourListToHex, STYLE_PRIMARY_TEXT_COLOR } from "@/ui-helpers/styles";
+import { ColourMode, DeviceClasses, EnergyDirection } from "@/enums";
 
-export abstract class ValueState extends State {
-  public name: string;
-  public secondary: SecondaryInfoState;
+//================================================================================================================================================================================//
 
-  protected constructor(hass: HomeAssistant, config: NodeConfig[], importEntities: string[], defaultName: string, defaultIcon: string) {
-    super(config, importEntities, defaultIcon);
-    this.name = getConfigValue(config, [NodeOptions.Overrides, OverridesOptions.Name]) || defaultName;
-    this.secondary = new SecondaryInfoState(hass, getConfigValue(config, NodeOptions.Secondary_Info));
+export abstract class State {
+  public readonly isPresent: boolean;
+  public readonly hassConfigPresent: boolean;
+  public readonly importEntities: string[];
+  public readonly exportEntities: string[];
+  public readonly configEntities: string[];
+  public readonly firstImportEntity: string | undefined;
+  public readonly firstExportEntity: string | undefined;
+  public readonly secondary: SecondaryInfoState;
+
+  public get name(): string {
+    return this._name || this.defaultName;
   }
-}
+  private _name?: string;
 
-export abstract class SingleValueState extends ValueState {
-  public state: {
-    import: number;
-    importVolume: number;
-  };
-
-  protected constructor(hass: HomeAssistant, config: NodeConfig[], hassEntityIds: string[], defaultName: string, defaultIcon: string, deviceClasses: string[]) {
-    super(
-      hass,
-      config,
-      filterPrimaryEntities(hass, [...hassEntityIds, ...(getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]) || [])], deviceClasses),
-      defaultName,
-      defaultIcon
-    );
-
-    this.state = {
-      import: 0,
-      importVolume: 0
-    };
-
-    this.rawEntities.push(...(getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids])) || []);
-    this.hassConfigPresent = hassEntityIds.length !== 0;
+  public get icon(): string {
+    return this._icon || this.defaultIcon;
   }
-}
+  private _icon?: string;
 
-export abstract class DualValueState extends ValueState {
-  public exportEntities: string[]
-  public firstExportEntity?: string;
+  protected abstract get defaultName(): string;
+  protected abstract get defaultIcon(): string;
 
-  protected constructor(hass: HomeAssistant, config: NodeConfig[], hassImportEntityIds: string[], hassExportEntityIds: string[], defaultName: string, defaultIcon: string) {
-    super(
-      hass,
-      config,
-      // TODO: deviceClasses needs to be a parameter
-      filterPrimaryEntities(hass, [...hassImportEntityIds, ...(getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]) || [])], ELECTRIC_ENTITY_CLASSES),
-      defaultName,
-      defaultIcon
-    );
-
+  protected constructor(hass: HomeAssistant, config: any[], deviceClasses: DeviceClasses[] = [], hassImportEntities: string[] = [], hassExportEntities: string[] = []) {
+    const importEntities: string[] = getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]) || [];
     const exportEntities: string[] = getConfigValue(config, [NodeOptions.Export_Entities, EntitiesOptions.Entity_Ids]) || [];
 
-    this.rawEntities.push(...(getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids])) || []);
-    this.rawEntities.push(...exportEntities);
-    this.exportEntities = filterPrimaryEntities(hass, [...hassExportEntityIds, ...exportEntities], ELECTRIC_ENTITY_CLASSES);
+    this.importEntities = this._filterPrimaryEntities(hass, [...hassImportEntities, ...importEntities], deviceClasses);
+    this.exportEntities = this._filterPrimaryEntities(hass, [...hassExportEntities, ...exportEntities], deviceClasses);
+    this.configEntities = [...importEntities, ...exportEntities];
+
+    this._name = getConfigValue(config, [NodeOptions.Overrides, OverridesOptions.Name]);
+    this._icon = getConfigValue(config, [NodeOptions.Overrides, OverridesOptions.Icon]);
+    this.secondary = new SecondaryInfoState(hass, getConfigValue(config, NodeOptions.Secondary_Info));
+
+    this.isPresent = this.importEntities.length !== 0 || this.exportEntities.length !== 0;
+    this.hassConfigPresent = hassImportEntities.length !== 0 || hassExportEntities.length !== 0;
+    this.firstImportEntity = this.importEntities.length !== 0 ? this.importEntities[0] : undefined;
     this.firstExportEntity = this.exportEntities.length !== 0 ? this.exportEntities[0] : undefined;
-    this.isPresent = this.isPresent || this.exportEntities.length !== 0;
-    this.hassConfigPresent = hassImportEntityIds.length !== 0 || hassExportEntityIds.length !== 0;
+  }
+
+  private _filterPrimaryEntities(hass: HomeAssistant, entityIds: string[], deviceClasses: DeviceClasses[]): string[] {
+    return [...new Set(entityIds.filter(entityId => isValidPrimaryEntity(hass, entityId, deviceClasses)))];
   }
 }
 
-class Colour {
-  protected _getCustomColour(configs: ColoursConfig[], path: string): string {
-    return convertColourListToHex(getConfigValue(configs, path)) || STYLE_PRIMARY_TEXT_COLOR;
+//================================================================================================================================================================================//
+
+export class Colours {
+  public readonly importFlow: string;
+  public readonly exportFlow: string;
+
+  public get circle(): string {
+    return this._getColour(ColourOptions.Circle);
   }
-}
 
-export class SimpleColour extends Colour {
-  public get value(): string {
-    return this._value;
+  public get importValue(): string {
+    return this._getColour(ColourOptions.Value_Import);
   }
-  private _value: string;
 
-  public constructor(config: ColoursConfig[], option: ColourOptions) {
-    super();
-    this._value = this._getCustomColour(config, option.replace("mode", "colour"));;
+  public get exportValue(): string {
+    return this._getColour(ColourOptions.Value_Export);
   }
-}
 
-export class StaticColour extends Colour {
-  public get value(): string {
-    return this._value;
+  public get icon(): string {
+    return this._getColour(ColourOptions.Icon);
   }
-  private _value: string;
 
-  public constructor(config: ColoursConfig[], option: ColourOptions, flowOption: ColourOptions) {
-    super();
+  public get secondary(): string {
+    return this._getColour(ColourOptions.Secondary);
+  }
 
-    switch (getConfigValue(config, option)) {
-      case ColourMode.Custom:
-        this._value = this._getCustomColour(config, option.replace("mode", "colour"));
-        break;
+  private _config: ColoursConfig[];
+  private _direction: EnergyDirection;
+  private _state: any;
+  private _defaultImportColour: string
+  private _defaultExportColour: string
+
+  public constructor(config: ColoursConfig[], direction: EnergyDirection, state: any, defaultImportColour: string = STYLE_PRIMARY_TEXT_COLOR, defaultExportColour: string = STYLE_PRIMARY_TEXT_COLOR) {
+    this._config = config;
+    this._direction = direction;
+    this._state = state;
+    this._defaultImportColour = defaultImportColour;
+    this._defaultExportColour = defaultExportColour;
+    this.importFlow = this._getColour(ColourOptions.Flow_Import);
+    this.exportFlow = this._getColour(ColourOptions.Flow_Export);
+  }
+
+  private _getColour(option: ColourOptions): string {
+    const mode: ColourMode = getConfigValue(this._config, option);
+
+    switch (mode) {
+      case ColourMode.Battery:
+      case ColourMode.Gas:
+      case ColourMode.High_Carbon:
+      case ColourMode.Low_Carbon:
+      case ColourMode.Solar:
+        return `var(--flow-${COLOUR_MAPPINGS.get(mode)}-color)`;
+
+      case ColourMode.Default:
+        switch (option) {
+          case ColourOptions.Flow_Import:
+            return this._defaultImportColour;
+
+          case ColourOptions.Flow_Export:
+            return this._defaultExportColour;
+
+          default:
+            // TODO
+            return STYLE_PRIMARY_TEXT_COLOR;
+        }
+
+      case ColourMode.Do_Not_Colour:
+        return STYLE_PRIMARY_TEXT_COLOR;
+
+      case ColourMode.Dynamic:
+        return "";
+
+      case ColourMode.Export:
+        return this.exportFlow;
 
       case ColourMode.Flow:
-        this._value = this._getCustomColour(config, flowOption);
-        break;
+        switch (option) {
+          case ColourOptions.Circle:
+          case ColourOptions.Icon:
+          case ColourOptions.Secondary:
+            return this._direction === EnergyDirection.Consumer ? this.exportFlow : this.importFlow;
 
+          case ColourOptions.Value_Export:
+            return this.exportFlow;
+
+          case ColourOptions.Value_Import:
+            return this.importFlow;
+
+          default:
+            return STYLE_PRIMARY_TEXT_COLOR;
+        }
+
+      case ColourMode.Import:
+        return this.importFlow;
+
+      case ColourMode.Larger_Value:
+        return this._state.import >= this._state.export ? this.importFlow : this.exportFlow;
+
+      case ColourMode.Custom:
       default:
-        this._value = STYLE_PRIMARY_TEXT_COLOR;
-        break;
+        return this._getCustomColour(this._config, option.replace("mode", "colour"));
     }
+  }
+
+  private _getCustomColour(config: ColoursConfig[], path: string): string {
+    return convertColourListToHex(getConfigValue(config, path)) || STYLE_PRIMARY_TEXT_COLOR;
   }
 }
 
-export class DynamicColour extends Colour {
-  public get value(): string {
-    if (this._direction === EnergyDirection.Both && this._mode === ColourMode.Larger_Value) {
-      return this._state.import >= this._state.export ? this._importColour : this._exportColour;
-    }
-
-    return this._value;
-  }
-  private _mode: ColourMode;
-  private _value: string;
-
-  private _state: BiDiState;
-  private _direction: EnergyDirection;
-  private _importColour: string;
-  private _exportColour: string;
-
-  public constructor(config: ColoursConfig[], state: BiDiState, option: ColourOptions, direction: EnergyDirection) {
-    super();
-    this._state = state;
-    this._direction = direction;
-    this._mode = getConfigValue(config, option);
-    this._importColour = this._getCustomColour(config, ColourOptions.Flow_Import_Colour);
-    this._exportColour = this._getCustomColour(config, ColourOptions.Flow_Export_Colour);
-    this._value = this._getColourValue(this._mode, this._getCustomColour(config, option.replace("mode", "colour")));
-  }
-
-  private _getColourValue(mode: ColourMode, customColour: string): string {
-    if (this._direction === EnergyDirection.Both) {
-      switch (mode) {
-        case ColourMode.Import:
-          return this._importColour;
-
-        case ColourMode.Export:
-          return this._exportColour;
-
-        case ColourMode.Custom:
-          return customColour;
-      }
-    } else {
-      switch (mode) {
-        case ColourMode.Custom:
-          return customColour;
-
-        case ColourMode.Flow:
-          return this._direction === EnergyDirection.Consumer ? this._exportColour : this._importColour;
-      }
-    }
-
-    return STYLE_PRIMARY_TEXT_COLOR;
-  }
-}
+//================================================================================================================================================================================//

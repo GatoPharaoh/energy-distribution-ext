@@ -37,6 +37,13 @@ namespace Enums {
     Both: "both"
   } as const satisfies Record<string, string>;
 
+  export const DeviceClasses = {
+    Energy: "energy",
+    Gas: "gas",
+    Monetary: "monetary",
+    None: ""
+  } as const satisfies Record<string, string>;
+
   export const EnergyDirection = {
     Consumer: "consumer",
     Source: "source",
@@ -119,6 +126,8 @@ export const DateRange = Enums.DateRange;
 export type DateRange = typeof DateRange[keyof typeof DateRange];
 export const DateRangeDisplayMode = Enums.DateRangeDisplayMode;
 export type DateRangeDisplayMode = typeof DateRangeDisplayMode[keyof typeof DateRangeDisplayMode];
+export const DeviceClasses = Enums.DeviceClasses;
+export type DeviceClasses = typeof DeviceClasses[keyof typeof DeviceClasses];
 export const EnergyDirection = Enums.EnergyDirection;
 export type EnergyDirection = typeof EnergyDirection[keyof typeof EnergyDirection];
 export const EnergyType = Enums.EnergyType;
@@ -154,18 +163,10 @@ export type VolumeUnits = typeof VolumeUnits[keyof typeof VolumeUnits];
 })();
 
 export enum CssClass {
-  Battery = "battery",
-  Battery_Export = "export-battery",
-  Battery_Import = "import-battery",
+  None = "",
   Electric = "electric",
   Gas = "gas",
-  Grid = "grid",
-  Grid_Export = "export-grid",
-  Grid_Import = "import-grid",
   Home = "home",
-  // for some reason HASS calls its css classes 'non-fossil'
-  Low_Carbon = "non-fossil",
-  Solar = "solar",
   Inactive = "inactive",
   Dimmed = "dimmed",
   Hidden_Circle = "hidden-circle",
@@ -193,3 +194,6 @@ export enum EntityMode {
 export function checkEnumValue(value: any, type: any): boolean {
   return Object.values(type).includes(value);
 }
+
+export const ELECTRIC_ENTITY_CLASSES: DeviceClasses[] = [DeviceClasses.Energy];
+export const GAS_ENTITY_CLASSES: DeviceClasses[] = [DeviceClasses.Energy, DeviceClasses.Gas];

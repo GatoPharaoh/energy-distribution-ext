@@ -1,6 +1,5 @@
 import { AppearanceOptions, ColourOptions, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions, OverridesOptions, SecondaryInfoOptions, AppearanceConfig, NodeConfig, EnergyUnitsConfig, LowCarbonConfig } from '@/config';
-import { ColourMode, EnergyUnits, VolumeUnits, InactiveFlowsMode, PrefixThreshold, Scale, UnitPosition, UnitPrefixes, DateRangeDisplayMode } from '@/enums';
-import { DEVICE_CLASS_ENERGY } from '@/const';
+import { ColourMode, EnergyUnits, VolumeUnits, InactiveFlowsMode, PrefixThreshold, Scale, UnitPosition, UnitPrefixes, DateRangeDisplayMode, DeviceClasses } from '@/enums';
 import { localize } from '@/localize/localize';
 import { getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
@@ -220,7 +219,7 @@ export const dualValueNodeSchema = memoizeOne((schemaConfig: NodeConfig): any[] 
       name: NodeOptions.Import_Entities,
       type: SchemaTypes.Expandable,
       schema: [
-        { key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }
+        { key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DeviceClasses.Energy } } }
       ]
     },
     {
@@ -228,7 +227,7 @@ export const dualValueNodeSchema = memoizeOne((schemaConfig: NodeConfig): any[] 
       name: NodeOptions.Export_Entities,
       type: SchemaTypes.Expandable,
       schema: [
-        { key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DEVICE_CLASS_ENERGY } } }
+        { key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DeviceClasses.Energy } } }
       ]
     },
     {
@@ -296,7 +295,7 @@ export const colourSchema = memoizeOne((config: NodeConfig, name: ColourOptions,
         }
       }
     },
-    getConfigValue(config, [NodeOptions.Colours, name]) === ColourMode.Custom ? { key: NodeOptions, name: name.replace("mode", "colour"), selector: { color_rgb: {} } } : {}
+    getConfigValue(config, [NodeOptions.Colours, name]) === ColourMode.Custom ? { key: ColourOptions, name: name.replace("mode", "colour"), selector: { color_rgb: {} } } : {}
   ];
 });
 

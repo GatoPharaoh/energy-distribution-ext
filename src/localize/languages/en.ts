@@ -129,16 +129,9 @@ export default {
   },
 
   "EntitiesOptions": {
-    [NodeOptions.Colours]: "Colors",
-    [NodeOptions.Export_Entities]: "Export Entities",
-    [NodeOptions.Import_Entities]: "Import Entities",
-    [NodeOptions.Overrides]: "Overrides",
-    [NodeOptions.Secondary_Info]: "Secondary Info"
-  },
-
-  "EntityOptions": {
     [EntitiesOptions.Entity_Ids]: ""
   },
+
   "FlowsOptions": {
     [FlowsOptions.Animation]: "Animation",
     [FlowsOptions.Inactive_Flows]: "Inactive flows",
@@ -192,6 +185,14 @@ export default {
 
   "LowCarbonOptions": {
     [LowCarbonOptions.Low_Carbon_Mode]: "Display as"
+  },
+
+  "NodeOptions": {
+    [NodeOptions.Colours]: "Colors",
+    [NodeOptions.Export_Entities]: "Export Entities",
+    [NodeOptions.Import_Entities]: "Import Entities",
+    [NodeOptions.Overrides]: "Overrides",
+    [NodeOptions.Secondary_Info]: "Secondary Info"
   },
 
   "OverridesOptions": {

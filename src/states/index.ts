@@ -1,10 +1,7 @@
-import { NodeOptions, OverridesOptions } from "@/config";
-import { getConfigValue } from "@/config/config";
-
-export type BiDiState = {
+export interface BiDiState {
   import: number;
   export: number;
-};
+}
 
 export interface Flows {
   solarToHome: number;
@@ -14,7 +11,7 @@ export interface Flows {
   gridToBattery: number;
   batteryToHome: number;
   batteryToGrid: number;
-};
+}
 
 export interface States {
   largestElectricValue: number;
@@ -41,20 +38,4 @@ export interface States {
   devices: BiDiState[];
   devicesSecondary: number[];
   flows: Flows;
-};
-
-export abstract class State {
-  public isPresent: boolean;
-  public hassConfigPresent: boolean = false;
-  public icon: string;
-  public importEntities: string[];
-  public rawEntities: string[] = [];
-  public firstImportEntity?: string;
-
-  protected constructor(config: any[], importEntities: string[], defaultIcon: string) {
-    this.importEntities = importEntities;
-    this.isPresent = importEntities.length !== 0;
-    this.firstImportEntity = this.isPresent ? importEntities[0] : undefined;
-    this.icon = getConfigValue(config, [NodeOptions.Overrides, OverridesOptions.Icon]) || defaultIcon;
-  }
 }

@@ -1,54 +1,54 @@
-import { ColourOptions, DeviceConfig, DeviceOptions, ColoursConfig, NodeOptions } from "@/config";
+import { DeviceConfig, DeviceOptions, ColoursConfig, NodeOptions, ColourOptions } from "@/config";
 import { HomeAssistant } from "custom-card-helpers";
-import { DualValueState, DynamicColour, SimpleColour, StaticColour } from "./state";
+import { State, Colours } from "./state";
 import { DEFAULT_DEVICE_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
-import { EnergyDirection, EnergyType } from "@/enums";
+import { ELECTRIC_ENTITY_CLASSES, EnergyDirection, EnergyType, GAS_ENTITY_CLASSES } from "@/enums";
 import { BiDiState } from ".";
+import { convertColourListToHex } from "@/ui-helpers/styles";
 
-export class DeviceState extends DualValueState {
-  public readonly colours: {
-    importFlow: SimpleColour;
-    exportFlow: SimpleColour;
-    circle: DynamicColour;
-    importValue: StaticColour;
-    exportValue: StaticColour;
-    icon: DynamicColour;
-    secondary: DynamicColour;
-  };
-
+export class DeviceState extends State {
+  public readonly colours: Colours;
   public readonly state: BiDiState;
   public readonly type: EnergyType;
   public readonly direction: EnergyDirection;
+
+  protected get defaultName(): string {
+    return this._defaultName;
+  }
+  private _defaultName: string;
+
+  protected get defaultIcon(): string {
+    return this._defaultIcon;
+  }
+  private _defaultIcon: string;
 
   public constructor(hass: HomeAssistant, config: DeviceConfig) {
     super(
       hass,
       [config, DEFAULT_DEVICE_CONFIG],
-      [],
-      [],
-      getConfigValue(config, DeviceOptions.Name),
-      getConfigValue(config, DeviceOptions.Icon)
+      getConfigValue([config, DEFAULT_DEVICE_CONFIG], DeviceOptions.Energy_Type) === EnergyType.Gas ? GAS_ENTITY_CLASSES : ELECTRIC_ENTITY_CLASSES
     );
 
     this.state = {
       import: 0,
       export: 0
-    }
+    };
 
     const configs: DeviceConfig[] = [config, DEFAULT_DEVICE_CONFIG];
+    this._defaultName = getConfigValue(config, DeviceOptions.Name);
+    this._defaultIcon = getConfigValue(config, DeviceOptions.Icon);
+
     this.type = getConfigValue(configs, DeviceOptions.Energy_Type);
     this.direction = getConfigValue(configs, DeviceOptions.Energy_Direction);
 
-    const colourConfigs: ColoursConfig[] = getConfigObjects(configs, NodeOptions.Colours);
+    const coloursConfig: ColoursConfig[] = getConfigObjects(configs, NodeOptions.Colours);
 
-    this.colours = {
-      importFlow: new SimpleColour(colourConfigs, ColourOptions.Flow_Import_Colour),
-      exportFlow: new SimpleColour(colourConfigs, ColourOptions.Flow_Export_Colour),
-      circle: new DynamicColour(colourConfigs, this.state, ColourOptions.Circle, this.direction),
-      importValue: new StaticColour(colourConfigs, ColourOptions.Value_Import, ColourOptions.Flow_Import_Colour),
-      exportValue: new StaticColour(colourConfigs, ColourOptions.Value_Export, ColourOptions.Flow_Export_Colour),
-      icon: new DynamicColour(colourConfigs, this.state, ColourOptions.Icon, this.direction),
-      secondary: new DynamicColour(colourConfigs, this.state, ColourOptions.Secondary, this.direction)
-    };
+    this.colours = new Colours(
+      coloursConfig,
+      this.direction,
+      this.state,
+      convertColourListToHex(getConfigValue(coloursConfig, ColourOptions.Flow_Import_Colour)),
+      convertColourListToHex(getConfigValue(coloursConfig, ColourOptions.Flow_Export_Colour))
+    );
   }
 }

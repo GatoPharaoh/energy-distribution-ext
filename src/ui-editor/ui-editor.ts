@@ -14,7 +14,7 @@ import { gasSchema } from './schema/gas';
 import "./components/date-range-picker";
 import "./components/page-header";
 import "./components/devices-editor";
-import { CARD_NAME, ELECTRIC_ENTITY_CLASSES, GAS_ENTITY_CLASSES } from '@/const';
+import { CARD_NAME } from '@/const';
 import { cardConfigStruct } from '@/config/validation';
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from '.';
 import { getDefaultLowCarbonConfig, cleanupConfig, getDefaultAppearanceConfig, getDefaultGridConfig, getDefaultGasConfig, getDefaultSolarConfig, getDefaultBatteryConfig, getDefaultHomeConfig, getCo2SignalEntity, getConfigValue, DEFAULT_CONFIG } from '@/config/config';
@@ -26,7 +26,7 @@ import { BatteryState } from '@/states/battery';
 import { LowCarbonState } from '@/states/low-carbon';
 import { HomeState } from '@/states/home';
 import { DeviceState } from '@/states/device';
-import { DateRange } from '@/enums';
+import { DateRange, ELECTRIC_ENTITY_CLASSES, GAS_ENTITY_CLASSES } from '@/enums';
 import { endOfToday, formatDate, startOfToday } from 'date-fns';
 
 //================================================================================================================================================================================//

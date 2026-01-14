@@ -1,7 +1,7 @@
 import { HomeAssistant, round } from "custom-card-helpers";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { EnergyCollection, EnergyData, EnergyPreferences, EnergySource, Statistics, StatisticValue } from "@/hass";
-import { AppearanceOptions, EditorPages, EnergyFlowCardExtConfig, EnergyUnitsConfig, EnergyUnitsOptions, NodeOptions, FlowsOptions, GlobalOptions, SecondaryInfoOptions } from "@/config";
+import { AppearanceOptions, EditorPages, EnergyFlowCardExtConfig, EnergyUnitsConfig, EnergyUnitsOptions, FlowsOptions, GlobalOptions, SecondaryInfoOptions } from "@/config";
 import { GridState } from "./grid";
 import { BatteryState } from "./battery";
 import { GasState } from "./gas";
@@ -13,11 +13,11 @@ import { addDays, addHours, differenceInDays, endOfToday, getHours, isFirstDayOf
 import { EnergyUnits, EnergyUnitPrefix, EntityMode, VolumeUnits, checkEnumValue, DateRange } from "@/enums";
 import { logDebug } from "@/logging";
 import { getEnergyDataCollection } from "@/energy";
-import { ValueState } from "./state";
 import { Flows, States } from ".";
 import { UNIT_CONVERSIONS } from "./unit-conversions";
 import { DEFAULT_CONFIG, DEFAULT_GAS_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
 import { calculateDateRange } from "@/dates";
+import { State } from "./state";
 
 const ENERGY_DATA_TIMEOUT: number = 10000;
 const ENERGY_DATA_POLL: number = 100;
@@ -334,23 +334,27 @@ export class EntityStates {
     const highCarbonDelta: number = this.lowCarbon.isPresent ? gridImportDelta * Number(this.hass.states[this.lowCarbon.firstImportEntity!].state) / 100 : 0;
     states.highCarbon += highCarbonDelta;
 
-    states.batterySecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.battery.secondary.importEntities, getConfigValue(this.battery.secondary.config, SecondaryInfoOptions.Units));
-    states.gasSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.gas.secondary.importEntities, getConfigValue(this.gas.secondary.config, SecondaryInfoOptions.Units));
-    states.gridSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.grid.secondary.importEntities, getConfigValue(this.grid.secondary.config, SecondaryInfoOptions.Units));
-    states.homeSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.home.secondary.importEntities, getConfigValue(this.home.secondary.config, SecondaryInfoOptions.Units));
-    states.lowCarbonSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.lowCarbon.secondary.importEntities, getConfigValue(this.lowCarbon.secondary.config, SecondaryInfoOptions.Units));
-    states.solarSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.solar.secondary.importEntities, getConfigValue(this.solar.secondary.config, SecondaryInfoOptions.Units));
-    this.devices.forEach((device, index) => states.devicesSecondary[index] += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, device.secondary.importEntities, this._energyUnits));
+    states.batterySecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.battery.secondary.entity, getConfigValue(this.battery.secondary.config, SecondaryInfoOptions.Units));
+    states.gasSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.gas.secondary.entity, getConfigValue(this.gas.secondary.config, SecondaryInfoOptions.Units));
+    states.gridSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.grid.secondary.entity, getConfigValue(this.grid.secondary.config, SecondaryInfoOptions.Units));
+    states.homeSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.home.secondary.entity, getConfigValue(this.home.secondary.config, SecondaryInfoOptions.Units));
+    states.lowCarbonSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.lowCarbon.secondary.entity, getConfigValue(this.lowCarbon.secondary.config, SecondaryInfoOptions.Units));
+    states.solarSecondary += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, this.solar.secondary.entity, getConfigValue(this.solar.secondary.config, SecondaryInfoOptions.Units));
+    this.devices.forEach((device, index) => states.devicesSecondary[index] += this._getStateDelta(periodStart, periodEnd, this._secondaryStatistics, device.secondary.entity, this._energyUnits));
   }
 
   //================================================================================================================================================================================//
 
-  private _getStateDelta(periodStart: Date, periodEnd: Date, statistics: Statistics | undefined, entityIds: string[] | undefined = [], requestedUnits: string): number {
+  private _getStateDelta(periodStart: Date, periodEnd: Date, statistics: Statistics | undefined, entityIds: string[] | string | undefined = [], requestedUnits: string): number {
     if (!statistics || entityIds.length === 0) {
       return 0;
     }
 
     let deltaSum: number = 0;
+
+    if (typeof entityIds === "string") {
+      entityIds = [entityIds];
+    }
 
     entityIds.forEach(entityId => {
       const stateObj: HassEntity = this.hass.states[entityId];
@@ -603,12 +607,12 @@ export class EntityStates {
 
   //================================================================================================================================================================================//
 
-  private _setSecondaryStatistic(state: ValueState): void {
+  private _setSecondaryStatistic(state: State): void {
     if (!state.secondary.isPresent) {
       return;
     }
 
-    state.secondary.state = this._getEntityStates(this._secondaryStatistics!, state.secondary.firstImportEntity!, getConfigValue(state.secondary.config, SecondaryInfoOptions.Units));
+    state.secondary.state = this._getEntityStates(this._secondaryStatistics!, state.secondary.entity!, getConfigValue(state.secondary.config, SecondaryInfoOptions.Units));
   }
 
   //================================================================================================================================================================================//
@@ -742,12 +746,11 @@ export class EntityStates {
 
     [this.battery, this.gas, this.grid, this.home, this.lowCarbon, this.solar, ...this.devices].forEach(state => {
       this._primaryEntityIds.push(...state.importEntities);
+      this._primaryEntityIds.push(...state.exportEntities);
 
-      if (state["exportEntities"]) {
-        this._primaryEntityIds.push(...state["exportEntities"]);
+      if (state.secondary.isPresent) {
+        this._secondaryEntityIds.push(state.secondary.entity!);
       }
-
-      this._secondaryEntityIds.push(...state.secondary.importEntities);
     });
   }
 

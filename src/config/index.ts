@@ -1,5 +1,5 @@
 import { HomeAssistant, LovelaceCard, LovelaceCardConfig } from 'custom-card-helpers';
-import { ColourMode, LowCarbonDisplayMode, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, DateRange, DateRangeDisplayMode, PrefixThreshold } from '@/enums';
+import { ColourMode, LowCarbonDisplayMode, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, DateRange, DateRangeDisplayMode, PrefixThreshold, DeviceClasses } from '@/enums';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -330,25 +330,19 @@ function isTotalisingEntity(hass: HomeAssistant, entityId: string = ""): boolean
 //================================================================================================================================================================================//
 
 export function isValidPrimaryEntity(hass: HomeAssistant, entityId: string = "", deviceClasses: string[]): boolean {
-  return isTotalisingEntity(hass, entityId) && deviceClasses.includes(hass.states[entityId]?.attributes?.device_class!);
+  const deviceClass: string = hass.states[entityId]?.attributes?.device_class || DeviceClasses.None;
+
+  if (deviceClass === DeviceClasses.None && deviceClasses.includes(deviceClass)) {
+    return true;
+  }
+
+  return isTotalisingEntity(hass, entityId) && deviceClasses.includes(deviceClass);
 }
 
 //================================================================================================================================================================================//
 
 export function isValidSecondaryEntity(hass: HomeAssistant, entityId: string = ""): boolean {
   return isTotalisingEntity(hass, entityId);
-}
-
-//================================================================================================================================================================================//
-
-export function filterPrimaryEntities(hass: HomeAssistant, entityIds: string[] = [], deviceClasses: string[]): string[] {
-  return [...new Set(entityIds.filter(entityId => isValidPrimaryEntity(hass, entityId, deviceClasses)))];
-}
-
-//================================================================================================================================================================================//
-
-export function filterSecondaryEntity(hass: HomeAssistant, entityId: string = ""): string[] {
-  return [...new Set(isValidSecondaryEntity(hass, entityId) ? [entityId] : [])];
 }
 
 //================================================================================================================================================================================//

@@ -3,7 +3,7 @@ import { mdiArrowLeft, mdiArrowRight, mdiDelete, mdiDrag, mdiPlus } from "@mdi/j
 import { HomeAssistant, fireEvent } from "custom-card-helpers";
 import { css, CSSResultGroup, html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { CARD_NAME, ELECTRIC_ENTITY_CLASSES } from "@/const";
+import { CARD_NAME } from "@/const";
 import { ColourOptions, DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, SecondaryInfoOptions } from "@/config";
 import { deviceSchema } from "../schema/device";
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from "..";
@@ -11,7 +11,7 @@ import { repeat } from "lit/directives/repeat.js";
 import { localize } from "@/localize/localize";
 import { BASIC_COLOUR_MODES_DUAL, BASIC_COLOUR_MODES_SINGLE, getConfigValue, getDefaultDeviceConfig } from '@/config/config';
 import { DeviceState } from '@/states/device';
-import { ColourMode, EnergyDirection } from '../../enums';
+import { ColourMode, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from '@/enums';
 
 //================================================================================================================================================================================//
 

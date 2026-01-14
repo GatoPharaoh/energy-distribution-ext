@@ -1,11 +1,14 @@
 import { localize } from "@/localize/localize";
-import { GridConfig, GridOptions, PowerOutageConfig, PowerOutageOptions } from "@/config";
-import { DualValueState } from "./state";
+import { ColoursConfig, GridConfig, GridOptions, NodeOptions, PowerOutageConfig, PowerOutageOptions } from "@/config";
+import { Colours, State } from "./state";
 import { HomeAssistant } from "custom-card-helpers";
 import { DEFAULT_GRID_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
 import { EnergySource } from "@/hass";
+import { ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
 
-export class GridState extends DualValueState {
+export class GridState extends State {
+  public readonly colours: Colours;
+
   state: {
     import: number;
     export: number;
@@ -22,14 +25,21 @@ export class GridState extends DualValueState {
     entity_id: string;
   };
 
+  protected get defaultName(): string {
+    return localize("EditorPages.grid");
+  }
+
+  protected get defaultIcon(): string {
+    return "mdi:transmission-tower";
+  }
+
   public constructor(hass: HomeAssistant, config: GridConfig, energySources: EnergySource[]) {
     super(
       hass,
       [config, DEFAULT_GRID_CONFIG],
+      ELECTRIC_ENTITY_CLASSES,
       GridState._getHassImportEntities(energySources),
-      GridState._getHassExportEntities(energySources),
-      localize("EditorPages.grid"),
-      "mdi:transmission-tower"
+      GridState._getHassExportEntities(energySources)
     );
 
     this.state = {
@@ -49,6 +59,9 @@ export class GridState extends DualValueState {
       state: getConfigValue(powerOutageConfig, PowerOutageOptions.Alert_State),
       entity_id: getConfigValue(powerOutageConfig, PowerOutageOptions.Entity_Id)
     };
+
+    const coloursConfig: ColoursConfig[] = getConfigObjects([config, DEFAULT_GRID_CONFIG], NodeOptions.Colours);
+    this.colours = new Colours(coloursConfig, EnergyDirection.Both, this.state, "var(--energy-grid-consumption-color)", "var(--energy-grid-return-color)");
   }
 
   private static _getHassImportEntities = (energySources: EnergySource[]): string[] => {
