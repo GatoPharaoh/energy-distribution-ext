@@ -4,10 +4,11 @@ import { Colours, State } from "./state";
 import { HomeAssistant } from "custom-card-helpers";
 import { DEFAULT_GRID_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
 import { EnergySource } from "@/hass";
-import { ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
+import { CssClass, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
 
 export class GridState extends State {
   public readonly colours: Colours;
+  public readonly cssClass: CssClass = CssClass.Grid;
 
   state: {
     import: number;

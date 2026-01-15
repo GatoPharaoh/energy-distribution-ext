@@ -26,7 +26,7 @@ export function renderFlowLines(config: EnergyFlowCardExtConfig, lines: FlowLine
     <svg class="lines" xmlns="http://www.w3.org/2000/svg">
     ${repeat(lines, _ => undefined, (_, index) => {
     const line: FlowLine = lines[index];
-    let cssLine: string | undefined = line.cssLine || "";
+    let cssLine: string = line.cssLine;
 
     if (!line.active && cssLine !== CssClass.Hidden_Path) {
       switch (inactiveFlowsMode) {
@@ -40,19 +40,17 @@ export function renderFlowLines(config: EnergyFlowCardExtConfig, lines: FlowLine
       }
     }
 
-    const style: string = line.colourLine ? `stroke: ${line.colourLine};` : "";
-    return svg`<path class="${cssLine}" style="${style}" d="${line.path}"></path>`;
+    return svg`<path class="${cssLine}" d="${line.path}"></path>`;
   })}
     ${animationEnabled ?
       repeat(lines, _ => undefined, (_, index) => {
         const line: FlowLine = lines[index];
-        const style: string = line.colourDot || line.colourLine ? `stroke: ${line.colourDot || line.colourLine}; fill: ${line.colourDot || line.colourLine};` : "";
 
         return svg`
           ${line.active
             ?
             svg`
-              <circle r="${DOT_RADIUS}" class="${line.cssLine}" style="${style}" >
+              <circle r="${DOT_RADIUS}" class="${line.cssDot}">
                 <animateMotion path="${line.path}" dur="${Math.abs(line.animDuration)}s" repeatCount="indefinite" calcMode="linear" keyPoints="${line.animDuration < 0 ? '1;0' : '0;1'}" keyTimes="0; 1"></animateMotion>
               </circle>
             `
@@ -105,7 +103,7 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
       });
 
       if (activeSegments === 0) {
-        let cssFlow: string = CssClass.None;
+        let cssFlow: string = group.inactiveCss;
 
         switch (inactiveFlowsMode) {
           case InactiveFlowsMode.Dimmed:
@@ -120,7 +118,6 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
         return svg`
           <circle
             class="${cssFlow}"
-            style="stroke: ${group.inactiveColour};"
             cx = "${centre}"
             cy = "${centre}"
             r = "${radius}"
@@ -155,7 +152,7 @@ export function renderSegmentedCircle(config: EnergyFlowCardExtConfig, segmentGr
 
           return svg`
           <circle
-            style="stroke: ${segment.colour};"
+            class="${segment.cssClass}"
             cx = "${centre}"
             cy = "${centre}"
             r = "${radius}"

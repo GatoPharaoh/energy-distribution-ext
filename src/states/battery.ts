@@ -4,10 +4,11 @@ import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
 import { EnergySource } from "@/hass";
 import { DEFAULT_BATTERY_CONFIG, getConfigObjects } from "@/config/config";
-import { ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
+import { CssClass, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
 
 export class BatteryState extends State {
   public readonly colours: Colours;
+  public readonly cssClass: CssClass = CssClass.Battery;
 
   state: {
     import: number;

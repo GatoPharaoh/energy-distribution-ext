@@ -2,12 +2,13 @@ import { ColoursConfig, GasConfig, NodeOptions } from "@/config";
 import { Colours, State } from "./state";
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
-import { EnergyDirection, GAS_ENTITY_CLASSES } from "@/enums";
+import { CssClass, EnergyDirection, GAS_ENTITY_CLASSES } from "@/enums";
 import { EnergySource } from "@/hass";
 import { DEFAULT_GAS_CONFIG, getConfigObjects } from "@/config/config";
 
 export class GasState extends State {
   public readonly colours: Colours;
+  public readonly cssClass: CssClass = CssClass.Gas;
 
   public state: {
     import: number;

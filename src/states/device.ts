@@ -2,12 +2,13 @@ import { DeviceConfig, DeviceOptions, ColoursConfig, NodeOptions, ColourOptions 
 import { HomeAssistant } from "custom-card-helpers";
 import { State, Colours } from "./state";
 import { DEFAULT_DEVICE_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
-import { ELECTRIC_ENTITY_CLASSES, EnergyDirection, EnergyType, GAS_ENTITY_CLASSES } from "@/enums";
+import { CssClass, ELECTRIC_ENTITY_CLASSES, EnergyDirection, EnergyType, GAS_ENTITY_CLASSES } from "@/enums";
 import { BiDiState } from ".";
 import { convertColourListToHex } from "@/ui-helpers/styles";
 
 export class DeviceState extends State {
   public readonly colours: Colours;
+  public readonly cssClass: CssClass = CssClass.Device;
   public readonly state: BiDiState;
   public readonly type: EnergyType;
   public readonly direction: EnergyDirection;

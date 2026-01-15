@@ -5,18 +5,17 @@ import { getConfigValue } from "@/config/config";
 
 export interface Segment {
   state: number;
-  colour: string;
+  cssClass: string;
 }
 
 export interface SegmentGroup {
   segments: Segment[];
-  inactiveColour: string;
+  inactiveCss: string;
 }
 
 export interface FlowLine {
-  colourLine: string;
-  colourDot?: string;
-  cssLine?: string;
+  cssLine: string;
+  cssDot: string;
   path: string;
   active: boolean;
   animDuration: number;

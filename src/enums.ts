@@ -164,9 +164,19 @@ export type VolumeUnits = typeof VolumeUnits[keyof typeof VolumeUnits];
 
 export enum CssClass {
   None = "",
+  Battery = "battery",
+  Battery_Export = "export-battery",
+  Battery_Import = "import-battery",
+  Device = "device",
   Electric = "electric",
   Gas = "gas",
+  Grid = "grid",
+  Grid_Export = "export-grid",
+  Grid_Import = "import-grid",
   Home = "home",
+  // for some reason HASS calls its css classes 'non-fossil'
+  Low_Carbon = "non-fossil",
+  Solar = "solar",
   Inactive = "inactive",
   Dimmed = "dimmed",
   Hidden_Circle = "hidden-circle",

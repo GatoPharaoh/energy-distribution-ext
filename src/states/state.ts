@@ -3,7 +3,7 @@ import { HomeAssistant } from "custom-card-helpers";
 import { SecondaryInfoState } from "./secondary-info";
 import { getConfigValue } from "@/config/config";
 import { COLOUR_MAPPINGS, convertColourListToHex, STYLE_PRIMARY_TEXT_COLOR } from "@/ui-helpers/styles";
-import { ColourMode, DeviceClasses, EnergyDirection } from "@/enums";
+import { ColourMode, CssClass, DeviceClasses, EnergyDirection } from "@/enums";
 import { BiDiState } from ".";
 
 //================================================================================================================================================================================//
@@ -17,6 +17,8 @@ export abstract class State {
   public readonly firstImportEntity: string | undefined;
   public readonly firstExportEntity: string | undefined;
   public readonly secondary: SecondaryInfoState;
+  public abstract readonly colours: Colours;
+  public abstract readonly cssClass: CssClass;
 
   public get name(): string {
     return this._name || this.defaultName;

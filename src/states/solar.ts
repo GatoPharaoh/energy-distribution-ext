@@ -2,12 +2,13 @@ import { localize } from "@/localize/localize";
 import { ColoursConfig, NodeOptions, SolarConfig } from "@/config";
 import { Colours, State } from "./state";
 import { HomeAssistant } from "custom-card-helpers";
-import { ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
+import { CssClass, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
 import { EnergySource } from "@/hass";
 import { DEFAULT_SOLAR_CONFIG, getConfigObjects } from "@/config/config";
 
 export class SolarState extends State {
   public readonly colours: Colours;
+  public readonly cssClass: CssClass = CssClass.Solar;
 
   state: {
     import: number;

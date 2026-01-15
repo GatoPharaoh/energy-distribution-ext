@@ -3,6 +3,7 @@ import { ColourMode, CssClass, GasSourcesMode } from "@/enums";
 import { Flows, States } from "@/states";
 import { getGasSourcesMode } from ".";
 import { getConfigObjects, getConfigValue } from "@/config/config";
+import { Colours, State } from "@/states/state";
 
 export interface MinMax {
   min: number;
@@ -39,6 +40,19 @@ export function setLayout(style: CSSStyleDeclaration, circleSize: number): void 
   style.setProperty("--row-spacing", rowSpacing + "px");
   style.setProperty("--col-spacing-max", colSpacing.max + "px");
   style.setProperty("--col-spacing-min", colSpacing.min + "px");
+}
+
+  //================================================================================================================================================================================//
+
+export function setCssVariables(style: CSSStyleDeclaration, state: State): void {
+  const cssClass: CssClass = state.cssClass;
+  const colours: Colours = state.colours;
+
+  style.setProperty(`--circle-${cssClass}-color`, colours.circle);
+  style.setProperty(`--icon-${cssClass}-color`, colours.icon);
+  style.setProperty(`--importValue-${cssClass}-color`, colours.importValue);
+  style.setProperty(`--exportValue-${cssClass}-color`, colours.exportValue);
+  style.setProperty(`--secondary-${cssClass}-color`, colours.secondary);
 }
 
 //================================================================================================================================================================================//

@@ -157,8 +157,61 @@ export const styles: CSSResult = css`
     color: var(--disabled-text-color) !important;
   }
 
-  .low-carbon-value {
-    padding-top: calc(${ICON_PADDING}px);
+  .non-fossil .circle {
+    border-color: var(--circle-non-fossil-color);
+    cursor: pointer;
+  }
+  .non-fossil ha-icon {
+    color: var(--icon-non-fossil-color);
+  }
+  .non-fossil.secondary-info {
+    color: var(--secondary-non-fossil-color);
+  }
+  .non-fossil.value {
+    color: var(--importValue-non-fossil-color);
+    padding-bottom: calc(${ICON_PADDING}px);
+  }
+
+  .solar .circle {
+    border-color: var(--circle-solar-color);
+  }
+  .solar ha-icon {
+    color: var(--icon-solar-color);
+  }
+  .solar.secondary-info {
+    color: var(--secondary-solar-color);
+  }
+  .solar.value {
+    color: var(--importValue-solar-color);
+  }
+
+  .gas .circle {
+    border-color: var(--circle-gas-color);
+  }
+  .gas ha-icon {
+    color: var(--icon-gas-color);
+  }
+  .gas.secondary-info {
+    color: var(--secondary-gas-color);
+  }
+  .gas.value {
+    color: var(--importValue-gas-color);
+  }
+
+  .grid .circle {
+    border-color: var(--circle-grid-color);
+  }
+  .grid ha-icon {
+    color: var(--icon-grid-color);
+  }
+  .grid.secondary-info {
+    color: var(--secondary-grid-color);
+  }
+  .export-grid.value {
+    color: var(--exportValue-grid-color);
+  }
+  .import-grid.value {
+    color: var(--importValue-grid-color);
   }
 
   .home .circle {
@@ -178,8 +231,49 @@ export const styles: CSSResult = css`
     color: var(--value-gas-home-color);
   }
 
+  .battery .circle {
+    border-color: var(--circle-battery-color);
+  }
+  .battery ha-icon {
+    color: var(--icon-battery-color);
+  }
+  .battery.secondary-info {
+    color: var(--secondary-battery-color);
+  }
+  .export-battery.value {
+    color: var(--exportValue-battery-color);
+  }
+  .import-battery.value {
+    color: var(--importValue-battery-color);
+  }
+
+  .device .circle {
+    border-color: red;
+  }
+
   path.inactive {
     stroke: var(--inactive-flow-color) !important;
+  }
+  path.solar {
+    stroke: var(--flow-solar-color);
+  }
+  path.export-grid {
+    stroke: var(--flow-export-grid-color);
+  }
+  path.import-grid {
+    stroke: var(--flow-import-grid-color);
+  }
+  path.export-battery {
+    stroke: var(--flow-export-battery-color);
+  }
+  path.import-battery {
+    stroke: var(--flow-import-battery-color);
+  }
+  path.gas {
+    stroke: var(--flow-gas-color);
+  }
+  path.non-fossil {
+    stroke: var(--flow-non-fossil-color);
   }
   path.hidden {
     opacity: 0%;
@@ -187,6 +281,34 @@ export const styles: CSSResult = css`
 
   circle.inactive {
     stroke: var(--disabled-text-color) !important;
+  }
+  circle.non-fossil {
+    fill: var(--flow-non-fossil-color);
+    stroke: var(--flow-non-fossil-color);
+  }
+  circle.solar {
+    fill: var(--flow-solar-color);
+    stroke: var(--flow-solar-color);
+  }
+  circle.gas {
+    fill: var(--flow-gas-color);
+    stroke: var(--flow-gas-color);
+  }
+  circle.export-grid {
+    fill: var(--flow-export-grid-color);
+    stroke: var(--flow-export-grid-color);
+  }
+  circle.import-grid {
+    fill: var(--flow-import-grid-color);
+    stroke: var(--flow-import-grid-color);
+  }
+  circle.export-battery {
+    fill: var(--flow-export-battery-color);
+    stroke: var(--flow-export-battery-color);
+  }
+  circle.import-battery {
+    fill: var(--flow-import-battery-color);
+    stroke: var(--flow-import-battery-color);
   }
 
   .circle svg circle {
