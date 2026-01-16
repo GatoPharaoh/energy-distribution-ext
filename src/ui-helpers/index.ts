@@ -36,10 +36,15 @@ export interface AnimationDurations {
 }
 
 export interface PathScaleFactors {
-  horizLine: number;
-  vertLine: number;
-  curvedLine: number;
-  topRowLine: number;
+  batteryToGrid: number;
+  batteryToHome: number;
+  gridToBattery: number;
+  gridToHome: number;
+  solarToBattery: number;
+  solarToHome: number;
+  solarToGrid: number;
+  lowCarbonToGrid: number;
+  gasToHome: number;
 
   // TODO: devices
 }

@@ -40,7 +40,7 @@ export function renderFlowLines(config: EnergyFlowCardExtConfig, lines: FlowLine
       }
     }
 
-    return svg`<path class="${cssLine}" d="${line.path}"></path>`;
+    return svg`<path class="${cssLine}" d="${line.path}" style="fill: none !important;"></path>`;
   })}
     ${animationEnabled ?
       repeat(lines, _ => undefined, (_, index) => {

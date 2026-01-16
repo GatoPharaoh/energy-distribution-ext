@@ -25,8 +25,6 @@ import { LowCarbonNode } from "@/states/low-carbon";
 import { mdiArrowDown, mdiArrowUp, mdiArrowLeft, mdiArrowRight, mdiFlash, mdiFire } from "@mdi/js";
 import { GasNode } from "@/states/gas";
 import { titleCase } from "title-case";
-import { range } from "lit/directives/range.js";
-import { map } from "lit/directives/map.js";
 import { DeviceNode } from "@/states/device";
 import { repeat } from "lit/directives/repeat.js";
 
@@ -74,11 +72,15 @@ const HORIZ_SPACER: TemplateResult = html`<div class="horiz-spacer"></div>`;
 const MAP_URL: string = "https://app.electricitymaps.com";
 
 enum DevicesLayout {
+  None,
   Inline_Above,
   Inline_Below,
   Horizontal,
   Vertical
 }
+
+type NodeRenderFn = ((nodeClass: CssClass, states?: States, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes) => TemplateResult) | undefined;
+type NodeContentRenderFn = ((states?: States, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes) => TemplateResult) | undefined;
 
 //================================================================================================================================================================================//
 
@@ -114,11 +116,18 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _gasToHomePath: string = "";
   private _lowCarbonToGridPath: string = "";
   private _pathScaleFactors: PathScaleFactors = {
-    horizLine: 0,
-    vertLine: 0,
-    curvedLine: 0,
-    topRowLine: 0
+    batteryToGrid: 0,
+    batteryToHome: 0,
+    gridToBattery: 0,
+    gridToHome: 0,
+    solarToBattery: 0,
+    solarToGrid: 0,
+    solarToHome: 0,
+    lowCarbonToGrid: 0,
+    gasToHome: 0
   };
+
+  private _layoutGrid: NodeRenderFn[][] = [];
 
   private _configs!: EnergyFlowCardExtConfig[];
   private _entityStates!: EntityStates;
@@ -288,78 +297,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           <!-- flow lines -->
           ${this._renderFlowLines(states, animationDurations)}
 
-          <!-- top row -->
-          <div class="row">
-
-            <!-- top left -->
-            ${this._renderLowCarbonNode(states, electricUnitPrefix)}
-
-            ${HORIZ_SPACER}
-
-            <!-- top centre -->
-            ${this._renderSolarNode(states, electricUnitPrefix)}
-
-            ${HORIZ_SPACER}
-
-            <!-- top right -->
-            ${this._renderGasNode(states, gasUnitPrefix)}
-            ${this._devicesLayout === DevicesLayout.Inline_Above && numDevices !== 0 ? this._renderDeviceNode(0, states, CssClass.Top_Row, mdiArrowDown, mdiArrowUp, electricUnitPrefix, gasUnitPrefix) : nothing}
-
-            <!-- devices -->
-            ${this._devicesLayout === DevicesLayout.Horizontal ? this._renderDeviceNodesHorizontally(0, entityStates.devices, states, CssClass.Top_Row, mdiArrowDown, mdiArrowUp, electricUnitPrefix, gasUnitPrefix) : nothing}
-
-          </div>
-
-          <!-- middle row -->
-          <div class="row">
-
-            <!-- middle left -->
-            ${this._renderGridNode(states, electricUnitPrefix)}
-
-            ${HORIZ_SPACER}
-
-            <!-- middle centre -->
-            ${NODE_SPACER}
-
-            ${HORIZ_SPACER}
-
-            <!-- middle right -->
-            ${this._renderHomeNode(states, electricUnitPrefix, gasUnitPrefix)}
-
-            <!-- padding -->
-            ${this._devicesLayout === DevicesLayout.Horizontal ? map(range(this._getNumDeviceColumns()), _ => html`${HORIZ_SPACER}${NODE_SPACER}`) : nothing}
-
-          </div>
-
-          <!-- bottom row -->
-          <div class="row">
-
-            <!-- bottom left -->
-            ${NODE_SPACER}
-
-            ${HORIZ_SPACER}
-
-            <!-- bottom centre -->
-            ${this._renderBatteryNode(states, electricUnitPrefix)}
-
-            ${HORIZ_SPACER}
-
-            <!-- bottom right -->
-            ${numDevices !== 0
-        ? this._devicesLayout === DevicesLayout.Inline_Below
-          ? this._renderDeviceNode(0, states, CssClass.Bottom_Row, mdiArrowUp, mdiArrowDown, electricUnitPrefix, gasUnitPrefix)
-          : this._devicesLayout === DevicesLayout.Inline_Above && numDevices === 2
-            ? this._renderDeviceNode(1, states, CssClass.Bottom_Row, mdiArrowUp, mdiArrowDown, electricUnitPrefix, gasUnitPrefix)
-            : html`${NODE_SPACER}`
-        : html`${NODE_SPACER}`}
-
-            <!-- devices -->
-            ${this._devicesLayout === DevicesLayout.Horizontal ? this._renderDeviceNodesHorizontally(1, entityStates.devices, states, CssClass.Bottom_Row, mdiArrowUp, mdiArrowDown, electricUnitPrefix, gasUnitPrefix) : nothing}
-
-          </div>
-
-            <!-- devices -->
-          ${this._devicesLayout === DevicesLayout.Vertical ? this._renderDeviceNodesVertically(entityStates.devices, states, electricUnitPrefix, gasUnitPrefix) : nothing}
+          <!-- nodes -->
+          ${this._renderGrid(states, electricUnitPrefix, gasUnitPrefix)}
         </div>
 
         <!-- dashboard link -->
@@ -396,52 +335,44 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           `
           : nothing
       }
-`;
-  }
-
-  //================================================================================================================================================================================//
-
-  private _renderDeviceNodesHorizontally(start: number, devices: DeviceNode[], states: States | undefined = undefined, cssClass: CssClass, importIcon: string, exportIcon: string, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes): TemplateResult {
-    const numDevices: number = devices.length;
-
-    return html`
-      ${map(range(start, numDevices + numDevices % 2, 2), index => {
-      if (index === numDevices) {
-        return html`${HORIZ_SPACER}${NODE_SPACER}`;
-      }
-
-      return html`${HORIZ_SPACER}${this._renderDeviceNode(index, states, cssClass, importIcon, exportIcon, overrideElectricPrefix, overrideGasPrefix)}`;
-    })}
     `;
   }
 
   //================================================================================================================================================================================//
 
-  private _renderDeviceNodesVertically(devices: DeviceNode[], states?: States, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes): TemplateResult {
-    const numDevices: number = devices.length;
-    const rows: number = Math.ceil(numDevices / 2);
-    let nodeIndex: number = 0;
-
-    // TODO: insert spacing at the start to allow for the device-bus
+  private _renderGrid = (states?: States, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes): TemplateResult => {
     return html`
-      ${map(range(rows), _ => {
-
+      ${repeat(this._layoutGrid, _ => _, (row, rowIndex) => {
       return html`
-          <div class="row">
-            ${this._renderDeviceNode(nodeIndex++, states, CssClass.Bottom_Row, mdiArrowRight, mdiArrowLeft, overrideElectricPrefix, overrideGasPrefix)}
-            ${HORIZ_SPACER}
-            ${NODE_SPACER}
-            ${HORIZ_SPACER}
-            ${nodeIndex === numDevices ? html`${NODE_SPACER}` : this._renderDeviceNode(nodeIndex++, states, CssClass.Bottom_Row, mdiArrowLeft, mdiArrowRight, overrideElectricPrefix, overrideGasPrefix)}
-          </div>
-        `;
+        <div class="row">
+          ${repeat(row, _ => _, (nodeRenderFn, columnIndex) => {
+        const lastColumnIndex: number = row.length - 1;
+        const nodeClass: CssClass = rowIndex === 0 ? CssClass.Top_Row : rowIndex > 1 ? CssClass.Bottom_Row : CssClass.None;
+        return html`${nodeRenderFn ? nodeRenderFn(nodeClass, states, overrideElectricPrefix, overrideGasPrefix) : NODE_SPACER}${columnIndex === lastColumnIndex ? nothing : HORIZ_SPACER}`;
+      })}
+        </div>
+      `;
     })}
     `;
   }
 
   //================================================================================================================================================================================//
 
-  private _renderDeviceNode(index: number, states: States | undefined = undefined, nodeClass: CssClass, importIcon: string, exportIcon: string, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes): TemplateResult {
+  private _getNodeRenderFn = (rowClass: CssClass, nodeLabel: string, nodeRenderFn: NodeContentRenderFn): NodeRenderFn => {
+    return (nodeClass: CssClass, states?: States, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes) => html`
+      <div class="node ${nodeClass} ${rowClass}">
+        ${nodeClass === CssClass.Top_Row ? html`<span class="label">${nodeLabel || html`&nbsp;`}</span>` : nothing}
+        <div class="circle background">
+          ${nodeRenderFn!(states, overrideElectricPrefix, overrideGasPrefix)}
+        </div>
+        ${nodeClass !== CssClass.Top_Row ? html`<span class="label">${nodeLabel || html`&nbsp;`}</span>` : nothing}
+      </div>
+    `;
+  }
+
+  //================================================================================================================================================================================//
+
+  private _renderDeviceNode = (index: number, states: States | undefined = undefined, importIcon: string, exportIcon: string, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes): TemplateResult => {
     const node: DeviceNode = this._entityStates.devices[index];
     let importValue: number | undefined | null;
     let exportValue: number | undefined | null;
@@ -466,30 +397,19 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     return html`
-      <div class="node ${nodeClass} ${node.cssClass}">
-        ${nodeClass === CssClass.Top_Row ? html`<span class="label">${node.name || html`&nbsp;`}</span>` : nothing}
-        <div class="circle background">
-          <div class="circle ${inactiveCss}">
-            ${this._renderSecondarySpan(node.secondary, states?.devicesSecondary[index], secondaryCss)}
-            <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
-            ${node.direction !== EnergyDirection.Source ? this._renderEnergyStateSpan(exportCss, units, node.firstExportEntity, node.direction === EnergyDirection.Both ? exportIcon : undefined, exportValue, prefix) : nothing}
-            ${node.direction !== EnergyDirection.Consumer ? this._renderEnergyStateSpan(importCss, units, node.firstImportEntity, node.direction === EnergyDirection.Both ? importIcon : undefined, importValue, prefix) : nothing}
-          </div>
-        </div>
-        ${nodeClass !== CssClass.Top_Row ? html`<span class="label ${inactiveCss}">${node.name || html`&nbsp;`}</span>` : nothing}
+      <div class="circle ${inactiveCss}">
+        ${this._renderSecondarySpan(node.secondary, states?.devicesSecondary[index], secondaryCss)}
+        <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
+        ${node.direction !== EnergyDirection.Source ? this._renderEnergyStateSpan(exportCss, units, node.firstExportEntity, node.direction === EnergyDirection.Both ? exportIcon : undefined, exportValue, prefix) : nothing}
+        ${node.direction !== EnergyDirection.Consumer ? this._renderEnergyStateSpan(importCss, units, node.firstImportEntity, node.direction === EnergyDirection.Both ? importIcon : undefined, importValue, prefix) : nothing}
       </div>
     `;
   }
 
   //================================================================================================================================================================================//
 
-  private _renderLowCarbonNode(states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult {
+  private _renderLowCarbonNode = (states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult => {
     const node: LowCarbonNode = this._entityStates.lowCarbon;
-
-    if (!this._entityStates.grid.isPresent || !node.isPresent) {
-      return NODE_SPACER;
-    }
-
     let electricityMapUrl: string = MAP_URL;
     const co2State: HassEntity = this.hass.states[getCo2SignalEntity(this.hass)];
 
@@ -505,30 +425,22 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
     setCssVariables(this.style, node);
 
+    //    <a class="circle background" href = ${ electricityMapUrl } target = "_blank" rel = "noopener noreferrer" >
+
     return html`
-      <div class="node top-row ${CssClass.Low_Carbon}">
-        <span class="label ${inactiveCss}">${node.name}</span>
-        <a class="circle background" href=${electricityMapUrl} target="_blank" rel="noopener noreferrer">
-          <div class="circle ${inactiveCss}">
-            ${this._renderSecondarySpan(node.secondary, states?.lowCarbonSecondary, valueCss)}
-            <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(valueCss, this._energyUnits, undefined, undefined, energyState, overridePrefix)}
-            ${energyPercentage ? energyState ? html`<span class="value ${valueCss}"}>(${energyPercentage}%)</span>` : html`<span class="value ${valueCss}"}>${energyPercentage}%</span>` : nothing}
-          </div>
-        </a>
+      <div class="circle ${inactiveCss}">
+        ${this._renderSecondarySpan(node.secondary, states?.lowCarbonSecondary, valueCss)}
+        <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
+        ${this._renderEnergyStateSpan(valueCss, this._energyUnits, undefined, undefined, energyState, overridePrefix)}
+        ${energyPercentage ? energyState ? html`<span class="value ${valueCss}"}>(${energyPercentage}%)</span>` : html`<span class="value ${valueCss}"}>${energyPercentage}%</span>` : nothing}
       </div>
     `;
   }
 
   //================================================================================================================================================================================//
 
-  private _renderSolarNode(states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult {
+  private _renderSolarNode = (states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult => {
     const node: SolarNode = this._entityStates.solar;
-
-    if (!node.isPresent) {
-      return NODE_SPACER;
-    }
-
     const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Solar, NodeOptions.Colours, ColourOptions.Circle]);
     const segmentGroups: SegmentGroup[] = [];
 
@@ -566,29 +478,19 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     setCssVariables(this.style, node);
 
     return html`
-      <div class="node top-row ${CssClass.Solar}">
-        <span class="label ${inactiveCss}">${node.name}</span>
-        <div class="circle background">
-          <div class="circle ${borderCss} ${inactiveCss}" @click=${this._handleClick(node.firstImportEntity)} @keyDown=${this._handleKeyDown(node.firstImportEntity)}}>
-            ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 0, this._showSegmentGaps) : nothing}
-            ${this._renderSecondarySpan(node.secondary, states?.solarSecondary, valueCss)}
-            <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(valueCss, this._energyUnits, node.firstImportEntity, undefined, primaryState, overridePrefix)}
-          </div>
-        </div>
+      <div class="circle ${borderCss} ${inactiveCss}" @click=${this._handleClick(node.firstImportEntity)} @keyDown=${this._handleKeyDown(node.firstImportEntity)}}>
+        ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 0, this._showSegmentGaps) : nothing}
+        ${this._renderSecondarySpan(node.secondary, states?.solarSecondary, valueCss)}
+        <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
+        ${this._renderEnergyStateSpan(valueCss, this._energyUnits, node.firstImportEntity, undefined, primaryState, overridePrefix)}
       </div>
     `;
   }
 
   //================================================================================================================================================================================//
 
-  private _renderGasNode(states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult {
+  private _renderGasNode = (states?: States, _?, overrideGasPrefix?: SIUnitPrefixes): TemplateResult => {
     const node: GasNode = this._entityStates.gas;
-
-    if (!node.isPresent) {
-      return NODE_SPACER;
-    }
-
     let units: string;
     let primaryState: number | undefined;
 
@@ -606,15 +508,10 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     setCssVariables(this.style, node);
 
     return html`
-      <div class="node top-row ${CssClass.Gas}">
-        <span class="label ${inactiveCss}">${node.name}</span>
-        <div class="circle background">
-          <div class="circle ${inactiveCss}" @click=${this._handleClick(node.firstImportEntity)} @keyDown=${this._handleKeyDown(node.firstImportEntity)}}>
-            ${this._renderSecondarySpan(node.secondary, states?.gasSecondary, valueCss)}
-            <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(valueCss, units, node.firstImportEntity, undefined, primaryState, overridePrefix)}
-          </div>
-        </div>
+      <div class="circle ${inactiveCss}" @click=${this._handleClick(node.firstImportEntity)} @keyDown=${this._handleKeyDown(node.firstImportEntity)}}>
+        ${this._renderSecondarySpan(node.secondary, states?.gasSecondary, valueCss)}
+        <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
+        ${this._renderEnergyStateSpan(valueCss, units, node.firstImportEntity, undefined, primaryState, overrideGasPrefix)}
       </div>
     `;
   }
@@ -623,11 +520,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   private _renderBatteryNode = (states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult => {
     const node: BatteryNode = this._entityStates.battery;
-
-    if (!node.isPresent) {
-      return NODE_SPACER;
-    }
-
     const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Battery, NodeOptions.Colours, ColourOptions.Circle]);
     const segmentGroups: SegmentGroup[] = [];
 
@@ -691,17 +583,12 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     setCssVariables(this.style, node);
 
     return html`
-      <div class="node bottom-row ${CssClass.Battery}">
-        <div class="circle background">
-          <div class="circle ${borderCss} ${inactiveCss}" @click=${this._handleClick(mainEntityId)} @keyDown=${this._handleKeyDown(mainEntityId)}>
-            ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 180, this._showSegmentGaps) : nothing}
-            ${this._renderSecondarySpan(node.secondary, states?.batterySecondary, secondaryCss)}
-            <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(exportCss, this._energyUnits, node.firstExportEntity, mdiArrowDown, exportState, overridePrefix)}
-            ${this._renderEnergyStateSpan(importCss, this._energyUnits, node.firstImportEntity, mdiArrowUp, importState, overridePrefix)}
-          </div>
-        </div>
-        <span class="label ${inactiveCss}">${node.name}</span>
+      <div class="circle ${borderCss} ${inactiveCss}" @click=${this._handleClick(mainEntityId)} @keyDown=${this._handleKeyDown(mainEntityId)}>
+        ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 180, this._showSegmentGaps) : nothing}
+        ${this._renderSecondarySpan(node.secondary, states?.batterySecondary, secondaryCss)}
+        <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
+        ${this._renderEnergyStateSpan(exportCss, this._energyUnits, node.firstExportEntity, mdiArrowDown, exportState, overridePrefix)}
+        ${this._renderEnergyStateSpan(importCss, this._energyUnits, node.firstImportEntity, mdiArrowUp, importState, overridePrefix)}
       </div>
     `;
   }
@@ -710,11 +597,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   private _renderGridNode = (states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult => {
     const node: GridNode = this._entityStates.grid;
-
-    if (!node.isPresent) {
-      return NODE_SPACER;
-    }
-
     const circleMode: ColourMode = getConfigValue(this._configs, [EditorPages.Grid, NodeOptions.Colours, ColourOptions.Circle]);
     const segmentGroups: SegmentGroup[] = [];
 
@@ -780,21 +662,16 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     setCssVariables(this.style, node);
 
     return html`
-      <div class="node ${CssClass.Grid}">
-        <div class="circle background">
-          <div class="circle ${borderCss} ${inactiveCss}" @click=${this._handleClick(mainEntityId)} @keyDown=${this._handleKeyDown(mainEntityId)}>
-            ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 270, this._showSegmentGaps) : nothing}
-            ${this._renderSecondarySpan(this._entityStates.grid.secondary, states?.gridSecondary, secondaryCss)}
-            <ha-icon class="entity-icon ${inactiveCss}" .icon=${icon}></ha-icon>
-            ${!isOutage
+      <div class="circle ${borderCss} ${inactiveCss}" @click=${this._handleClick(mainEntityId)} @keyDown=${this._handleKeyDown(mainEntityId)}>
+        ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 270, this._showSegmentGaps) : nothing}
+        ${this._renderSecondarySpan(this._entityStates.grid.secondary, states?.gridSecondary, secondaryCss)}
+        <ha-icon class="entity-icon ${inactiveCss}" .icon=${icon}></ha-icon>
+        ${!isOutage
         ? this._renderEnergyStateSpan(exportCss, this._energyUnits, node.firstExportEntity, mdiArrowLeft, exportState, overridePrefix)
         : html`<span class="${CssClass.Grid} power-outage">${localize("common.power_outage")}</span>`}
-            ${!isOutage
+        ${!isOutage
         ? this._renderEnergyStateSpan(importCss, this._energyUnits, node.firstImportEntity, mdiArrowRight, importState, overridePrefix)
         : nothing}
-          </div>
-        </div>
-        <span class="label ${inactiveCss}">${node.name}</span>
       </div>
     `;
   }
@@ -891,17 +768,12 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const borderCss: string = circleMode === ColourMode.Dynamic ? CssClass.Hidden_Circle : CssClass.None;
 
     return html`
-      <div class="node ${CssClass.Home}">
-        <div class="circle background">
-          <div class="circle ${borderCss} ${inactiveCss}">
-            ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 0, this._showSegmentGaps) : nothing}
-            ${this._renderSecondarySpan(node.secondary, states?.homeSecondary, secondaryCss)}
-            <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
-            ${this._renderEnergyStateSpan(electricCss, this._energyUnits, undefined, electricIcon, electricTotal, overrideElectricUnitPrefix)}
-            ${this._renderEnergyStateSpan(gasCss, this._getVolumeUnits(), undefined, gasIcon, gasTotal, overrideGasUnitPrefix)}
-          </div>
-        </div>
-        ${this._devicesLayout === DevicesLayout.Inline_Above || this._devicesLayout === DevicesLayout.Horizontal ? html`<span class="label ${inactiveCss}">${node.name}</span>` : nothing}
+      <div class="circle ${borderCss} ${inactiveCss}">
+        ${circleMode === ColourMode.Dynamic ? renderSegmentedCircle(this._config, segmentGroups, this._circleSize, 0, this._showSegmentGaps) : nothing}
+        ${this._renderSecondarySpan(node.secondary, states?.homeSecondary, secondaryCss)}
+        <ha-icon class="entity-icon ${inactiveCss}" .icon=${node.icon}></ha-icon>
+        ${this._renderEnergyStateSpan(electricCss, this._energyUnits, undefined, electricIcon, electricTotal, overrideElectricUnitPrefix)}
+        ${this._renderEnergyStateSpan(gasCss, this._getVolumeUnits(), undefined, gasIcon, gasTotal, overrideGasUnitPrefix)}
       </div>
     `;
   };
@@ -923,7 +795,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _calculateEnergyUnitPrefix(value: Decimal): SIUnitPrefixes {
+  private _calculateEnergyUnitPrefix = (value: Decimal): SIUnitPrefixes => {
     const prefixes: SIUnitPrefixes[] = Object.values(SIUnitPrefixes);
 
     value = value.abs();
@@ -941,7 +813,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _formatState(state: string, units?: string, unitPosition: UnitPosition = UnitPosition.After_Space): string {
+  private _formatState = (state: string, units?: string, unitPosition: UnitPosition = UnitPosition.After_Space): string => {
     switch (unitPosition) {
       case UnitPosition.After_Space:
         return `${state} ${units}`;
@@ -961,7 +833,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _renderEnergyState(state: number | null, units: string, overridePrefix?: SIUnitPrefixes): string {
+  private _renderEnergyState = (state: number | null, units: string, overridePrefix?: SIUnitPrefixes): string => {
     if (state === null || isNaN(state) || state < 0) {
       return localize("common.unknown");
     }
@@ -984,7 +856,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _renderState(config: SecondaryInfoConfig[], entityId: string, state: number): string {
+  private _renderState = (config: SecondaryInfoConfig[], entityId: string, state: number): string => {
     if (state === null || isNaN(state)) {
       return localize("common.unknown");
     }
@@ -1060,7 +932,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _renderSecondarySpan(secondary: SecondaryInfo, state: number | undefined = undefined, cssClass: string): TemplateResult {
+  private _renderSecondarySpan = (secondary: SecondaryInfo, state: number | undefined = undefined, cssClass: string): TemplateResult => {
     if (!secondary.isPresent || state === undefined || (state === 0 && !this._showZeroStates)) {
       return html``;
     }
@@ -1186,7 +1058,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           cssDot: CssClass.Grid_Export,
           path: this._gridToBatteryPath,
           active: batteryToGridActive,
-          animDuration: -(animationDurations?.batteryToGrid ?? 0)
+          animDuration: animationDurations?.batteryToGrid ?? 0
         });
       }
     }
@@ -1216,7 +1088,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _calculateLayout(): void {
+  private _calculateLayout = (): void => {
     const width: number = this._getPropertyValue(".lines", "width");
 
     if (width !== this._width) {
@@ -1229,6 +1101,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         const fontSize: number = dummy.getBoundingClientRect().height;
         dummy.remove();
 
+        const entityStates: EntityStates = this._entityStates;
         const maxCircleSize: number = Math.max(CIRCLE_SIZE_MIN, Math.floor((width - (NUM_DEFAULT_COLUMNS - 1) * getColSpacing(CIRCLE_SIZE_MIN).min) / NUM_DEFAULT_COLUMNS));
         const circleSize: number = Math.min(maxCircleSize, this._calculateCircleSize(fontSize));
         this._circleSize = circleSize;
@@ -1241,16 +1114,19 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         const numDeviceColumns: number = this._getNumDeviceColumns();
         const maxDeviceColumns: number = Math.floor((width - circleSize) / (circleSize + colSpacing.min)) - 2;
 
-        this._devicesLayout = numDeviceColumns === 0
-          ? this._entityStates.gas.isPresent
-            ? DevicesLayout.Inline_Below
-            : DevicesLayout.Inline_Above
-          : numDeviceColumns <= maxDeviceColumns
-            ? DevicesLayout.Horizontal
-            : DevicesLayout.Vertical;
+        this._devicesLayout = entityStates.devices.length === 0
+          ? DevicesLayout.None
+          : numDeviceColumns === 0
+            ? this._entityStates.gas.isPresent
+              ? DevicesLayout.Inline_Below
+              : DevicesLayout.Inline_Above
+            : numDeviceColumns <= maxDeviceColumns
+              ? DevicesLayout.Horizontal
+              : DevicesLayout.Vertical;
+
+        this._buildLayoutGrid(this._devicesLayout);
 
         const numColumns: number = NUM_DEFAULT_COLUMNS + (this._devicesLayout === DevicesLayout.Horizontal ? numDeviceColumns : 0);
-
 
         const rowSpacing: number = Math.round(circleSize * 3 / 8);
         const flowLineCurved: number = circleSize / 2 + rowSpacing - FLOW_LINE_SPACING;
@@ -1259,58 +1135,84 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         const isTopRowPresent: boolean = (this._entityStates.lowCarbon.isPresent && this._entityStates.grid.isPresent) || this._entityStates.solar.isPresent || this._entityStates.gas.isPresent;
         const columnSpacing: number = Math.max(colSpacing.min, (width - numColumns * circleSize) / (numColumns - 1));
 
-        const battery: boolean = !!this._entityStates.battery.firstExportEntity;
-        const grid: boolean = !!this._entityStates.grid.firstImportEntity;
-        const solar: boolean = this._entityStates.solar.isPresent;
+        const batteryExport: boolean = !!this._entityStates.battery.firstExportEntity;
+        const gridImport: boolean = !!this._entityStates.grid.firstImportEntity;
+        const solarImport: boolean = this._entityStates.solar.isPresent;
+
+        const rowPitch: number = circleSize + rowSpacing;
+        const topRowHeight: number = labelHeight + rowPitch;
 
         const col1X: number = circleSize - DOT_DIAMETER;
         const col2X: number = circleSize + columnSpacing + circleSize / 2;
         const col3X: number = circleSize + columnSpacing + circleSize + columnSpacing + DOT_DIAMETER;
 
-        const row1Y: number = circleSize + labelHeight - DOT_DIAMETER;
-        const row2Y: number = (isTopRowPresent ? circleSize + labelHeight + rowSpacing : 0) + circleSize / 2;
-        const row3Y: number = (isTopRowPresent ? circleSize + labelHeight + rowSpacing : 0) + circleSize + rowSpacing + DOT_DIAMETER;
+        const row1Y: number = labelHeight + circleSize - DOT_DIAMETER;
+        const row2Y: number = (isTopRowPresent ? topRowHeight : 0) + circleSize / 2;
+        const row3Y: number = (isTopRowPresent ? topRowHeight : 0) + rowPitch + DOT_DIAMETER;
 
         const topRowLineLength: number = Math.round((row2Y - circleSize / 2 + DOT_DIAMETER) - row1Y);
+        const colLineLength: number = Math.round((col2X - circleSize / 2 + DOT_DIAMETER) - col1X);
         const horizLineLength: number = Math.round(col3X - col1X);
         const vertLineLength: number = Math.round(row3Y - row1Y);
-        const curvedLineLength: number = row2Y - flowLineCurved - FLOW_LINE_SPACING * (grid ? 1 : battery ? 0.5 : 0) - row1Y
+        const curvedLineLength: number = row2Y - flowLineCurved - FLOW_LINE_SPACING * (gridImport ? 1 : batteryExport ? 0.5 : 0) - row1Y
           + this._cubicBezierLength({ x: 0, y: 0 }, { x: 0, y: flowLineCurved }, { x: flowLineCurvedControl, y: flowLineCurved }, { x: flowLineCurved, y: flowLineCurved })
-          + col3X - flowLineCurved - (col2X + FLOW_LINE_SPACING * (battery ? 1 : grid ? 0.5 : 0));
+          + col3X - flowLineCurved - (col2X + FLOW_LINE_SPACING * (batteryExport ? 1 : gridImport ? 0.5 : 0));
 
-        const maxLineLength: number = Math.max(topRowLineLength, horizLineLength, vertLineLength, curvedLineLength);
-
-        this._pathScaleFactors = {
-          horizLine: horizLineLength / maxLineLength,
-          vertLine: vertLineLength / maxLineLength,
-          curvedLine: curvedLineLength / maxLineLength,
-          topRowLine: topRowLineLength / maxLineLength
-        };
-
-        this._solarToBatteryPath = `M${col2X},${row1Y} v${vertLineLength}`;
-        this._gridToHomePath = `M${col1X},${row2Y} h${horizLineLength}`;
         this._lowCarbonToGridPath = `M${circleSize / 2},${row1Y} v${topRowLineLength}`;
-        this._gasToHomePath = `M${circleSize + columnSpacing + circleSize + columnSpacing + circleSize / 2},${row1Y} v${topRowLineLength}`;
 
-        this._solarToHomePath = `M${col2X + FLOW_LINE_SPACING * (battery ? 1 : grid ? 0.5 : 0)},${row1Y}
-                               V${row2Y - flowLineCurved - FLOW_LINE_SPACING * (grid ? 1 : battery ? 0.5 : 0)}
-                               c0,${flowLineCurved} ${flowLineCurvedControl},${flowLineCurved} ${flowLineCurved},${flowLineCurved}
-                               H${col3X}`;
-
-        this._solarToGridPath = `M${col2X - FLOW_LINE_SPACING * (battery ? 1 : 0.5)},${row1Y}
+        const horizLine: string = `M${col1X},${row2Y} h${horizLineLength}`;
+        const vertLine: string = `M${col2X},${row1Y} v${vertLineLength}`;
+        const upperLeftLine: string = `M${col2X - FLOW_LINE_SPACING * (batteryExport ? 1 : 0.5)},${row1Y}
                                V${row2Y - flowLineCurved - FLOW_LINE_SPACING}
                                c0,${flowLineCurved} ${-flowLineCurvedControl},${flowLineCurved} ${-flowLineCurved},${flowLineCurved}
                                H${col1X}`;
-
-        this._batteryToHomePath = `M${col2X + FLOW_LINE_SPACING * (solar ? 1 : grid ? 0.5 : 0)},${row3Y}
-                                 V${row2Y + flowLineCurved + FLOW_LINE_SPACING * (grid ? 1 : solar ? 0.5 : 0)}
+        const upperRightLine: string = `M${col2X + FLOW_LINE_SPACING * (batteryExport ? 1 : gridImport ? 0.5 : 0)},${row1Y}
+                               V${row2Y - flowLineCurved - FLOW_LINE_SPACING * (gridImport ? 1 : batteryExport ? 0.5 : 0)}
+                               c0,${flowLineCurved} ${flowLineCurvedControl},${flowLineCurved} ${flowLineCurved},${flowLineCurved}
+                               H${col3X}`;
+        const lowerLeftLine: string = `M${col1X},${row2Y + FLOW_LINE_SPACING}
+                                 H${col2X - flowLineCurved - FLOW_LINE_SPACING * (solarImport ? 1 : 0.5)}
+                                 c${flowLineCurvedControl * 2},0 ${flowLineCurved},0 ${flowLineCurved},${flowLineCurved}
+                                 V${row3Y}`;
+        const lowerRightLine: string = `M${col2X + FLOW_LINE_SPACING * (solarImport ? 1 : gridImport ? 0.5 : 0)},${row3Y}
+                                 V${row2Y + flowLineCurved + FLOW_LINE_SPACING * (gridImport ? 1 : solarImport ? 0.5 : 0)}
                                  c0,${-flowLineCurved} ${flowLineCurvedControl},${-flowLineCurved} ${flowLineCurved},${-flowLineCurved}
                                  H${col3X}`;
 
-        this._gridToBatteryPath = `M${col1X},${row2Y + FLOW_LINE_SPACING}
-                                 H${col2X - flowLineCurved - FLOW_LINE_SPACING * (solar ? 1 : 0.5)}
-                                 c${flowLineCurvedControl * 2},0 ${flowLineCurved},0 ${flowLineCurved},${flowLineCurved}
-                                 V${row3Y}`;
+        this._solarToGridPath = upperLeftLine;
+
+        const maxLineLength: number = Math.max(topRowLineLength, horizLineLength, vertLineLength, curvedLineLength, colLineLength);
+        const pathScaleFactors: PathScaleFactors = this._pathScaleFactors;
+
+        if (this._devicesLayout === DevicesLayout.Vertical) {
+          this._solarToBatteryPath = upperRightLine;
+          this._gridToHomePath = lowerLeftLine;
+          this._solarToHomePath = vertLine;
+          this._batteryToHomePath = lowerRightLine;
+          this._gridToBatteryPath = horizLine;
+          this._gasToHomePath = `M${col1X},${row2Y + rowPitch} h${colLineLength}`;
+
+          pathScaleFactors.gridToHome = pathScaleFactors.solarToGrid = pathScaleFactors.solarToBattery = curvedLineLength / maxLineLength;
+          pathScaleFactors.batteryToHome = -pathScaleFactors.gridToHome;
+          pathScaleFactors.solarToHome = vertLineLength / maxLineLength;
+          pathScaleFactors.gridToBattery = horizLineLength / maxLineLength;
+          pathScaleFactors.gasToHome = colLineLength / maxLineLength;
+        } else {
+          this._solarToBatteryPath = vertLine;
+          this._gridToHomePath = horizLine;
+          this._solarToHomePath = upperRightLine;
+          this._batteryToHomePath = lowerRightLine;
+          this._gridToBatteryPath = lowerLeftLine;
+          this._gasToHomePath = `M${circleSize + columnSpacing + circleSize + columnSpacing + circleSize / 2},${row1Y} v${topRowLineLength}`;
+
+          pathScaleFactors.gridToBattery = pathScaleFactors.batteryToHome = pathScaleFactors.solarToGrid = pathScaleFactors.solarToHome = curvedLineLength / maxLineLength;
+          pathScaleFactors.solarToBattery = vertLineLength / maxLineLength;
+          pathScaleFactors.gridToHome = horizLineLength / maxLineLength;
+          pathScaleFactors.gasToHome = topRowLineLength / maxLineLength;
+        }
+
+        pathScaleFactors.batteryToGrid = -pathScaleFactors.gridToBattery;
+        pathScaleFactors.lowCarbonToGrid = topRowLineLength / maxLineLength;
       }
     }
   }
@@ -1329,6 +1231,95 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
+  private _buildLayoutGrid = (devicesLayout: DevicesLayout): void => {
+    const entityStates: EntityStates = this._entityStates;
+    const layoutGrid: NodeRenderFn[][] = [];
+
+    layoutGrid[0] = [
+      entityStates.lowCarbon.isPresent && entityStates.grid.isPresent
+        ? this._getNodeRenderFn(entityStates.lowCarbon.cssClass, entityStates.lowCarbon.name, this._renderLowCarbonNode)
+        : undefined,
+
+      entityStates.solar.isPresent
+        ? this._getNodeRenderFn(entityStates.solar.cssClass, entityStates.solar.name, this._renderSolarNode)
+        : undefined,
+
+      entityStates.gas.isPresent && devicesLayout !== DevicesLayout.Vertical
+        ? this._getNodeRenderFn(entityStates.gas.cssClass, entityStates.gas.name, this._renderGasNode)
+        : undefined
+    ];
+
+    layoutGrid[1] = [
+      entityStates.grid.isPresent
+        ? this._getNodeRenderFn(entityStates.grid.cssClass, entityStates.grid.name, this._renderGridNode)
+        : undefined,
+
+      undefined,
+
+      devicesLayout === DevicesLayout.Vertical
+        ? entityStates.battery.isPresent
+          ? this._getNodeRenderFn(entityStates.battery.cssClass, entityStates.battery.name, this._renderBatteryNode)
+          : undefined
+        : this._getNodeRenderFn(entityStates.home.cssClass, entityStates.home.name, this._renderHomeNode)
+    ];
+
+    layoutGrid[2] = [
+      entityStates.gas.isPresent && devicesLayout === DevicesLayout.Vertical
+        ? this._getNodeRenderFn(entityStates.gas.cssClass, entityStates.gas.name, this._renderGasNode)
+        : undefined,
+
+      devicesLayout === DevicesLayout.Vertical
+        ? this._getNodeRenderFn(entityStates.home.cssClass, "", this._renderHomeNode)
+        : entityStates.battery.isPresent
+          ? this._getNodeRenderFn(entityStates.battery.cssClass, entityStates.battery.name, this._renderBatteryNode)
+          : undefined,
+
+      undefined
+    ];
+
+    const getDeviceRenderFn = (deviceIndex: number, importIcon: string, exportIcon: string): NodeRenderFn =>
+      this._getNodeRenderFn(entityStates.devices[deviceIndex].cssClass,
+        entityStates.devices[deviceIndex].name,
+        (states, overrideElectricPrefix, overrideGasPrefix) => this._renderDeviceNode(deviceIndex, states, importIcon, exportIcon, overrideElectricPrefix, overrideGasPrefix)
+      );
+
+    switch (devicesLayout) {
+      case DevicesLayout.Inline_Above:
+        layoutGrid[0][2] = getDeviceRenderFn(0, mdiArrowDown, mdiArrowUp);
+
+        if (entityStates.devices.length === 2) {
+          layoutGrid[2][2] = getDeviceRenderFn(1, mdiArrowUp, mdiArrowDown);
+        }
+        break;
+
+      case DevicesLayout.Inline_Below:
+        layoutGrid[2][2] = getDeviceRenderFn(0, mdiArrowUp, mdiArrowDown);
+        break;
+
+      case DevicesLayout.Horizontal:
+        for (let n: number = 0, column: number = 3; n < entityStates.devices.length; n++, column++) {
+          layoutGrid[0][column] = getDeviceRenderFn(n, mdiArrowDown, mdiArrowUp);
+          layoutGrid[1][column] = undefined;
+          layoutGrid[2][column] = ++n < entityStates.devices.length ? getDeviceRenderFn(n, mdiArrowUp, mdiArrowDown) : undefined;
+        }
+        break;
+
+      case DevicesLayout.Vertical:
+        for (let n: number = 0, row: number = 3; n < entityStates.devices.length; n++, row++) {
+          layoutGrid[row] = [
+            getDeviceRenderFn(n, mdiArrowRight, mdiArrowLeft),
+            undefined,
+            (++n < entityStates.devices.length) ? getDeviceRenderFn(n, mdiArrowLeft, mdiArrowRight) : undefined
+          ];
+        }
+        break;
+    }
+
+    this._layoutGrid = layoutGrid;
+  }
+
+  //================================================================================================================================================================================//
+
   private _calculateAnimationDurations = (states: States): AnimationDurations => {
     const gasSourceMode: GasSourcesMode = getGasSourcesMode(getConfigObjects(this._configs, EditorPages.Home), states);
     const flows: Flows = states.flows;
@@ -1340,15 +1331,15 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       + (gasSourceMode !== GasSourcesMode.Do_Not_Show ? states.homeGas : 0);
 
     return {
-      batteryToGrid: this._calculateDotRate(flows.batteryToGrid ?? 0, totalFlows, this._pathScaleFactors.curvedLine),
-      batteryToHome: this._calculateDotRate(flows.batteryToHome ?? 0, totalFlows, this._pathScaleFactors.curvedLine),
-      gridToBattery: this._calculateDotRate(flows.gridToBattery ?? 0, totalFlows, this._pathScaleFactors.curvedLine),
-      gridToHome: this._calculateDotRate(flows.gridToHome, totalFlows, this._pathScaleFactors.horizLine),
-      solarToBattery: this._calculateDotRate(flows.solarToBattery ?? 0, totalFlows, this._pathScaleFactors.vertLine),
-      solarToGrid: this._calculateDotRate(flows.solarToGrid ?? 0, totalFlows, this._pathScaleFactors.curvedLine),
-      solarToHome: this._calculateDotRate(flows.solarToHome ?? 0, totalFlows, this._pathScaleFactors.curvedLine),
-      lowCarbon: this._calculateDotRate(states.lowCarbon ?? 0, totalFlows, this._pathScaleFactors.topRowLine),
-      gas: this._calculateDotRate(states.gasImport ?? 0, totalFlows + (gasSourceMode === GasSourcesMode.Do_Not_Show ? states.homeGas : 0), this._pathScaleFactors.topRowLine)
+      batteryToGrid: this._calculateDotRate(flows.batteryToGrid ?? 0, totalFlows, this._pathScaleFactors.batteryToGrid),
+      batteryToHome: this._calculateDotRate(flows.batteryToHome ?? 0, totalFlows, this._pathScaleFactors.batteryToHome),
+      gridToBattery: this._calculateDotRate(flows.gridToBattery ?? 0, totalFlows, this._pathScaleFactors.gridToBattery),
+      gridToHome: this._calculateDotRate(flows.gridToHome, totalFlows, this._pathScaleFactors.gridToHome),
+      solarToBattery: this._calculateDotRate(flows.solarToBattery ?? 0, totalFlows, this._pathScaleFactors.solarToBattery),
+      solarToGrid: this._calculateDotRate(flows.solarToGrid ?? 0, totalFlows, this._pathScaleFactors.solarToGrid),
+      solarToHome: this._calculateDotRate(flows.solarToHome ?? 0, totalFlows, this._pathScaleFactors.solarToHome),
+      lowCarbon: this._calculateDotRate(states.lowCarbon ?? 0, totalFlows, this._pathScaleFactors.lowCarbonToGrid),
+      gas: this._calculateDotRate(states.gasImport ?? 0, totalFlows + (gasSourceMode === GasSourcesMode.Do_Not_Show ? states.homeGas : 0), this._pathScaleFactors.gasToHome)
 
       // TODO devices
     };
@@ -1375,7 +1366,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
    * Based on snap.svg bezlen() function
    * https://github.com/adobe-webplatform/Snap.svg/blob/master/dist/snap.svg.js#L5786
    */
-  private _cubicBezierLength(p0: { x: number, y: number }, cp1: { x: number, y: number }, cp2: { x: number, y: number }, p1: { x: number, y: number }, t: number = 1): number {
+  private _cubicBezierLength = (p0: { x: number, y: number }, cp1: { x: number, y: number }, cp2: { x: number, y: number }, p1: { x: number, y: number }, t: number = 1): number => {
     if (t === 0) {
       return 0;
     }
@@ -1446,8 +1437,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     const dualPrimaries: NodeConfig[] = [
-      getConfigValue(this._config, EditorPages.Battery),
-      getConfigValue(this._config, EditorPages.Grid),
+      getConfigValue(this._configs, EditorPages.Battery),
+      getConfigValue(this._configs, EditorPages.Grid),
 
       // TODO: devices
     ];
@@ -1467,12 +1458,12 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   private _hasSecondaryState = (): number => {
     const secondaries: SecondaryInfoConfig[] = [
-      getConfigValue(this._config, [EditorPages.Battery, NodeOptions.Secondary_Info]),
-      getConfigValue(this._config, [EditorPages.Gas, NodeOptions.Secondary_Info]),
-      getConfigValue(this._config, [EditorPages.Grid, NodeOptions.Secondary_Info]),
-      getConfigValue(this._config, [EditorPages.Home, NodeOptions.Secondary_Info]),
-      getConfigValue(this._config, [EditorPages.Low_Carbon, NodeOptions.Secondary_Info]),
-      getConfigValue(this._config, [EditorPages.Solar, NodeOptions.Secondary_Info]),
+      getConfigValue(this._configs, [EditorPages.Battery, NodeOptions.Secondary_Info]),
+      getConfigValue(this._configs, [EditorPages.Gas, NodeOptions.Secondary_Info]),
+      getConfigValue(this._configs, [EditorPages.Grid, NodeOptions.Secondary_Info]),
+      getConfigValue(this._configs, [EditorPages.Home, NodeOptions.Secondary_Info]),
+      getConfigValue(this._configs, [EditorPages.Low_Carbon, NodeOptions.Secondary_Info]),
+      getConfigValue(this._configs, [EditorPages.Solar, NodeOptions.Secondary_Info]),
 
       // TODO: devices
     ];
