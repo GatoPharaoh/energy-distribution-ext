@@ -2,7 +2,7 @@ import { isValidSecondaryEntity, SecondaryInfoConfig, SecondaryInfoOptions } fro
 import { HomeAssistant } from "custom-card-helpers";
 import { DEFAULT_SECONDARY_INFO_CONFIG, getConfigValue } from "@/config/config";
 
-export class SecondaryInfoState {
+export class SecondaryInfo {
   public readonly entity: string | undefined;
   public readonly configEntity: string | undefined;
   public readonly icon: string | undefined;

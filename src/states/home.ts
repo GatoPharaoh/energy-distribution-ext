@@ -1,11 +1,11 @@
 import { localize } from "@/localize/localize";
 import { ColoursConfig, HomeConfig, NodeOptions } from "@/config";
-import { Colours, State } from "./state";
+import { Colours, Node } from "./node";
 import { HomeAssistant } from "custom-card-helpers";
 import { DEFAULT_HOME_CONFIG, getConfigObjects } from "@/config/config";
 import { CssClass, EnergyDirection } from "@/enums";
 
-export class HomeState extends State {
+export class HomeNode extends Node {
   public readonly colours: Colours;
   public readonly cssClass: CssClass = CssClass.Home;
   protected readonly defaultName: string = localize("EditorPages.home");

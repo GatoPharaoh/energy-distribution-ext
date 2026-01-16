@@ -1,12 +1,12 @@
 import { ColoursConfig, GasConfig, NodeOptions } from "@/config";
-import { Colours, State } from "./state";
+import { Colours, Node } from "./node";
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
 import { CssClass, EnergyDirection, GAS_ENTITY_CLASSES } from "@/enums";
 import { EnergySource } from "@/hass";
 import { DEFAULT_GAS_CONFIG, getConfigObjects } from "@/config/config";
 
-export class GasState extends State {
+export class GasNode extends Node {
   public readonly colours: Colours;
   public readonly cssClass: CssClass = CssClass.Gas;
   protected readonly defaultName: string = localize("EditorPages.gas");
@@ -17,7 +17,7 @@ export class GasState extends State {
       hass,
       [config, DEFAULT_GAS_CONFIG],
       GAS_ENTITY_CLASSES,
-      GasState._getHassEntities(energySources)
+      GasNode._getHassEntities(energySources)
     );
 
     const coloursConfig: ColoursConfig[] = getConfigObjects([config, DEFAULT_GAS_CONFIG], NodeOptions.Colours);

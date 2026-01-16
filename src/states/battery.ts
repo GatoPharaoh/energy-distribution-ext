@@ -1,5 +1,5 @@
 import { BatteryConfig, ColoursConfig, NodeOptions } from "@/config";
-import { Colours, State } from "./state";
+import { Colours, Node } from "./node";
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
 import { EnergySource } from "@/hass";
@@ -7,7 +7,7 @@ import { DEFAULT_BATTERY_CONFIG, getConfigObjects } from "@/config/config";
 import { CssClass, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
 import { BiDiState } from ".";
 
-export class BatteryState extends State {
+export class BatteryNode extends Node {
   public readonly colours: Colours;
   public readonly cssClass: CssClass = CssClass.Battery;
   protected readonly defaultName: string = localize("EditorPages.battery");
@@ -18,8 +18,8 @@ export class BatteryState extends State {
       hass,
       [config, DEFAULT_BATTERY_CONFIG],
       ELECTRIC_ENTITY_CLASSES,
-      BatteryState._getHassImportEntities(energySources),
-      BatteryState._getHassExportEntities(energySources)
+      BatteryNode._getHassImportEntities(energySources),
+      BatteryNode._getHassExportEntities(energySources)
     );
 
     const coloursConfig: ColoursConfig[] = getConfigObjects([config, DEFAULT_BATTERY_CONFIG], NodeOptions.Colours);

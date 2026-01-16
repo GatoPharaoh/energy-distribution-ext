@@ -78,7 +78,7 @@
     <TypeScriptCompile Include="src\states\gas.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\states\state.ts">
+    <TypeScriptCompile Include="src\states\node.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\states\low-carbon.ts">

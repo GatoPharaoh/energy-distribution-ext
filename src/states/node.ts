@@ -1,6 +1,6 @@
 import { ColourOptions, ColoursConfig, NodeOptions, EntitiesOptions, OverridesOptions, isValidPrimaryEntity } from "@/config";
 import { HomeAssistant } from "custom-card-helpers";
-import { SecondaryInfoState } from "./secondary-info";
+import { SecondaryInfo } from "./secondary-info";
 import { getConfigValue } from "@/config/config";
 import { COLOUR_MAPPINGS, convertColourListToHex, STYLE_PRIMARY_TEXT_COLOR } from "@/ui-helpers/styles";
 import { ColourMode, CssClass, DeviceClasses, EnergyDirection } from "@/enums";
@@ -8,7 +8,7 @@ import { BiDiState } from ".";
 
 //================================================================================================================================================================================//
 
-export abstract class State {
+export abstract class Node {
   public readonly isPresent: boolean;
   public readonly hassConfigPresent: boolean;
   public readonly importEntities: string[];
@@ -16,7 +16,7 @@ export abstract class State {
   public readonly configEntities: string[];
   public readonly firstImportEntity: string | undefined;
   public readonly firstExportEntity: string | undefined;
-  public readonly secondary: SecondaryInfoState;
+  public readonly secondary: SecondaryInfo;
   public abstract readonly colours: Colours;
   public abstract readonly cssClass: CssClass;
   protected abstract readonly defaultName: string;
@@ -42,7 +42,7 @@ export abstract class State {
 
     this._name = getConfigValue(config, [NodeOptions.Overrides, OverridesOptions.Name]);
     this._icon = getConfigValue(config, [NodeOptions.Overrides, OverridesOptions.Icon]);
-    this.secondary = new SecondaryInfoState(hass, getConfigValue(config, NodeOptions.Secondary_Info));
+    this.secondary = new SecondaryInfo(hass, getConfigValue(config, NodeOptions.Secondary_Info));
 
     this.isPresent = this.importEntities.length !== 0 || this.exportEntities.length !== 0;
     this.hassConfigPresent = hassImportEntities.length !== 0 || hassExportEntities.length !== 0;

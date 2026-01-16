@@ -1,12 +1,12 @@
 import { localize } from "@/localize/localize";
 import { ColoursConfig, NodeOptions, SolarConfig } from "@/config";
-import { Colours, State } from "./state";
+import { Colours, Node } from "./node";
 import { HomeAssistant } from "custom-card-helpers";
 import { CssClass, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
 import { EnergySource } from "@/hass";
 import { DEFAULT_SOLAR_CONFIG, getConfigObjects } from "@/config/config";
 
-export class SolarState extends State {
+export class SolarNode extends Node {
   public readonly colours: Colours;
   public readonly cssClass: CssClass = CssClass.Solar;
   protected readonly defaultName: string = localize("EditorPages.solar");
@@ -17,7 +17,7 @@ export class SolarState extends State {
       hass,
       [config, DEFAULT_SOLAR_CONFIG],
       ELECTRIC_ENTITY_CLASSES,
-      SolarState._getHassEntities(energySources)
+      SolarNode._getHassEntities(energySources)
     );
 
     const coloursConfig: ColoursConfig[] = getConfigObjects([config, DEFAULT_SOLAR_CONFIG], NodeOptions.Colours);

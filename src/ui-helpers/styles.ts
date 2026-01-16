@@ -3,7 +3,7 @@ import { ColourMode, CssClass, GasSourcesMode } from "@/enums";
 import { Flows, States } from "@/states";
 import { getGasSourcesMode } from ".";
 import { getConfigObjects, getConfigValue } from "@/config/config";
-import { Colours, State } from "@/states/state";
+import { Colours, Node } from "@/states/node";
 
 export interface MinMax {
   min: number;
@@ -44,7 +44,7 @@ export function setLayout(style: CSSStyleDeclaration, circleSize: number): void 
 
   //================================================================================================================================================================================//
 
-export function setCssVariables(style: CSSStyleDeclaration, state: State): void {
+export function setCssVariables(style: CSSStyleDeclaration, state: Node): void {
   const cssClass: CssClass = state.cssClass;
   const colours: Colours = state.colours;
 

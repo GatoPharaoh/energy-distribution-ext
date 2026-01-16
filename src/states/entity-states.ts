@@ -2,13 +2,13 @@ import { HomeAssistant, round } from "custom-card-helpers";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { EnergyCollection, EnergyData, EnergyPreferences, EnergySource, Statistics, StatisticValue } from "@/hass";
 import { AppearanceOptions, EditorPages, EnergyFlowCardExtConfig, EnergyUnitsConfig, EnergyUnitsOptions, FlowsOptions, GlobalOptions, SecondaryInfoOptions } from "@/config";
-import { GridState } from "./grid";
-import { BatteryState } from "./battery";
-import { GasState } from "./gas";
-import { HomeState } from "./home";
-import { LowCarbonState } from "./low-carbon";
-import { SolarState } from "./solar";
-import { DeviceState } from "./device";
+import { GridNode } from "./grid";
+import { BatteryNode } from "./battery";
+import { GasNode } from "./gas";
+import { HomeNode } from "./home";
+import { LowCarbonNode } from "./low-carbon";
+import { SolarNode } from "./solar";
+import { DeviceNode } from "./device";
 import { addDays, addHours, differenceInDays, endOfToday, getHours, isFirstDayOfMonth, isLastDayOfMonth, startOfToday } from "date-fns";
 import { EnergyUnits, SIUnitPrefixes, EntityMode, VolumeUnits, checkEnumValue, DateRange, EnergyType, DeviceClasses } from "@/enums";
 import { logDebug } from "@/logging";
@@ -17,7 +17,7 @@ import { Flows, States } from ".";
 import { UNIT_CONVERSIONS } from "./unit-conversions";
 import { DEFAULT_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
 import { calculateDateRange } from "@/dates";
-import { State } from "./state";
+import { Node } from "./node";
 
 const ENERGY_DATA_TIMEOUT: number = 10000;
 const ENERGY_DATA_POLL: number = 100;
@@ -53,13 +53,13 @@ export class EntityStates {
     return this._periodEnd;
   }
 
-  public battery!: BatteryState;
-  public gas!: GasState;
-  public grid!: GridState;
-  public home!: HomeState;
-  public lowCarbon!: LowCarbonState;
-  public solar!: SolarState;
-  public devices!: DeviceState[];
+  public battery!: BatteryNode;
+  public gas!: GasNode;
+  public grid!: GridNode;
+  public home!: HomeNode;
+  public lowCarbon!: LowCarbonNode;
+  public solar!: SolarNode;
+  public devices!: DeviceNode[];
 
   private _states: States = {
     largestElectricValue: 0,
@@ -294,13 +294,13 @@ export class EntityStates {
       energySources = prefs?.energy_sources;
     }
 
-    this.battery = new BatteryState(hass, getConfigValue(configs, EditorPages.Battery), this._states.battery, energySources);
-    this.gas = new GasState(hass, getConfigValue(configs, EditorPages.Gas), energySources);
-    this.grid = new GridState(hass, getConfigValue(configs, EditorPages.Grid), this._states.grid, energySources);
-    this.home = new HomeState(hass, getConfigValue(configs, EditorPages.Home));
-    this.lowCarbon = new LowCarbonState(hass, getConfigValue(configs, EditorPages.Low_Carbon));
-    this.solar = new SolarState(hass, getConfigValue(configs, EditorPages.Solar), energySources);
-    this.devices = (getConfigValue(configs, EditorPages.Devices) || []).flatMap((device, index) => new DeviceState(hass, device, index));
+    this.battery = new BatteryNode(hass, getConfigValue(configs, EditorPages.Battery), this._states.battery, energySources);
+    this.gas = new GasNode(hass, getConfigValue(configs, EditorPages.Gas), energySources);
+    this.grid = new GridNode(hass, getConfigValue(configs, EditorPages.Grid), this._states.grid, energySources);
+    this.home = new HomeNode(hass, getConfigValue(configs, EditorPages.Home));
+    this.lowCarbon = new LowCarbonNode(hass, getConfigValue(configs, EditorPages.Low_Carbon));
+    this.solar = new SolarNode(hass, getConfigValue(configs, EditorPages.Solar), energySources);
+    this.devices = (getConfigValue(configs, EditorPages.Devices) || []).flatMap((device, index) => new DeviceNode(hass, device, index));
     this._populateEntityArrays();
     this._inferEntityModes();
     this._isLoaded = true;
@@ -639,12 +639,12 @@ export class EntityStates {
 
   //================================================================================================================================================================================//
 
-  private _getSecondaryStatistic(state: State): number {
-    if (!state.secondary.isPresent) {
+  private _getSecondaryStatistic(node: Node): number {
+    if (!node.secondary.isPresent) {
       return 0;
     }
 
-    const entityId: string = state.secondary.entity!;
+    const entityId: string = node.secondary.entity!;
     const deviceClass: string | undefined = this.hass.states[entityId].attributes.device_class;
     const requestedUnits: string | undefined = deviceClass === DeviceClasses.Energy ? this._energyUnits : undefined;
     return this._getEntityStatesFromStatistics(this._secondaryStatistics!, entityId, undefined, requestedUnits);

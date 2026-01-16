@@ -1,11 +1,11 @@
 import { localize } from "@/localize/localize";
 import { ColoursConfig, LowCarbonConfig, NodeOptions } from "@/config";
-import { Colours, State } from "./state";
+import { Colours, Node } from "./node";
 import { HomeAssistant } from "custom-card-helpers";
 import { DEFAULT_LOW_CARBON_CONFIG, getCo2SignalEntity, getConfigObjects } from "@/config/config";
 import { CssClass, DeviceClasses, EnergyDirection } from "@/enums";
 
-export class LowCarbonState extends State {
+export class LowCarbonNode extends Node {
   public readonly colours: Colours;
   public readonly cssClass: CssClass = CssClass.Low_Carbon;
   protected readonly defaultName: string = localize("common.low_carbon");

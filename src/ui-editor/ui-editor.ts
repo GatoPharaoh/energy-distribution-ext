@@ -18,14 +18,14 @@ import { CARD_NAME } from '@/const';
 import { cardConfigStruct } from '@/config/validation';
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from '.';
 import { getDefaultLowCarbonConfig, cleanupConfig, getDefaultAppearanceConfig, getDefaultGridConfig, getDefaultGasConfig, getDefaultSolarConfig, getDefaultBatteryConfig, getDefaultHomeConfig, getCo2SignalEntity, getConfigValue, DEFAULT_CONFIG } from '@/config/config';
-import { GasState } from '@/states/gas';
+import { GasNode } from '@/states/gas';
 import { getEnergyDataCollection } from '@/energy';
-import { GridState } from '@/states/grid';
-import { SolarState } from '@/states/solar';
-import { BatteryState } from '@/states/battery';
-import { LowCarbonState } from '@/states/low-carbon';
-import { HomeState } from '@/states/home';
-import { DeviceState } from '@/states/device';
+import { GridNode } from '@/states/grid';
+import { SolarNode } from '@/states/solar';
+import { BatteryNode } from '@/states/battery';
+import { LowCarbonNode } from '@/states/low-carbon';
+import { HomeNode } from '@/states/home';
+import { DeviceNode } from '@/states/device';
 import { DateRange, ELECTRIC_ENTITY_CLASSES, GAS_ENTITY_CLASSES } from '@/enums';
 import { endOfToday, formatDate, startOfToday } from 'date-fns';
 
@@ -52,28 +52,28 @@ const CONFIG_PAGES: {
       icon: "mdi:transmission-tower",
       schema: gridSchema,
       createConfig: getDefaultGridConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new GridState(hass, getConfigValue(config, EditorPages.Grid), undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new GridNode(hass, getConfigValue(config, EditorPages.Grid), undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Gas,
       icon: "mdi:fire",
       schema: gasSchema,
       createConfig: getDefaultGasConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new GasState(hass, getConfigValue(config, EditorPages.Gas), getEnergyDataCollection(hass)?.prefs?.energy_sources || []), GAS_ENTITY_CLASSES)
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new GasNode(hass, getConfigValue(config, EditorPages.Gas), getEnergyDataCollection(hass)?.prefs?.energy_sources || []), GAS_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Solar,
       icon: "mdi:solar-power",
       schema: solarSchema,
       createConfig: getDefaultSolarConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new SolarState(hass, getConfigValue(config, EditorPages.Solar), getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new SolarNode(hass, getConfigValue(config, EditorPages.Solar), getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Battery,
       icon: "mdi:battery-high",
       schema: batterySchema,
       createConfig: getDefaultBatteryConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new BatteryState(hass, getConfigValue(config, EditorPages.Battery), undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new BatteryNode(hass, getConfigValue(config, EditorPages.Battery), undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Low_Carbon,
@@ -81,7 +81,7 @@ const CONFIG_PAGES: {
       schema: lowCarbonSchema,
       createConfig: getDefaultLowCarbonConfig,
       statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => {
-        const status = getStatusIcon(hass, new LowCarbonState(hass, getConfigValue(config, EditorPages.Low_Carbon)), ELECTRIC_ENTITY_CLASSES, false);
+        const status = getStatusIcon(hass, new LowCarbonNode(hass, getConfigValue(config, EditorPages.Low_Carbon)), ELECTRIC_ENTITY_CLASSES, false);
 
         if (status !== Status.NotConfigured) {
           return status;
@@ -95,14 +95,14 @@ const CONFIG_PAGES: {
       icon: "mdi:home",
       schema: homeSchema,
       createConfig: getDefaultHomeConfig,
-      statusIcon: (config: HomeConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new HomeState(hass, getConfigValue(config, EditorPages.Home)), ELECTRIC_ENTITY_CLASSES, false)
+      statusIcon: (config: HomeConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new HomeNode(hass, getConfigValue(config, EditorPages.Home)), ELECTRIC_ENTITY_CLASSES, false)
     },
     {
       page: EditorPages.Devices,
       icon: "mdi:devices",
       createConfig: () => { },
       statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status =>
-        getConfigValue(config, EditorPages.Devices)?.map((device, index) => getStatusIcon(hass, new DeviceState(hass, device, index), ELECTRIC_ENTITY_CLASSES)).reduce((previous, current) => current > previous ? current : previous) || Status.NotConfigured
+        getConfigValue(config, EditorPages.Devices)?.map((device, index) => getStatusIcon(hass, new DeviceNode(hass, device, index), ELECTRIC_ENTITY_CLASSES)).reduce((previous, current) => current > previous ? current : previous) || Status.NotConfigured
     }
   ];
 

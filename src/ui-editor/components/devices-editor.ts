@@ -10,7 +10,7 @@ import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STA
 import { repeat } from "lit/directives/repeat.js";
 import { localize } from "@/localize/localize";
 import { BASIC_COLOUR_MODES_DUAL, BASIC_COLOUR_MODES_SINGLE, getConfigValue, getDefaultDeviceConfig } from '@/config/config';
-import { DeviceState } from '@/states/device';
+import { DeviceNode } from '@/states/device';
 import { ColourMode, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from '@/enums';
 
 //================================================================================================================================================================================//
@@ -118,7 +118,7 @@ export class DevicesEditor extends LitElement {
       this._devices,
       deviceConf => this._getKey(deviceConf),
       (deviceConf, index) => {
-        const statusIcon: Status = getStatusIcon(this.hass, new DeviceState(this.hass, deviceConf, index), ELECTRIC_ENTITY_CLASSES, true, true);
+        const statusIcon: Status = getStatusIcon(this.hass, new DeviceNode(this.hass, deviceConf, index), ELECTRIC_ENTITY_CLASSES, true, true);
 
         return html`
           <div class="devices">

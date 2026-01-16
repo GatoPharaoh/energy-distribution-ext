@@ -1,7 +1,7 @@
 import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
 import { isValidPrimaryEntity, isValidSecondaryEntity } from "@/config";
-import { State } from "@/states/state";
+import { Node } from "@/states/node";
 import { HELPTEXT_SUFFIX } from "@/const";
 import memoizeOne from "memoize-one";
 
@@ -39,7 +39,7 @@ export enum Status {
 export const STATUS_ICONS: string[] = ["", "mdi:check-circle", "mdi:alert", "mdi:alert-octagon"];
 export const STATUS_CLASSES: string[] = ["", "page-valid", "page-warning", "page-error"];
 
-export function getStatusIcon(hass: HomeAssistant, state: State, deviceClasses: string[], supportsPrimaries: boolean = true, requiresPrimaries: boolean = false): Status {
+export function getStatusIcon(hass: HomeAssistant, state: Node, deviceClasses: string[], supportsPrimaries: boolean = true, requiresPrimaries: boolean = false): Status {
   let primaryEntityCount: number = 0;
   let secondaryEntity: boolean = false;
   let validPrimaryEntityCount: number = 0;

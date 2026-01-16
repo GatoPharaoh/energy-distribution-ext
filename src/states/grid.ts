@@ -1,13 +1,13 @@
 import { localize } from "@/localize/localize";
 import { ColoursConfig, GridConfig, GridOptions, NodeOptions, PowerOutageConfig, PowerOutageOptions } from "@/config";
-import { Colours, State } from "./state";
+import { Colours, Node } from "./node";
 import { HomeAssistant } from "custom-card-helpers";
 import { DEFAULT_GRID_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
 import { EnergySource } from "@/hass";
 import { CssClass, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from "@/enums";
 import { BiDiState } from ".";
 
-export class GridState extends State {
+export class GridNode extends Node {
   public readonly colours: Colours;
   public readonly cssClass: CssClass = CssClass.Grid;
   protected readonly defaultName: string = localize("EditorPages.grid");
@@ -26,8 +26,8 @@ export class GridState extends State {
       hass,
       [config, DEFAULT_GRID_CONFIG],
       ELECTRIC_ENTITY_CLASSES,
-      GridState._getHassImportEntities(energySources),
-      GridState._getHassExportEntities(energySources)
+      GridNode._getHassImportEntities(energySources),
+      GridNode._getHassExportEntities(energySources)
     );
 
     const powerOutageConfig: PowerOutageConfig[] = getConfigObjects([config, DEFAULT_GRID_CONFIG], GridOptions.Power_Outage);
