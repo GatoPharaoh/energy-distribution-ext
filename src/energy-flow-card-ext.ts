@@ -11,7 +11,7 @@ import { GridNode } from "@/states/grid";
 import { SolarNode } from "@/states/solar";
 import { SecondaryInfo } from "@/states/secondary-info";
 import { States, Flows } from "@/states";
-import { EntityStates } from "@/states/entity-states";
+import { DataStatus, EntityStates } from "@/states/entity-states";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { ColourMode, LowCarbonDisplayMode, UnitPosition, UnitPrefixes, CssClass, SIUnitPrefixes, InactiveFlowsMode, GasSourcesMode, Scale, PrefixThreshold, EnergyUnits, VolumeUnits, checkEnumValue, DateRange, DateRangeDisplayMode, EnergyType, EnergyDirection, DeviceClasses } from "@/enums";
 import { HomeNode } from "@/states/home";
@@ -251,7 +251,6 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const electricUnitPrefix: SIUnitPrefixes | undefined = states && this._electricUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestElectricValue)) : undefined;
     const gasUnitPrefix: SIUnitPrefixes | undefined = states && this._gasUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestGasValue)) : undefined;
     const animationDurations: AnimationDurations | undefined = states ? this._calculateAnimationDurations(states) : undefined;
-    const numDevices: number = entityStates.devices.length;
 
     this.style.setProperty("--flow-export-battery-color", entityStates.battery.colours.exportFlow);
     this.style.setProperty("--flow-export-grid-color", entityStates.grid.colours.exportFlow);
@@ -325,11 +324,11 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
             <hr>
           </div>
         `
-        : !entityStates.isDataPresent
+        : entityStates.isDataPresent !== DataStatus.Received
           ? html`
             <div class="overlay">
               <hr>
-              <span class="overlay-message">${localize("common.loading")}</span>
+              <span class="overlay-message">${localize(entityStates.isDataPresent === DataStatus.Requested ? "common.loading" : "common.timed_out")}</span>
               <hr>
             </div>
           `

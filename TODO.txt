@@ -11,24 +11,15 @@ Code:
       - this could be done using the secondary, although then we'd need to know that it was a SoC in order to manage the main icon
     - see what else should be changed/hidden
   - unit-testing
-  - the 'loading' state should not be displayed when rolling over to the next period
-    - this can be done by comparing the new 'startPeriod' to the previous 'endPeriod': if they are the same, it's a rollover rather than a new range
-      - note that 'endPeriod' needs to be incremented by 1 day and then reset to the start-of-day!
-      - problem: how to differentiate between an automatic rollover and a manual one?  We'd want the 'loading' display in the latter case, as it might be a slow load!
-        - only an issue for the date-picker mode, since there is no manual update possible otherwise
-          - the only one which is automated here is the daily-rollover, so that can be detected
-    - the state should also be an enum:
-      - requested (ie, 'loading')
-      - received (ie, ready for display)
-      - timed-out
-        - this then replaces the current log to the console
   - layout:
     - eliminate empty columns
+    - draw three devices in the last column/row to save space
   - editor:
     - refactor out the dropdown options lists, there's a lot of duplication going on!
   - BUG: clicking on the low-carbon secondary opens both the entity viewer and the map...
   - BUG: in 'dimmed' mode, the paths are noticeably brighter than the node circles!
   - BUG: both Grid and Gas are reporting a missing entity on the editor page when a secondary is present
+  - BUG: the dots are being rendered at the (0,0) of the lines panel
 
 Editor:
   - dynamic labelling for, eg, Battery's import ('discharge') and export ('charge') fields in the UI
@@ -36,40 +27,13 @@ Editor:
       - and the main colours should be 'Flow'
     - it's too much work to change the underlying config fields, so this is strictly a cosmetic thing in the UK
   - Devices page-link not showing its status-icon
-
-Config:
-  - import Devices from the ED config
-    - only those which do not have a parent
-    - import entity and name
-    - this might be best driven by the user, rather that done automatically
-  - for Devices, have a flag which specifies when it was imported from the Energy Dashboard config?
-    - this would have several effects:
-      - the name and entity would not be editable
-      - if the ED config were changed to remove the device, we could reflect that change here too
-        - although that might be confusing, so it might be better to give the user the option
-    - if the ED config's entity is changed, though, there's no way to detect that - it would appear as a 'delete' and an 'add', which loses the card's config
-    - usefully, the ED config does not allow the same entity to be specified twice
-    - might not be all that useful, though:
-      - we can't detect changes, only add/remove
-      - without the flag, we just pick up the new devices
+  - see if the entity-picker can be configured to filter entities
+    - this should be doable using include-entities - just filter across the hass list
+  - for secondary, if the entity selected is Energy then hide the unneeded options below it
 
 Display:
   - Home:
     - include producing devices in the segment arrays
-    - if 'subtract' is set, subtract consuming devices from the appropriate total
-  - Devices:
-    - if there is exactly one device:
-      - if there is no Gas configured, draw it in the upper-right
-      - else draw it in the lower-right (removing the 'Home' label)
-    - if there are exactly two devices and Gas is not configured, draw upper/lower right
-    - otherwise attempt to expand to the right
-    - if there is not enough space for the required number of columns, expand below instead
-    - for rightwards, draw the bus out from the Home circle and position devices above/below it
-      - could try to get clever and stop the bus one column from the end so we can fit three devices in a column
-    - for downwards, draw the bus from the bottom of the Home circle, then turn left to the centre column and then downwards
-      - this occpuies the first 'row' below the standard 3x3 grid (or 3x2 if no battery is present)
-      - devices now go to the left/right of the bus
-        - and again, the bottom-most row could contain three devices
 
 
 Under consideration

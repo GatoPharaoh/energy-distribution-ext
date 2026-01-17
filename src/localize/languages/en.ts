@@ -12,6 +12,7 @@ export default {
     "new_device": "New Device",
     "no_date_picker": "This display mode requires a Date Selector to be present in this View",
     "power_outage": "Power outage",
+    "timed_out": "Timed out while loading data",
     "unknown": "Unknown"
   },
 
