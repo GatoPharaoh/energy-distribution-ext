@@ -1,0 +1,63 @@
+import { localize } from "@/localize/localize";
+import { EditorPages, EnergyFlowCardExtConfig, GlobalOptions, LowCarbonConfig, LowCarbonOptions } from "@/config";
+import { Node } from "./node";
+import { HomeAssistant, round } from "custom-card-helpers";
+import { getCo2SignalEntity, getConfigValue } from "@/config/config";
+import { CssClass, DeviceClasses, EnergyDirection, LowCarbonDisplayMode, SIUnitPrefixes } from "@/enums";
+import { Colours } from "./colours";
+import { html, LitElement, nothing, TemplateResult } from "lit";
+import { States } from ".";
+import { HassEntity } from "home-assistant-js-websocket";
+
+//================================================================================================================================================================================//
+
+const MAP_URL: string = "https://app.electricitymaps.com";
+
+//================================================================================================================================================================================//
+
+export class LowCarbonNode extends Node<LowCarbonConfig> {
+  public readonly colours: Colours;
+  public readonly cssClass: CssClass = CssClass.Low_Carbon;
+
+  protected readonly defaultName: string = localize("common.low_carbon");
+  protected readonly defaultIcon: string = "mdi:leaf";
+
+  private _displayMode: LowCarbonDisplayMode;
+
+  //================================================================================================================================================================================//
+
+  public constructor(hass: HomeAssistant, cardConfig: EnergyFlowCardExtConfig) {
+    super(hass, cardConfig, EditorPages.Low_Carbon, undefined, [DeviceClasses.None], [getCo2SignalEntity(hass)]);
+    this.colours = new Colours(this.coloursConfigs, EnergyDirection.Source_Only, undefined, "var(--energy-non-fossil-color)");
+    this._displayMode = getConfigValue(this.nodeConfigs, [GlobalOptions.Options, LowCarbonOptions.Low_Carbon_Mode]);
+  }
+
+  //================================================================================================================================================================================//
+
+  public readonly render = (target: LitElement, style: CSSStyleDeclaration, circleSize: number, states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult => {
+    let electricityMapUrl: string = MAP_URL;
+    const co2State: HassEntity = this.hass.states[getCo2SignalEntity(this.hass)];
+
+    if (co2State?.attributes.country_code) {
+      electricityMapUrl += `/zone/${co2State?.attributes.country_code} `;
+    }
+
+    const energyState: number | undefined = !states || this._displayMode === LowCarbonDisplayMode.Percentage ? undefined : states.grid.import === 0 ? 0 : states.lowCarbon;
+    const energyPercentage: number | undefined = !states || this._displayMode === LowCarbonDisplayMode.Energy ? undefined : states.grid.import === 0 ? 0 : round(states.lowCarbonPercentage, 1);
+    const inactiveCss: CssClass = !energyState && !energyPercentage ? this.inactiveFlowsCss : CssClass.None;
+    const valueCss: string = CssClass.Low_Carbon + " " + inactiveCss;
+
+    this.setCssVariables(style);
+
+    //    <a class="circle background" href = ${ electricityMapUrl } target = "_blank" rel = "noopener noreferrer" >
+
+    return html`
+      <div class="circle ${inactiveCss}">
+        ${this.renderSecondarySpan(target, this.secondary, states?.lowCarbonSecondary, valueCss)}
+        <ha-icon class="entity-icon ${inactiveCss}" .icon=${this.icon}></ha-icon>
+        ${this.renderEnergyStateSpan(target, valueCss, this.energyUnits, undefined, undefined, energyState, overridePrefix)}
+        ${energyPercentage ? energyState ? html`<span class="value ${valueCss}"}>(${energyPercentage}%)</span>` : html`<span class="value ${valueCss}"}>${energyPercentage}%</span>` : nothing}
+      </div>
+    `;
+  }
+}

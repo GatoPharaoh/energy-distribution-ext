@@ -31,9 +31,6 @@ Editor:
     - this should be doable using include-entities - just filter across the hass list
   - for secondary, if the entity selected is Energy then hide the unneeded options below it
 
-Display:
-  - Home:
-    - include producing devices in the segment arrays
 
 
 Under consideration

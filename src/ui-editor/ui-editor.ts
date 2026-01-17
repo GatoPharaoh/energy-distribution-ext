@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, TemplateResult, CSSResultGroup } from '
 import { customElement, state } from 'lit/decorators.js';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { assert } from 'superstruct';
-import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, HomeConfig, SecondaryInfoOptions } from '@/config';
+import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, HomeConfig, SecondaryInfoOptions, DeviceConfig } from '@/config';
 import { appearanceSchema, dateRangeSchema, generalConfigSchema } from './schema';
 import { localize } from '@/localize/localize';
 import { gridSchema } from './schema/grid';
@@ -18,14 +18,14 @@ import { CARD_NAME } from '@/const';
 import { cardConfigStruct } from '@/config/validation';
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from '.';
 import { getDefaultLowCarbonConfig, cleanupConfig, getDefaultAppearanceConfig, getDefaultGridConfig, getDefaultGasConfig, getDefaultSolarConfig, getDefaultBatteryConfig, getDefaultHomeConfig, getCo2SignalEntity, getConfigValue, DEFAULT_CONFIG } from '@/config/config';
-import { GasNode } from '@/states/gas';
+import { GasNode } from '@/nodes/gas';
 import { getEnergyDataCollection } from '@/energy';
-import { GridNode } from '@/states/grid';
-import { SolarNode } from '@/states/solar';
-import { BatteryNode } from '@/states/battery';
-import { LowCarbonNode } from '@/states/low-carbon';
-import { HomeNode } from '@/states/home';
-import { DeviceNode } from '@/states/device';
+import { GridNode } from '@/nodes/grid';
+import { SolarNode } from '@/nodes/solar';
+import { BatteryNode } from '@/nodes/battery';
+import { LowCarbonNode } from '@/nodes/low-carbon';
+import { HomeNode } from '@/nodes/home';
+import { DeviceNode } from '@/nodes/device';
 import { DateRange, ELECTRIC_ENTITY_CLASSES, GAS_ENTITY_CLASSES } from '@/enums';
 import { endOfToday, formatDate, startOfToday } from 'date-fns';
 
@@ -52,36 +52,36 @@ const CONFIG_PAGES: {
       icon: "mdi:transmission-tower",
       schema: gridSchema,
       createConfig: getDefaultGridConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new GridNode(hass, getConfigValue(config, EditorPages.Grid), undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new GridNode(hass, cardConfig, undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Gas,
       icon: "mdi:fire",
       schema: gasSchema,
       createConfig: getDefaultGasConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new GasNode(hass, getConfigValue(config, EditorPages.Gas), getEnergyDataCollection(hass)?.prefs?.energy_sources || []), GAS_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new GasNode(hass, cardConfig, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), GAS_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Solar,
       icon: "mdi:solar-power",
       schema: solarSchema,
       createConfig: getDefaultSolarConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new SolarNode(hass, getConfigValue(config, EditorPages.Solar), getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new SolarNode(hass, cardConfig, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Battery,
       icon: "mdi:battery-high",
       schema: batterySchema,
       createConfig: getDefaultBatteryConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new BatteryNode(hass, getConfigValue(config, EditorPages.Battery), undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => getStatusIcon(hass, new BatteryNode(hass, cardConfig, undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Low_Carbon,
       icon: "mdi:leaf",
       schema: lowCarbonSchema,
       createConfig: getDefaultLowCarbonConfig,
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => {
-        const status = getStatusIcon(hass, new LowCarbonNode(hass, getConfigValue(config, EditorPages.Low_Carbon)), ELECTRIC_ENTITY_CLASSES, false);
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => {
+        const status = getStatusIcon(hass, new LowCarbonNode(hass, cardConfig), ELECTRIC_ENTITY_CLASSES, false);
 
         if (status !== Status.NotConfigured) {
           return status;
@@ -101,8 +101,10 @@ const CONFIG_PAGES: {
       page: EditorPages.Devices,
       icon: "mdi:devices",
       createConfig: () => { },
-      statusIcon: (config: EnergyFlowCardExtConfig, hass: HomeAssistant): Status =>
-        getConfigValue(config, EditorPages.Devices)?.map((device, index) => getStatusIcon(hass, new DeviceNode(hass, device, index), ELECTRIC_ENTITY_CLASSES)).reduce((previous, current) => current > previous ? current : previous) || Status.NotConfigured
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, hass: HomeAssistant): Status => {
+        const deviceConfigs: DeviceConfig[] = getConfigValue(cardConfig, EditorPages.Devices);
+        return deviceConfigs?.map((device, index) => getStatusIcon(hass, new DeviceNode(hass, cardConfig, index), ELECTRIC_ENTITY_CLASSES)).reduce((previous, current) => current > previous ? current : previous) || Status.NotConfigured
+      }
     }
   ];
 

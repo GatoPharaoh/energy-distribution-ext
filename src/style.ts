@@ -101,7 +101,9 @@ export const styles: CSSResult = css`
   .circle .inactive {
     border-color: var(--disabled-text-color) !important;
   }
-  .node .circle {
+
+  span.secondary-info,
+  .value:not(.home) {
     cursor: var(--clickable-cursor);
   }
 

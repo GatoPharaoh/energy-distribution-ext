@@ -3,7 +3,7 @@ import { css, CSSResultGroup, html, LitElement, PropertyValues, TemplateResult }
 import { CARD_NAME } from "@/const";
 import { endOfToday, startOfToday } from "date-fns";
 import { DateRange } from "@/enums";
-import { renderDateRange, getRangePresetName } from "@/ui-helpers/renderers";
+import { renderDateRange, getRangePresetName } from "@/ui-helpers/date-fns";
 import { customElement, property } from "lit/decorators.js";
 
 //================================================================================================================================================================================//

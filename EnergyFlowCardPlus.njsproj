@@ -52,6 +52,7 @@
     <None Include="src\ui-editor\schema\index.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="src\nodes\" />
     <Folder Include="src\ui-helpers\" />
     <Folder Include="src\states\" />
     <Folder Include="src\config\" />
@@ -71,31 +72,34 @@
     <TypeScriptCompile Include="src\dates.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="src\nodes\colours.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\states\entity-states.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\states\battery.ts" />
-    <TypeScriptCompile Include="src\states\gas.ts">
+    <TypeScriptCompile Include="src\nodes\battery.ts" />
+    <TypeScriptCompile Include="src\nodes\gas.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\states\node.ts">
+    <TypeScriptCompile Include="src\nodes\node.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\states\low-carbon.ts">
+    <TypeScriptCompile Include="src\nodes\low-carbon.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\states\grid.ts" />
-    <TypeScriptCompile Include="src\states\home.ts">
+    <TypeScriptCompile Include="src\nodes\grid.ts" />
+    <TypeScriptCompile Include="src\nodes\home.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\states\index.ts" />
-    <TypeScriptCompile Include="src\states\device.ts">
+    <TypeScriptCompile Include="src\nodes\index.ts" />
+    <TypeScriptCompile Include="src\nodes\device.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\states\secondary-info.ts">
+    <TypeScriptCompile Include="src\nodes\secondary-info.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\states\solar.ts" />
+    <TypeScriptCompile Include="src\nodes\solar.ts" />
     <TypeScriptCompile Include="src\enums.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -117,10 +121,7 @@
     <TypeScriptCompile Include="src\ui-helpers\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\ui-helpers\renderers.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\ui-helpers\styles.ts">
+    <TypeScriptCompile Include="src\ui-helpers\date-fns.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
   </ItemGroup>

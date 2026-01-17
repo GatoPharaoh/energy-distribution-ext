@@ -28,7 +28,7 @@ export const BASIC_COLOUR_MODES_DUAL: ColourMode[] = [ColourMode.Larger_Value, C
 
 //================================================================================================================================================================================//
 
-export function getConfigValue(configs: any[] | any, path: string[] | string, validator: ((value: any) => boolean) | undefined = _ => true): any {
+export function getConfigValue<T>(configs: any[] | any, path: string[] | string, validator: ((value: any) => boolean) | undefined = _ => true): T {
   if (!(configs instanceof Array)) {
     configs = [configs];
   }
@@ -56,7 +56,7 @@ export function getConfigValue(configs: any[] | any, path: string[] | string, va
     }
   }
 
-  return undefined;
+  return undefined as T;
 }
 
 //================================================================================================================================================================================//
@@ -356,7 +356,7 @@ export function getDefaultDeviceConfig(importColour: number[], exportColour: num
     [DeviceOptions.Name]: localize("common.new_device"),
     [DeviceOptions.Icon]: "mdi:devices",
     [DeviceOptions.Energy_Type]: EnergyType.Electric,
-    [DeviceOptions.Energy_Direction]: EnergyDirection.Consumer
+    [DeviceOptions.Energy_Direction]: EnergyDirection.Consumer_only
   };
 }
 

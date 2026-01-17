@@ -19,14 +19,14 @@ export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig): any[] => {
         { key: DeviceOptions, name: DeviceOptions.Energy_Direction, required: true, selector: dropdownSelector(EnergyDirection) }
       ]
     },
-    energyDirection !== EnergyDirection.Consumer ?
+    energyDirection !== EnergyDirection.Consumer_only ?
       {
         key: NodeOptions,
         name: NodeOptions.Import_Entities,
         type: SchemaTypes.Expandable,
         schema: [{ key: EntitiesOptions, name: EntitiesOptions.Entity_Ids, selector: { entity: { multiple: true, reorder: true, device_class: DeviceClasses.Energy } } }]
       } : {},
-    energyDirection !== EnergyDirection.Source ?
+    energyDirection !== EnergyDirection.Source_Only ?
       {
         key: NodeOptions,
         name: NodeOptions.Export_Entities,
@@ -50,14 +50,14 @@ export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig): any[] => {
       );
       break;
 
-    case EnergyDirection.Consumer:
+    case EnergyDirection.Consumer_only:
       colourSchemas.push(
         { key: ColourOptions, name: ColourOptions.Flow_Export_Colour, selector: { color_rgb: {} } },
         {}
       );
       break;
 
-    case EnergyDirection.Source:
+    case EnergyDirection.Source_Only:
       colourSchemas.push(
         { key: ColourOptions, name: ColourOptions.Flow_Import_Colour, selector: { color_rgb: {} } },
         {}
@@ -83,7 +83,7 @@ export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig): any[] => {
     );
   }
 
-  if (energyDirection !== EnergyDirection.Consumer) {
+  if (energyDirection !== EnergyDirection.Consumer_only) {
     colourSchemas.push(
       ...colourSchema(
         schemaConfig,
@@ -93,7 +93,7 @@ export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig): any[] => {
     );
   }
 
-  if (energyDirection !== EnergyDirection.Source) {
+  if (energyDirection !== EnergyDirection.Source_Only) {
     colourSchemas.push(
       ...colourSchema(
         schemaConfig,

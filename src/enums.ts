@@ -45,8 +45,8 @@ namespace Enums {
   } as const satisfies Record<string, string>;
 
   export const EnergyDirection = {
-    Consumer: "consumer",
-    Source: "source",
+    Consumer_only: "consumer",
+    Source_Only: "source",
     Both: "both"
   } as const satisfies Record<string, string>;
 

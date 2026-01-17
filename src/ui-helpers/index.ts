@@ -1,21 +1,21 @@
 import { GlobalOptions, HomeConfig, HomeOptions } from "@/config";
-import { GasSourcesMode } from "@/enums";
-import { States } from "@/states";
+import { CssClass, GasSourcesMode } from "@/enums";
+import { States } from "@/nodes";
 import { getConfigValue } from "@/config/config";
 
 export interface Segment {
   state: number;
-  cssClass: string;
+  cssClass: CssClass;
 }
 
 export interface SegmentGroup {
   segments: Segment[];
-  inactiveCss: string;
+  inactiveCss: CssClass;
 }
 
 export interface FlowLine {
-  cssLine: string;
-  cssDot: string;
+  cssLine: CssClass;
+  cssDot: CssClass;
   path: string;
   active: boolean;
   animDuration: number;
@@ -54,8 +54,8 @@ export function getGasSourcesMode(configs: HomeConfig[], states: States): GasSou
   const gasThreshold: number = getConfigValue(configs, [GlobalOptions.Options, HomeOptions.Gas_Sources_Threshold]);
 
   return gasSourcesMode === GasSourcesMode.Automatic
-    ? 100 * states.homeGas / states.homeElectric + states.homeGas < gasThreshold
+    ? (100 * states.homeGas / states.homeElectric + states.homeGas) < gasThreshold
       ? GasSourcesMode.Add_To_Total
       : GasSourcesMode.Show_Separately
     : gasSourcesMode;
-};
+}

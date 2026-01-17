@@ -99,8 +99,8 @@ export default {
   },
 
   "EnergyDirection": {
-    [EnergyDirection.Consumer]: "Consumer",
-    [EnergyDirection.Source]: "Source",
+    [EnergyDirection.Consumer_only]: "Consumer",
+    [EnergyDirection.Source_Only]: "Source",
     [EnergyDirection.Both]: "Both"
   },
 

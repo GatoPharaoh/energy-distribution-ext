@@ -14,6 +14,8 @@ export interface Flows {
 }
 
 export interface States {
+  electricPresent: boolean;
+  gasPresent: boolean;
   largestElectricValue: number;
   largestGasValue: number;
   battery: BiDiState;
@@ -33,8 +35,9 @@ export interface States {
   lowCarbonSecondary: number;
   solarImport: number;
   solarSecondary: number;
-  devices: BiDiState[];
-  devicesVolume: BiDiState[];
+  devicesElectric: BiDiState[];
+  devicesGas: BiDiState[];
+  devicesGasVolume: BiDiState[];
   devicesSecondary: number[];
   flows: Flows;
 }
