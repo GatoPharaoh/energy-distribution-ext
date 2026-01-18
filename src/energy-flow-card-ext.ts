@@ -175,6 +175,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       throw new Error(localize("common.invalid_configuration"));
     }
 
+    this._width = 0;
     this._render.clear();
     this._config = cleanupConfig(config);
     this._configs = [this._config, DEFAULT_CONFIG];
@@ -265,7 +266,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const gasUnitPrefix: SIUnitPrefixes | undefined = states && this._gasUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestGasValue)) : undefined;
     const animationDurations: AnimationDurations | undefined = states ? this._calculateAnimationDurations(states) : undefined;
 
-    console.log("rendering");
+    console.log("rendering, grid-size=" + this._layoutGrid.length);
 
     return html`
       <ha-card .header=${getConfigValue(this._configs, GlobalOptions.Title)}>
@@ -296,7 +297,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     `;
   },
     (newInputs: unknown[], lastInputs: unknown[]): boolean => {
-      return newInputs[0] !== undefined && equal(newInputs[0], lastInputs[0]);
+      return this._layoutGrid.length !== 0 && newInputs[0] !== undefined && equal(newInputs[0], lastInputs[0]);
     }
   );
 
