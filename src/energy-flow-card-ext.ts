@@ -175,6 +175,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       throw new Error(localize("common.invalid_configuration"));
     }
 
+    this._render.clear();
     this._config = cleanupConfig(config);
     this._configs = [this._config, DEFAULT_CONFIG];
     this.resetSubscriptions();
@@ -231,7 +232,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     return html`
-      ${this._render(this._configs, entityStates.getStates())}
+      ${this._render(entityStates.getStates())}
 
       <!--error overlays -->
       ${!entityStates.isDatePickerPresent && this._dateRange === DateRange.From_Date_Picker
@@ -256,7 +257,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 
-  private _render = memoizeOne((configs, states) => {
+  private _render = memoizeOne(states => {
     this._calculateLayout();
     this._getDashboardTitle(this._dashboardLink);
 
@@ -264,8 +265,10 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     const gasUnitPrefix: SIUnitPrefixes | undefined = states && this._gasUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestGasValue)) : undefined;
     const animationDurations: AnimationDurations | undefined = states ? this._calculateAnimationDurations(states) : undefined;
 
+    console.log("rendering");
+
     return html`
-      <ha-card .header=${getConfigValue(configs, GlobalOptions.Title)}>
+      <ha-card .header=${getConfigValue(this._configs, GlobalOptions.Title)}>
         <div class="card-content" id=${CARD_NAME}>
           <!-- date-range -->
           ${this._renderDateRange()}
@@ -293,7 +296,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     `;
   },
     (newInputs: unknown[], lastInputs: unknown[]): boolean => {
-      return newInputs[0] === lastInputs[0] && equal(newInputs[1], lastInputs[1]);
+      return newInputs[0] !== undefined && equal(newInputs[0], lastInputs[0]);
     }
   );
 
