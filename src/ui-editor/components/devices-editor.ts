@@ -43,6 +43,7 @@ export class DevicesEditor extends LitElement {
   public hass!: HomeAssistant;
   @property({ attribute: false }) public config!: EnergyFlowCardExtConfig;
   @state() private _indexBeingEdited: number = -1;
+  private secondaryEntities: string[] = [];
 
   private _devices: DeviceConfig[] = [];
   private _entityKeys = new WeakMap<DeviceConfig, string>();
@@ -102,7 +103,7 @@ export class DevicesEditor extends LitElement {
         <ha-form
           .hass=${this.hass}
           .data=${this._devices[this._indexBeingEdited]}
-          .schema=${deviceSchema(this._devices[this._indexBeingEdited])}
+          .schema=${deviceSchema(this._devices[this._indexBeingEdited], this.secondaryEntities)}
           .computeLabel=${computeLabelCallback}
           .computeHelper=${computeHelperCallback}
           .error=${this._validateConfig(this._devices[this._indexBeingEdited])}

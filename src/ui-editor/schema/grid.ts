@@ -3,10 +3,10 @@ import { dualValueNodeSchema, nodeConfigSchema, SchemaTypes } from '.';
 import { DEFAULT_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
-export const gridSchema = memoizeOne((config: EnergyFlowCardExtConfig): any[] => {
+export const gridSchema = memoizeOne((config: EnergyFlowCardExtConfig, secondaryEntities: string[]): any[] => {
   const gridConfig: GridConfig = getConfigValue([config, DEFAULT_CONFIG], EditorPages.Grid);
 
-  return nodeConfigSchema(dualValueNodeSchema(gridConfig))
+  return nodeConfigSchema(dualValueNodeSchema(gridConfig), secondaryEntities)
     .concat(
       {
         key: GridOptions,

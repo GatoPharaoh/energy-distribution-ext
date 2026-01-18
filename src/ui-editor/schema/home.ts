@@ -4,10 +4,10 @@ import { ColourOptions, NodeOptions, HomeConfig, GlobalOptions, HomeOptions, Ene
 import { DEFAULT_HOME_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
-export const homeSchema = memoizeOne((config: EnergyFlowCardExtConfig): any[] => {
+export const homeSchema = memoizeOne((config: EnergyFlowCardExtConfig, secondaryEntities: string[]): any[] => {
   const homeConfig: HomeConfig = getConfigValue([config, DEFAULT_HOME_CONFIG], EditorPages.Home);
 
-  return nodeConfigSchema()
+  return nodeConfigSchema([], secondaryEntities)
     .concat(
       {
         key: NodeOptions,

@@ -4,7 +4,7 @@ import { ELECTRIC_ENTITY_CLASSES } from '@/enums';
 import { DEFAULT_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
-export const solarSchema = memoizeOne((config: EnergyFlowCardExtConfig): any[] => {
+export const solarSchema = memoizeOne((config: EnergyFlowCardExtConfig, secondaryEntities: string[]): any[] => {
   const solarConfig: SolarConfig = getConfigValue([config, DEFAULT_CONFIG], EditorPages.Solar);
-  return nodeConfigSchema(singleValueNodeSchema(solarConfig, ELECTRIC_ENTITY_CLASSES, true));
+  return nodeConfigSchema(singleValueNodeSchema(solarConfig, ELECTRIC_ENTITY_CLASSES, true), secondaryEntities);
 });

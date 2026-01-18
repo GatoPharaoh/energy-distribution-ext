@@ -49,7 +49,6 @@ export class HomeNode extends Node<HomeConfig> {
     }
 
     if (states) {
-      // TODO: gas-producing devices
       const gasSourcesMode: GasSourcesMode = states.gasPresent ? getGasSourcesMode(this.nodeConfigs, states) : GasSourcesMode.Do_Not_Show;
 
       if (this._circleMode === ColourMode.Dynamic) {
@@ -177,9 +176,14 @@ export class HomeNode extends Node<HomeConfig> {
         value: flows.gridToHome * states.lowCarbonPercentage / 100,
         colour: "var(--flow-non-fossil-color)"
       }
-
-      // TODO: electric-producing devices
     };
+
+    states.devicesElectric.forEach((device, index) => {
+      electricSources[`device-${index}`] = {
+        value: device.import,
+        colour: `var(--flow-import-device-${index}-color)`
+      }
+    });
 
     const electricLargestSource: string = Object.keys(electricSources).reduce((a, b) => electricSources[a].value > electricSources[b].value ? a : b);
     const electricLargestColour: string = electricSources[electricLargestSource].colour;
@@ -189,9 +193,14 @@ export class HomeNode extends Node<HomeConfig> {
         value: states.gasImport,
         colour: "var(--flow-gas-color)"
       }
-
-      // TODO: gas-producing devices
     };
+
+    states.devicesGas.forEach((device, index) => {
+      gasSources[`device-${index}`] = {
+        value: device.import,
+        colour: `var(--flow-import-device-${index}-color)`
+      }
+    });
 
     const gasSourcesMode: GasSourcesMode = getGasSourcesMode(this.nodeConfigs, states);
     const gasLargestSource: string = Object.keys(gasSources).reduce((a, b) => gasSources[a].value > gasSources[b].value ? a : b);

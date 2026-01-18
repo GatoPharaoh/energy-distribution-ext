@@ -430,12 +430,6 @@ export class EntityStates {
       this._dataStatus = DataStatus.Requested;
     }
 
-    this._periodStart = periodStart;
-    this._periodEnd = periodEnd;
-
-    const dayDiff: number = differenceInDays(periodEnd, periodStart);
-    const period: Period = this._useHourlyStats ? Period.Hour : isFirstDayOfMonth(periodStart) && isLastDayOfMonth(periodEnd) && dayDiff > 35 ? Period.Month : dayDiff > 2 ? Period.Day : Period.Hour;
-
     const timeout: NodeJS.Timeout = setTimeout(() => {
       this._dataStatus = DataStatus.Timed_Out;
       logDebug(`No energy statistics received after ${ENERGY_DATA_TIMEOUT * 2}ms`);
@@ -446,6 +440,8 @@ export class EntityStates {
     const primaries: string[] = this._primaryEntityIds;
     const secondaries: string[] = this._secondaryEntityIds;
     const fetchStartTime: number = Date.now();
+    const dayDiff: number = differenceInDays(periodEnd, periodStart);
+    const period: Period = this._useHourlyStats ? Period.Hour : isFirstDayOfMonth(periodStart) && isLastDayOfMonth(periodEnd) && dayDiff > 35 ? Period.Month : dayDiff > 2 ? Period.Day : Period.Hour;
 
     const [previousPrimaryData, primaryData, co2data, previousSecondaryData, secondaryData] = await Promise.all([
       this._fetchStatistics(addHours(periodStart, -1), periodStart, primaries, Period.Hour),
@@ -472,6 +468,8 @@ export class EntityStates {
       this._calculateSecondaryStatistics();
     }
 
+    this._periodStart = periodStart;
+    this._periodEnd = periodEnd;
     this._dataStatus = DataStatus.Received;
   }
 

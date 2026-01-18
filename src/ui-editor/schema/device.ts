@@ -4,7 +4,7 @@ import { ColourMode, DeviceClasses, EnergyDirection, EnergyType } from '@/enums'
 import { BASIC_COLOUR_MODES_DUAL, BASIC_COLOUR_MODES_SINGLE, DEFAULT_DEVICE_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
-export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig): any[] => {
+export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig, secondaryEntities: string[]): any[] => {
   const deviceConfig: DeviceConfig[] = [schemaConfig, DEFAULT_DEVICE_CONFIG];
   const energyDirection: EnergyDirection = getConfigValue(deviceConfig, DeviceOptions.Energy_Direction);
   const colourSchemas: any[] = [];
@@ -39,7 +39,7 @@ export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig): any[] => {
       type: SchemaTypes.Expandable,
       schema: [{ type: SchemaTypes.Grid, schema: colourSchemas }]
     },
-    secondaryInfoSchema()
+    secondaryInfoSchema(secondaryEntities)
   ];
 
   switch (energyDirection) {

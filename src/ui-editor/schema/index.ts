@@ -1,8 +1,10 @@
-import { AppearanceOptions, ColourOptions, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions, OverridesOptions, SecondaryInfoOptions, AppearanceConfig, NodeConfig, EnergyUnitsConfig } from '@/config';
+import { AppearanceOptions, ColourOptions, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions, OverridesOptions, SecondaryInfoOptions, AppearanceConfig, NodeConfig, EnergyUnitsConfig, isValidSecondaryEntity } from '@/config';
 import { ColourMode, EnergyUnits, VolumeUnits, InactiveFlowsMode, PrefixThreshold, Scale, UnitPosition, UnitPrefixes, DateRangeDisplayMode, DeviceClasses } from '@/enums';
 import { localize } from '@/localize/localize';
 import { getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
+import { HomeAssistant } from 'custom-card-helpers';
+import { EntityRegistryEntry } from '../../hass';
 
 //================================================================================================================================================================================//
 
@@ -128,7 +130,7 @@ const energyUnitsOptionsSchema = memoizeOne((schemaConfig: EnergyUnitsConfig): a
 
 //================================================================================================================================================================================//
 
-export const nodeConfigSchema = memoizeOne((entitySchema: any[] = []): any[] => {
+export const nodeConfigSchema = memoizeOne((entitySchema: any[] = [], secondaryEntities: string[]): any[] => {
   const result: Array<any> = [...entitySchema];
 
   result.push(
@@ -146,7 +148,7 @@ export const nodeConfigSchema = memoizeOne((entitySchema: any[] = []): any[] => 
         }
       ]
     },
-    secondaryInfoSchema()
+    secondaryInfoSchema(secondaryEntities)
   );
 
   return result;
@@ -303,13 +305,13 @@ export const colourSchema = memoizeOne((config: NodeConfig, name: ColourOptions,
 
 //================================================================================================================================================================================//
 
-export const secondaryInfoSchema = memoizeOne((): {} => {
+export const secondaryInfoSchema = memoizeOne((secondaryEntities: string[]): {} => {
   return {
     key: NodeOptions,
     name: NodeOptions.Secondary_Info,
     type: SchemaTypes.Expandable,
     schema: [
-      { key: SecondaryInfoOptions, name: SecondaryInfoOptions.Entity_Id, selector: { entity: {} } },
+      { key: SecondaryInfoOptions, name: SecondaryInfoOptions.Entity_Id, selector: { entity: { include_entities: secondaryEntities } } },
       {
         type: SchemaTypes.Grid,
         column_min_width: '150px',

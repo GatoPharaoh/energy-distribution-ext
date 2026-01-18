@@ -27,8 +27,6 @@ Editor:
       - and the main colours should be 'Flow'
     - it's too much work to change the underlying config fields, so this is strictly a cosmetic thing in the UK
   - Devices page-link not showing its status-icon
-  - see if the entity-picker can be configured to filter entities
-    - this should be doable using include-entities - just filter across the hass list
   - for secondary, if the entity selected is Energy then hide the unneeded options below it
 
 

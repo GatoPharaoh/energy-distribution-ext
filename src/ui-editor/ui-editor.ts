@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, TemplateResult, CSSResultGroup } from '
 import { customElement, state } from 'lit/decorators.js';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { assert } from 'superstruct';
-import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, HomeConfig, SecondaryInfoOptions, DeviceConfig } from '@/config';
+import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, HomeConfig, SecondaryInfoOptions, DeviceConfig, isValidSecondaryEntity } from '@/config';
 import { appearanceSchema, dateRangeSchema, generalConfigSchema } from './schema';
 import { localize } from '@/localize/localize';
 import { gridSchema } from './schema/grid';
@@ -28,6 +28,7 @@ import { HomeNode } from '@/nodes/home';
 import { DeviceNode } from '@/nodes/device';
 import { DateRange, ELECTRIC_ENTITY_CLASSES, GAS_ENTITY_CLASSES } from '@/enums';
 import { endOfToday, formatDate, startOfToday } from 'date-fns';
+import { EntityRegistryEntry } from '../hass';
 
 //================================================================================================================================================================================//
 
@@ -36,7 +37,7 @@ export const EDITOR_ELEMENT_NAME = CARD_NAME + "-editor";
 const CONFIG_PAGES: {
   page: EditorPages;
   icon: string;
-  schema?;
+  schema?: (config: any, secondaries: string[]) => any[];
   createConfig?;
   statusIcon: (config: any, style: CSSStyleDeclaration, hass: HomeAssistant) => Status;
 }[] = [
@@ -112,10 +113,22 @@ const CONFIG_PAGES: {
 
 @customElement(EDITOR_ELEMENT_NAME)
 export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardEditor {
-  public hass!: HomeAssistant;
+  public get hass(): HomeAssistant {
+    return this._hass;
+  }
+  public set hass(hass: HomeAssistant) {
+    this._hass = hass;
+
+    if (!this._secondaryEntities) {
+      this._secondaryEntities = Object.values(hass["entities"]).map(entity => (entity as EntityRegistryEntry).entity_id).filter(entityId => isValidSecondaryEntity(hass, entityId));
+    }
+  }
+  private _hass!: HomeAssistant;
 
   @state() private _config?: EnergyFlowCardExtConfig;
   @state() private _currentConfigPage?: EditorPages;
+
+  private _secondaryEntities: string[] | undefined;
 
   public async setConfig(config: EnergyFlowCardExtConfig): Promise<void> {
     assert(config, cardConfigStruct);
@@ -152,6 +165,7 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
             <energy-flow-card-ext-devices-editor
               .hass=${this.hass}
               .config=${this._config}
+              .secondaryEntities=${this._secondaryEntities}
               @value-changed=${this._onValueChanged}
             ></energy-flow-card-ext-devices-editor>
           `
@@ -159,7 +173,7 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
             <ha-form
               .hass=${this.hass}
               .data=${configForPage}
-              .schema=${schema(config)}
+              .schema=${schema!(config, this._secondaryEntities!)}
               .computeLabel=${computeLabelCallback}
               .computeHelper=${computeHelperCallback}
               .error=${this._validateConfig(config)}
