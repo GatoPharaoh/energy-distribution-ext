@@ -12,13 +12,13 @@ import { SolarNode } from "@/nodes/solar";
 import { States, Flows } from "@/nodes";
 import { DataStatus, EntityStates } from "@/states/entity-states";
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
-import { LowCarbonDisplayMode, UnitPrefixes, CssClass, SIUnitPrefixes, InactiveFlowsMode, GasSourcesMode, Scale, PrefixThreshold, EnergyUnits, VolumeUnits, checkEnumValue, DateRange, DateRangeDisplayMode } from "@/enums";
+import { LowCarbonDisplayMode, UnitPrefixes, CssClass, SIUnitPrefixes, InactiveFlowsMode, GasSourcesMode, Scale, PrefixThreshold, EnergyUnits, VolumeUnits, checkEnumValue, DateRange, DateRangeDisplayMode, EnergyType } from "@/enums";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
 import { CARD_NAME, CIRCLE_STROKE_WIDTH_SEGMENTS, DOT_RADIUS, ICON_PADDING } from "@/const";
 import { EnergyFlowCardExtConfig, AppearanceOptions, EditorPages, GlobalOptions, FlowsOptions, EnergyUnitsOptions, EnergyUnitsConfig, HomeOptions, LowCarbonOptions } from "@/config";
 import { getRangePresetName, renderDateRange } from "@/ui-helpers/date-fns";
 import { AnimationDurations, FlowLine, getGasSourcesMode, PathScaleFactors } from "@/ui-helpers";
-import { mdiArrowDown, mdiArrowUp, mdiArrowLeft, mdiArrowRight } from "@mdi/js";
+import { mdiArrowDown, mdiArrowUp, mdiArrowLeft, mdiArrowRight, mdiDevTo } from "@mdi/js";
 import { titleCase } from "title-case";
 import { repeat } from "lit/directives/repeat.js";
 import { Node, NodeContentRenderFn } from "@/nodes/node";
@@ -116,6 +116,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
   private _gridToBatteryPath: string = "";
   private _gasToHomePath: string = "";
   private _lowCarbonToGridPath: string = "";
+  private _devicePaths: string[] = [];
   private _pathScaleFactors: PathScaleFactors = {
     batteryToGrid: 0,
     batteryToHome: 0,
@@ -125,7 +126,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     solarToGrid: 0,
     solarToHome: 0,
     lowCarbonToGrid: 0,
-    gasToHome: 0
+    gasToHome: 0,
+    devices: []
   };
 
   private _layoutGrid: NodeRenderFn[][] = [];
@@ -486,7 +488,20 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       });
     }
 
-    // TODO: device flows
+    entityStates.devices.forEach((device, index) => {
+      // TODO: these need to pick import/export as appropriate, and animate between the two in the same way as the battery-grid line
+      const cssClass: CssClass = `import-${device.cssClass}` as CssClass;
+      const active: boolean = ((device.type === EnergyType.Electric ? states?.devicesElectric[index].import : states?.devicesGas[index].import) ?? 0) > 0;
+      const duration: number = animationDurations?.devicesToHomeElectric[index] ?? 0;
+
+      lines.push({
+        cssLine: cssClass,
+        cssDot: cssClass,
+        path: this._devicePaths[index],
+        active: active,
+        animDuration: duration
+      });
+    });
 
     const inactiveFlowsMode: InactiveFlowsMode = getConfigValue(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows, FlowsOptions.Inactive_Flows]);
     const animationEnabled: boolean = getConfigValue(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows, FlowsOptions.Animation]);
@@ -627,7 +642,32 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
         this._solarToGridPath = upperLeftLine;
 
-        const maxLineLength: number = Math.max(topRowLineLength, horizLineLength, vertLineLength, curvedLineLength, colLineLength);
+        const deviceLineLengths: number[] = [];
+        const homeX: number = this._devicesLayout === DevicesLayout.Vertical ? col2X : col3X - DOT_DIAMETER + circleSize / 2;
+        const homeY: number = this._devicesLayout === DevicesLayout.Vertical ? row3Y - DOT_DIAMETER + circleSize / 2 : row2Y;
+
+        entityStates.devices.forEach((device, index) => {
+          let deviceX: number;
+          let deviceY: number;
+
+          if (this._devicesLayout === DevicesLayout.Vertical) {
+            const row: number = Math.floor(index / 2) + 1;
+
+            deviceX = circleSize + (index % 2 === 1 ? columnSpacing * 2 + circleSize : 0);
+            deviceY = homeY + rowPitch * row;
+          } else {
+            deviceX = 0;
+            deviceY = 0;
+          }
+
+          const endX: number = homeX - deviceX;
+          const endY: number = homeY - deviceY;
+          this._devicePaths[index] = `M${deviceX},${deviceY} l${endX},${endY}`;
+          deviceLineLengths.push(Math.sqrt((endX * endX) + (endY * endY)));
+        });
+
+        const lineLengths: number[] = [topRowLineLength, horizLineLength, vertLineLength, curvedLineLength, colLineLength, ...deviceLineLengths];
+        const maxLineLength: number = Math.max(...lineLengths);
         const pathScaleFactors: PathScaleFactors = this._pathScaleFactors;
 
         if (this._devicesLayout === DevicesLayout.Vertical) {
@@ -657,10 +697,12 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
           pathScaleFactors.gasToHome = topRowLineLength / maxLineLength;
         }
 
+        entityStates.devices.forEach((device, index) => {
+          pathScaleFactors.devices[index] = deviceLineLengths[index] / maxLineLength;
+        });
+
         pathScaleFactors.batteryToGrid = -pathScaleFactors.gridToBattery;
         pathScaleFactors.lowCarbonToGrid = topRowLineLength / maxLineLength;
-
-        // TODO device flows
       }
     }
   }
@@ -787,7 +829,7 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       + flows.solarToGrid
       + (gasSourceMode !== GasSourcesMode.Do_Not_Show ? states.homeGas : 0);
 
-    return {
+    const durations: AnimationDurations = {
       batteryToGrid: this._calculateDotRate(flows.batteryToGrid ?? 0, totalFlows, this._pathScaleFactors.batteryToGrid),
       batteryToHome: this._calculateDotRate(flows.batteryToHome ?? 0, totalFlows, this._pathScaleFactors.batteryToHome),
       gridToBattery: this._calculateDotRate(flows.gridToBattery ?? 0, totalFlows, this._pathScaleFactors.gridToBattery),
@@ -796,10 +838,24 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       solarToGrid: this._calculateDotRate(flows.solarToGrid ?? 0, totalFlows, this._pathScaleFactors.solarToGrid),
       solarToHome: this._calculateDotRate(flows.solarToHome ?? 0, totalFlows, this._pathScaleFactors.solarToHome),
       lowCarbon: this._calculateDotRate(states.lowCarbon ?? 0, totalFlows, this._pathScaleFactors.lowCarbonToGrid),
-      gas: this._calculateDotRate(states.gasImport ?? 0, totalFlows + (gasSourceMode === GasSourcesMode.Do_Not_Show ? states.homeGas : 0), this._pathScaleFactors.gasToHome)
-
-      // TODO devices
+      gas: this._calculateDotRate(states.gasImport ?? 0, totalFlows + (gasSourceMode === GasSourcesMode.Do_Not_Show ? states.homeGas : 0), this._pathScaleFactors.gasToHome),
+      devicesToHomeElectric: [],
+      devicesToHomeGas: [],
+      homeToDevicesElectric: [],
+      homeToDevicesGas: []
     };
+
+    states.devicesElectric.forEach((device, index) => {
+      durations.devicesToHomeElectric[index] = this._calculateDotRate(device.import ?? 0, totalFlows, this._pathScaleFactors.devices[index]);
+      durations.homeToDevicesElectric[index] = this._calculateDotRate(device.export ?? 0, totalFlows, this._pathScaleFactors.devices[index]);
+    });
+
+    states.devicesGas.forEach((device, index) => {
+      durations.devicesToHomeGas[index] = this._calculateDotRate(device.import ?? 0, totalFlows, this._pathScaleFactors.devices[index]);
+      durations.homeToDevicesGas[index] = this._calculateDotRate(device.export ?? 0, totalFlows, this._pathScaleFactors.devices[index]);
+    });
+
+    return durations;
   }
 
   //================================================================================================================================================================================//

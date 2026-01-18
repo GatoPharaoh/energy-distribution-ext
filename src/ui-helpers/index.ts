@@ -31,8 +31,10 @@ export interface AnimationDurations {
   solarToHome: number;
   lowCarbon: number;
   gas: number;
-
-  // TODO: devices
+  devicesToHomeElectric: number[];
+  devicesToHomeGas: number[];
+  homeToDevicesElectric: number[];
+  homeToDevicesGas: number[];
 }
 
 export interface PathScaleFactors {
@@ -45,8 +47,7 @@ export interface PathScaleFactors {
   solarToGrid: number;
   lowCarbonToGrid: number;
   gasToHome: number;
-
-  // TODO: devices
+  devices: number[];
 }
 
 export function getGasSourcesMode(configs: HomeConfig[], states: States): GasSourcesMode {
