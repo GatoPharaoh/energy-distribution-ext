@@ -23,6 +23,8 @@ import { titleCase } from "title-case";
 import { repeat } from "lit/directives/repeat.js";
 import { NodeContentRenderFn } from "@/nodes/node";
 import { DeviceNode } from "./nodes/device";
+import equal from "fast-deep-equal";
+import memoizeOne from "memoize-one";
 
 //================================================================================================================================================================================//
 
@@ -228,44 +230,11 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       return html`<ha-card style="padding: 2rem">${localize("common.initialising")}</ha-card>`;
     }
 
-    this._calculateLayout();
-    this._getDashboardTitle(this._dashboardLink);
-
-    const states: States | undefined = entityStates.getStates();
-    const electricUnitPrefix: SIUnitPrefixes | undefined = states && this._electricUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestElectricValue)) : undefined;
-    const gasUnitPrefix: SIUnitPrefixes | undefined = states && this._gasUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestGasValue)) : undefined;
-    const animationDurations: AnimationDurations | undefined = states ? this._calculateAnimationDurations(states) : undefined;
-
     return html`
-      <ha-card .header=${getConfigValue(this._configs, GlobalOptions.Title)}>
-        <div class="card-content" id=${CARD_NAME}>
-          <!-- date-range -->
-          ${this._renderDateRange()}
+      ${this._render(this._configs, entityStates.getStates())}
 
-          <!-- flow lines -->
-          ${this._renderFlowLines(states, animationDurations)}
-
-          <!-- nodes -->
-          ${this._renderGrid(states, electricUnitPrefix, gasUnitPrefix)}
-        </div>
-
-        <!-- dashboard link -->
-        ${this._dashboardLink && (this._dashboardLinkLabel || this._dashboardLinkTitle)
-        ? html`
-              <div class="card-actions">
-                <a href=${this._dashboardLink}>
-                  <mwc-button>
-                    ${this._dashboardLinkLabel || localize("common.go_to_dashboard").replace("{title}", this._dashboardLinkTitle!)}
-                  </mwc-button>
-                </a>
-              </div>
-              `
-        : nothing
-      }
-      </ha-card>
-
-    <!--error overlays -->
-    ${!entityStates.isDatePickerPresent && this._dateRange === DateRange.From_Date_Picker
+      <!--error overlays -->
+      ${!entityStates.isDatePickerPresent && this._dateRange === DateRange.From_Date_Picker
         ? html`
           <div class="overlay">
             <hr>
@@ -281,10 +250,52 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
               <hr>
             </div>
           `
-          : nothing
-      }
+          : nothing}
     `;
   }
+
+  //================================================================================================================================================================================//
+
+  private _render = memoizeOne((configs, states) => {
+    this._calculateLayout();
+    this._getDashboardTitle(this._dashboardLink);
+
+    const electricUnitPrefix: SIUnitPrefixes | undefined = states && this._electricUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestElectricValue)) : undefined;
+    const gasUnitPrefix: SIUnitPrefixes | undefined = states && this._gasUnitPrefixes === UnitPrefixes.Unified ? this._calculateEnergyUnitPrefix(new Decimal(states.largestGasValue)) : undefined;
+    const animationDurations: AnimationDurations | undefined = states ? this._calculateAnimationDurations(states) : undefined;
+
+    return html`
+      <ha-card .header=${getConfigValue(configs, GlobalOptions.Title)}>
+        <div class="card-content" id=${CARD_NAME}>
+          <!-- date-range -->
+          ${this._renderDateRange()}
+
+          <!-- flow lines -->
+          ${this._renderFlowLines(states, animationDurations)}
+
+          <!-- nodes -->
+          ${this._renderGrid(states, electricUnitPrefix, gasUnitPrefix)}
+        </div>
+
+        <!-- dashboard link -->
+        ${this._dashboardLink && (this._dashboardLinkLabel || this._dashboardLinkTitle)
+        ? html`
+          <div class="card-actions">
+            <a href=${this._dashboardLink}>
+              <mwc-button>
+                ${this._dashboardLinkLabel || localize("common.go_to_dashboard").replace("{title}", this._dashboardLinkTitle!)}
+              </mwc-button>
+            </a>
+          </div>
+        `
+        : nothing}
+      </ha-card>
+    `;
+  },
+    (newInputs: unknown[], lastInputs: unknown[]): boolean => {
+      return newInputs[0] === lastInputs[0] && equal(newInputs[1], lastInputs[1]);
+    }
+  );
 
   //================================================================================================================================================================================//
 
