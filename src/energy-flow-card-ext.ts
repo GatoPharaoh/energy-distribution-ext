@@ -422,50 +422,20 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     if (battery.isPresent && grid.isPresent) {
-      const gridToBatteryActive: boolean = (flows?.gridToBattery ?? 0) > 0;
-      const batteryToGridActive: boolean = (flows?.batteryToGrid ?? 0) > 0;
-
-      let cssGridToBattery: CssClass | undefined = undefined;
-      let cssBatteryToGrid: CssClass | undefined = undefined;
-      let cssGridToBatteryDot: CssClass = CssClass.Battery_Export;
-
-      if (!gridToBatteryActive && !batteryToGridActive) {
-        cssGridToBattery = CssClass.Inactive;
-      } else if (this._useHassStyles) {
-        cssGridToBattery = cssBatteryToGrid = batteryToGridActive ? CssClass.Grid_Export : CssClass.Grid_Import;
-        cssGridToBatteryDot = CssClass.Grid_Import;
-      } else if (!gridToBatteryActive && batteryToGridActive) {
-        cssBatteryToGrid = CssClass.Grid_Export;
-      } else if (!batteryToGridActive && gridToBatteryActive) {
-        cssGridToBattery = CssClass.Battery_Export;
-      } else if (this._animationEnabled) {
-        this.style.setProperty("--grid-battery-anim-duration", `${Math.max((animationDurations?.gridToBattery ?? 0), (animationDurations?.batteryToGrid ?? 0)) * 2}s`);
-        cssGridToBattery = CssClass.Grid_Battery_Anim;
-        cssBatteryToGrid = CssClass.Hidden_Path
-      } else {
-        cssGridToBattery = (flows?.gridToBattery ?? 0) > (flows?.batteryToGrid ?? 0) ? CssClass.Battery_Export : CssClass.Grid_Export;
-        cssBatteryToGrid = CssClass.Hidden_Path
-      }
-
-      if (cssGridToBattery && grid.firstImportEntity && battery.firstExportEntity) {
-        lines.push({
-          cssLine: cssGridToBattery,
-          cssDot: cssGridToBatteryDot,
-          path: this._gridToBatteryPath,
-          active: gridToBatteryActive,
-          animDuration: animationDurations?.gridToBattery ?? 0
-        });
-      }
-
-      if (cssBatteryToGrid && battery.firstImportEntity && grid.firstExportEntity) {
-        lines.push({
-          cssLine: cssBatteryToGrid,
-          cssDot: CssClass.Grid_Export,
-          path: this._gridToBatteryPath,
-          active: batteryToGridActive,
-          animDuration: animationDurations?.batteryToGrid ?? 0
-        });
-      }
+      this._renderBiDiFlowLine(
+        lines,
+        this._gridToBatteryPath,
+        flows?.gridToBattery,
+        flows?.batteryToGrid,
+        animationDurations?.gridToBattery,
+        animationDurations?.batteryToGrid,
+        CssClass.Grid_Import,
+        CssClass.Grid_Export,
+        CssClass.Battery_Import,
+        CssClass.Battery_Export,
+        CssClass.Grid_Battery_Anim,
+        "--grid-battery-anim-duration"
+      );
     }
 
     if (entityStates.lowCarbon.isPresent && grid.firstImportEntity) {
@@ -489,18 +459,39 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
     }
 
     entityStates.devices.forEach((device, index) => {
-      // TODO: these need to pick import/export as appropriate, and animate between the two in the same way as the battery-grid line
-      const cssClass: CssClass = `import-${device.cssClass}` as CssClass;
-      const active: boolean = ((device.type === EnergyType.Electric ? states?.devicesElectric[index].import : states?.devicesGas[index].import) ?? 0) > 0;
-      const duration: number = animationDurations?.devicesToHomeElectric[index] ?? 0;
+      let flow1: number | undefined;
+      let flow2: number | undefined;
+      let duration1: number | undefined;
+      let duration2: number | undefined;
+      const cssImport: CssClass = `import-${device.cssClass}` as CssClass;
+      const cssExport: CssClass = `export-${device.cssClass}` as CssClass;
 
-      lines.push({
-        cssLine: cssClass,
-        cssDot: cssClass,
-        path: this._devicePaths[index],
-        active: active,
-        animDuration: duration
-      });
+      if (device.type === EnergyType.Electric) {
+        flow1 = states?.devicesElectric[index].import;
+        flow2 = states?.devicesElectric[index].export;
+        duration1 = animationDurations?.devicesToHomeElectric[index];
+        duration2 = animationDurations?.homeToDevicesElectric[index];
+      } else {
+        flow1 = states?.devicesGas[index].import;
+        flow2 = states?.devicesGas[index].export;
+        duration1 = animationDurations?.devicesToHomeGas[index];
+        duration2 = animationDurations?.homeToDevicesGas[index];
+      }
+
+      this._renderBiDiFlowLine(
+        lines,
+        this._devicePaths[index],
+        flow1,
+        flow2,
+        duration1,
+        duration2,
+        cssImport,
+        cssExport,
+        cssExport,
+        cssImport,
+        `device-${index}-home-anim` as CssClass,
+        `--device-${index}-home-anim-duration`
+      );
     });
 
     const inactiveFlowsMode: InactiveFlowsMode = getConfigValue(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows, FlowsOptions.Inactive_Flows]);
@@ -545,6 +536,70 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
         : nothing}
       </svg>
     `;
+  }
+
+  //================================================================================================================================================================================//
+
+  private _renderBiDiFlowLine(
+    lines: FlowLine[],
+    path: string,
+    flowNode1ToNode2: number = 0,
+    flowNode2ToNode1: number = 0,
+    durationNode1ToNode2: number = 0,
+    durationNode2ToNode1: number = 0,
+    cssNode1Import: CssClass,
+    cssNode1Export: CssClass,
+    cssNode2Import: CssClass,
+    cssNode2Export: CssClass,
+    cssAnim: CssClass,
+    cssAnimVariable: string
+  ): void {
+
+    const active1To2: boolean = flowNode1ToNode2 > 0;
+    const active2To1: boolean = flowNode2ToNode1 > 0;
+
+    let css1To2Path: CssClass | undefined = undefined;
+    let css2To1Path: CssClass | undefined = undefined;
+    let css1To2Dot: CssClass = cssNode2Export;
+    let css2To1Dot: CssClass = cssNode1Export;
+
+    if (!active1To2 && !active2To1) {
+      css1To2Path = CssClass.Inactive;
+    } else if (this._useHassStyles) {
+      css1To2Path = css2To1Path = active2To1 ? cssNode1Export : cssNode1Import;
+      css1To2Dot = cssNode1Import;
+    } else if (!active1To2 && active2To1) {
+      css2To1Path = cssNode2Export;
+    } else if (!active2To1 && active1To2) {
+      css1To2Path = cssNode2Export;
+    } else if (this._animationEnabled) {
+      this.style.setProperty(cssAnimVariable, `${Math.max(durationNode1ToNode2, durationNode2ToNode1) * 2}s`);
+      css1To2Path = cssAnim;
+      css2To1Path = CssClass.Hidden_Path
+    } else {
+      css1To2Path = flowNode1ToNode2 > flowNode2ToNode1 ? cssNode2Export : cssNode1Export;
+      css2To1Path = CssClass.Hidden_Path
+    }
+
+    if (css1To2Path && cssNode1Import !== CssClass.None && cssNode2Export !== CssClass.None) {
+      lines.push({
+        cssLine: css1To2Path,
+        cssDot: css1To2Dot,
+        path: path,
+        active: active1To2,
+        animDuration: durationNode1ToNode2
+      });
+    }
+
+    if (css2To1Path && cssNode2Import !== CssClass.None && cssNode1Export != CssClass.None) {
+      lines.push({
+        cssLine: css2To1Path,
+        cssDot: css2To1Dot,
+        path: path,
+        active: active2To1,
+        animDuration: durationNode2ToNode1
+      });
+    }
   }
 
   //================================================================================================================================================================================//
@@ -729,8 +784,8 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
       entityStates.battery.importIcon = mdiArrowLeft;
       entityStates.battery.exportIcon = mdiArrowRight;
     } else {
-      entityStates.battery.importIcon = mdiArrowRight;
-      entityStates.battery.exportIcon = mdiArrowLeft;
+      entityStates.battery.importIcon = mdiArrowUp;
+      entityStates.battery.exportIcon = mdiArrowDown;
     }
 
     layoutGrid[0] = [
@@ -847,12 +902,12 @@ export default class EnergyFlowCardPlus extends SubscribeMixin(LitElement) {
 
     states.devicesElectric.forEach((device, index) => {
       durations.devicesToHomeElectric[index] = this._calculateDotRate(device.import ?? 0, totalFlows, this._pathScaleFactors.devices[index]);
-      durations.homeToDevicesElectric[index] = this._calculateDotRate(device.export ?? 0, totalFlows, this._pathScaleFactors.devices[index]);
+      durations.homeToDevicesElectric[index] = this._calculateDotRate(device.export ?? 0, totalFlows, -this._pathScaleFactors.devices[index]);
     });
 
     states.devicesGas.forEach((device, index) => {
       durations.devicesToHomeGas[index] = this._calculateDotRate(device.import ?? 0, totalFlows, this._pathScaleFactors.devices[index]);
-      durations.homeToDevicesGas[index] = this._calculateDotRate(device.export ?? 0, totalFlows, this._pathScaleFactors.devices[index]);
+      durations.homeToDevicesGas[index] = this._calculateDotRate(device.export ?? 0, totalFlows, -this._pathScaleFactors.devices[index]);
     });
 
     return durations;

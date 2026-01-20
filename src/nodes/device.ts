@@ -123,6 +123,16 @@ export class DeviceNode extends Node<DeviceConfig> {
         path.import-device-${index} {
           stroke: var(--flow-import-device-${index}-color);
         }
+        .device-${index}-home-anim {
+          animation-duration: var(--device-${index}-home-anim-duration);
+          animation-name: device${index}HomeAnim;
+          animation-iteration-count: infinite;
+        }
+        @keyframes device${index}HomeAnim {
+          0% { stroke: var(--flow-export-device-${index}-color); }
+          50% { stroke: var(--flow-import-device-${index}-color); }
+          100% { stroke: var(--flow-export-device-${index}-color); }
+        }
       </style>
 
       <div class="circle ${inactiveCss}">
