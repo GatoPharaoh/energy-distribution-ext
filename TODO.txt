@@ -11,9 +11,6 @@ Card:
       - this could be done using the secondary, although then we'd need to know that it was a SoC in order to manage the main icon
         - we could check its device_class: if "battery" then it's a SoC
     - see what else should be changed/hidden
-  - layout:
-    - draw three devices in the last column/row to save space
-  - BUG: clicking on the low-carbon secondary opens both the entity viewer and the map...
   - BUG: in 'dimmed' mode, the paths are noticeably brighter than the node circles!
   - BUG: the dots are being rendered at the (0,0) of the lines panel
     - may now be fixed?

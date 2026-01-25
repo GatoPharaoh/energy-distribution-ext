@@ -58,14 +58,14 @@ export class LowCarbonNode extends Node<LowCarbonConfig> {
     const inactiveCss: CssClass = !energyState && !energyPercentage ? this.inactiveFlowsCss : CssClass.None;
     const valueCss: string = CssClass.Low_Carbon + " " + inactiveCss;
 
-    //    <a class="circle background" href = ${ electricityMapUrl } target = "_blank" rel = "noopener noreferrer" >
-
     return html`
       <div class="circle ${inactiveCss}">
         ${this.renderSecondarySpan(target, this.secondary, states?.lowCarbonSecondary, valueCss)}
         <ha-icon class="entity-icon ${inactiveCss}" .icon=${this.icon}></ha-icon>
-        ${this.renderEnergyStateSpan(target, valueCss, this.energyUnits, undefined, undefined, energyState, overridePrefix)}
-        ${energyPercentage ? energyState ? html`<span class="value ${valueCss}"}>(${energyPercentage}%)</span>` : html`<span class="value ${valueCss}"}>${energyPercentage}%</span>` : nothing}
+        <a href=${electricityMapUrl} style="text-decoration: none;" target="_blank" rel="noopener noreferrer">
+          ${this.renderEnergyStateSpan(target, valueCss, this.energyUnits, undefined, undefined, energyState, overridePrefix)}<br/>
+          ${energyPercentage ? energyState ? html`<span class="value ${valueCss}"}>(${energyPercentage}%)</span>` : html`<span class="value ${valueCss}"}>${energyPercentage}%</span>` : nothing}
+        </a>
       </div>
     `;
   }
