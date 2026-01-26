@@ -39,7 +39,7 @@ export enum Status {
 export const STATUS_ICONS: string[] = ["", "mdi:check-circle", "mdi:alert", "mdi:alert-octagon"];
 export const STATUS_CLASSES: string[] = ["", "page-valid", "page-warning", "page-error"];
 
-export function getStatusIcon(hass: HomeAssistant, node: Node<any>, deviceClasses: string[], supportsPrimaries: boolean = true, requiresPrimaries: boolean = false): Status {
+export function getStatusIcon(hass: HomeAssistant, node: Node<any>, deviceClasses: string[], supportsPrimaries: boolean, requiresPrimaries: boolean = false): Status {
   let primaryEntityCount: number = 0;
   let secondaryEntity: boolean = false;
   let validPrimaryEntityCount: number = 0;

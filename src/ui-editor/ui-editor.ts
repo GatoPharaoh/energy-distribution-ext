@@ -83,28 +83,28 @@ const CONFIG_PAGES: {
       icon: "mdi:transmission-tower",
       schema: gridSchema,
       createConfig: getDefaultGridConfig,
-      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Grid), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Grid), ELECTRIC_ENTITY_CLASSES, true)
     },
     {
       page: EditorPages.Gas,
       icon: "mdi:fire",
       schema: gasSchema,
       createConfig: getDefaultGasConfig,
-      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Gas), GAS_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Gas), GAS_ENTITY_CLASSES, true)
     },
     {
       page: EditorPages.Solar,
       icon: "mdi:solar-power",
       schema: solarSchema,
       createConfig: getDefaultSolarConfig,
-      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Solar), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Solar), ELECTRIC_ENTITY_CLASSES, true)
     },
     {
       page: EditorPages.Battery,
       icon: "mdi:battery-high",
       schema: batterySchema,
       createConfig: getDefaultBatteryConfig,
-      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Battery), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Battery), ELECTRIC_ENTITY_CLASSES, true)
     },
     {
       page: EditorPages.Low_Carbon,
@@ -134,7 +134,7 @@ const CONFIG_PAGES: {
       createConfig: () => { },
       statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => {
         const deviceConfigs: DeviceConfig[] = getConfigValue(cardConfig, EditorPages.Devices);
-        return deviceConfigs?.map((device, index) => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Devices, index), ELECTRIC_ENTITY_CLASSES)).reduce((previous, current) => current > previous ? current : previous) || Status.NotConfigured
+        return deviceConfigs?.map((device, index) => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Devices, index), ELECTRIC_ENTITY_CLASSES, true, true)).reduce((previous, current) => current > previous ? current : previous, Status.NotConfigured) || Status.NotConfigured
       }
     }
   ];
