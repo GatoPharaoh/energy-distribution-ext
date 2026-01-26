@@ -24,7 +24,6 @@ Editor:
     - this will also need to handle Power labelling, unless Power entities are in a separate field in the config
   - refactor out the dropdown options lists, there's a lot of duplication going on!
   - BUG: Devices page-link not showing its status-icon
-  - BUG: both Grid and Gas are reporting a missing entity on the editor page when a secondary is present
 
 
 

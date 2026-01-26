@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, TemplateResult, CSSResultGroup } from '
 import { customElement, state } from 'lit/decorators.js';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { assert } from 'superstruct';
-import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, HomeConfig, SecondaryInfoOptions, DeviceConfig, isValidSecondaryEntity, AppearanceOptions, FlowsOptions, EnergyUnitsOptions } from '@/config';
+import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, SecondaryInfoOptions, DeviceConfig, isValidSecondaryEntity, AppearanceOptions, EnergyUnitsOptions } from '@/config';
 import { appearanceSchema, dateRangeSchema, generalConfigSchema } from './schema';
 import { localize } from '@/localize/localize';
 import { gridSchema } from './schema/grid';
@@ -28,18 +28,48 @@ import { HomeNode } from '@/nodes/home';
 import { DeviceNode } from '@/nodes/device';
 import { DateRange, ELECTRIC_ENTITY_CLASSES, GAS_ENTITY_CLASSES } from '@/enums';
 import { endOfToday, formatDate, startOfToday } from 'date-fns';
-import { EntityRegistryEntry } from '../hass';
+import { EntityRegistryEntry } from '@/hass';
+import { Node } from '@/nodes/node';
 
 //================================================================================================================================================================================//
 
 export const EDITOR_ELEMENT_NAME = CARD_NAME + "-editor";
+
+  //================================================================================================================================================================================//
+
+function createNode(cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant, type: EditorPages, index?: number): Node<any> {
+  switch (type) {
+    case EditorPages.Battery:
+      return new BatteryNode(hass, cardConfig, style, undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []);
+
+    case EditorPages.Devices:
+      return new DeviceNode(hass, cardConfig, style, index!);
+
+    case EditorPages.Gas:
+      return new GasNode(hass, cardConfig, style, getEnergyDataCollection(hass)?.prefs?.energy_sources || []);
+
+    case EditorPages.Grid:
+      return new GridNode(hass, cardConfig, style, undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []);
+
+    case EditorPages.Home:
+      return new HomeNode(hass, cardConfig, style);
+
+    case EditorPages.Low_Carbon:
+      return new LowCarbonNode(hass, cardConfig, style);
+
+    case EditorPages.Solar:
+      return new SolarNode(hass, cardConfig, style, getEnergyDataCollection(hass)?.prefs?.energy_sources || []);
+  }
+
+  throw new Error("Unexpected node type " + type);
+}
 
 const CONFIG_PAGES: {
   page: EditorPages;
   icon: string;
   schema?: (config: any, secondaries: string[]) => any[];
   createConfig?;
-  statusIcon: (config: any, style: CSSStyleDeclaration, hass: HomeAssistant) => Status;
+  statusIcon: (config: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant) => Status;
 }[] = [
     {
       page: EditorPages.Appearance,
@@ -53,28 +83,28 @@ const CONFIG_PAGES: {
       icon: "mdi:transmission-tower",
       schema: gridSchema,
       createConfig: getDefaultGridConfig,
-      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, new GridNode(hass, cardConfig, style, undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Grid), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Gas,
       icon: "mdi:fire",
       schema: gasSchema,
       createConfig: getDefaultGasConfig,
-      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, new GasNode(hass, cardConfig, style, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), GAS_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Gas), GAS_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Solar,
       icon: "mdi:solar-power",
       schema: solarSchema,
       createConfig: getDefaultSolarConfig,
-      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, new SolarNode(hass, cardConfig, style, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Solar), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Battery,
       icon: "mdi:battery-high",
       schema: batterySchema,
       createConfig: getDefaultBatteryConfig,
-      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, new BatteryNode(hass, cardConfig, style, undefined, getEnergyDataCollection(hass)?.prefs?.energy_sources || []), ELECTRIC_ENTITY_CLASSES)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Battery), ELECTRIC_ENTITY_CLASSES)
     },
     {
       page: EditorPages.Low_Carbon,
@@ -82,7 +112,7 @@ const CONFIG_PAGES: {
       schema: lowCarbonSchema,
       createConfig: getDefaultLowCarbonConfig,
       statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => {
-        const status = getStatusIcon(hass, new LowCarbonNode(hass, cardConfig, style), ELECTRIC_ENTITY_CLASSES, false);
+        const status = getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Low_Carbon), ELECTRIC_ENTITY_CLASSES, false);
 
         if (status !== Status.NotConfigured) {
           return status;
@@ -96,7 +126,7 @@ const CONFIG_PAGES: {
       icon: "mdi:home",
       schema: homeSchema,
       createConfig: getDefaultHomeConfig,
-      statusIcon: (config: HomeConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, new HomeNode(hass, getConfigValue(config, EditorPages.Home), style), ELECTRIC_ENTITY_CLASSES, false)
+      statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Home), ELECTRIC_ENTITY_CLASSES, false)
     },
     {
       page: EditorPages.Devices,
@@ -104,7 +134,7 @@ const CONFIG_PAGES: {
       createConfig: () => { },
       statusIcon: (cardConfig: EnergyFlowCardExtConfig, style: CSSStyleDeclaration, hass: HomeAssistant): Status => {
         const deviceConfigs: DeviceConfig[] = getConfigValue(cardConfig, EditorPages.Devices);
-        return deviceConfigs?.map((device, index) => getStatusIcon(hass, new DeviceNode(hass, cardConfig, style, index), ELECTRIC_ENTITY_CLASSES)).reduce((previous, current) => current > previous ? current : previous) || Status.NotConfigured
+        return deviceConfigs?.map((device, index) => getStatusIcon(hass, createNode(cardConfig, style, hass, EditorPages.Devices, index), ELECTRIC_ENTITY_CLASSES)).reduce((previous, current) => current > previous ? current : previous) || Status.NotConfigured
       }
     }
   ];
@@ -250,7 +280,7 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
 
 
   private _renderPageLinks = (): TemplateResult[] => {
-    return CONFIG_PAGES.map(page => this._renderPageLink(page.page, page.icon, page.statusIcon(this._config, this.style, this.hass)));
+    return CONFIG_PAGES.map(page => this._renderPageLink(page.page, page.icon, page.statusIcon(this._config!, this.style, this.hass)));
   };
 
   //================================================================================================================================================================================//
@@ -355,6 +385,7 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
 
     if (this._currentConfigPage) {
       const secondaryEntityId: string | undefined = getConfigValue(config, [this._currentConfigPage, NodeOptions.Secondary_Info, SecondaryInfoOptions.Entity_Id]);
+      const node: Node<any> = createNode(this._config!, this.style, this.hass, this._currentConfigPage);
 
       switch (this._currentConfigPage) {
         case EditorPages.Battery:
@@ -362,15 +393,15 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
           const importEntityIds: string[] = getConfigValue(config, [this._currentConfigPage, NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]) || [];
           const exportEntityIds: string[] = getConfigValue(config, [this._currentConfigPage, NodeOptions.Export_Entities, EntitiesOptions.Entity_Ids]) || [];
           const entityIds: string[] = [...importEntityIds, ...exportEntityIds];
-          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, entityIds, ELECTRIC_ENTITY_CLASSES, !!secondaryEntityId, errors);
+          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, entityIds, ELECTRIC_ENTITY_CLASSES, !!secondaryEntityId && !node.hassConfigPresent, errors);
           break;
 
         case EditorPages.Gas:
-          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, getConfigValue(config, [this._currentConfigPage, NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]), GAS_ENTITY_CLASSES, !!secondaryEntityId, errors);
+          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, getConfigValue(config, [this._currentConfigPage, NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]), GAS_ENTITY_CLASSES, !!secondaryEntityId && !node.hassConfigPresent, errors);
           break;
 
         case EditorPages.Solar:
-          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, getConfigValue(config, [this._currentConfigPage, NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]), ELECTRIC_ENTITY_CLASSES, !!secondaryEntityId, errors);
+          validatePrimaryEntities(this.hass, NodeOptions.Import_Entities, getConfigValue(config, [this._currentConfigPage, NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]), ELECTRIC_ENTITY_CLASSES, !!secondaryEntityId && !node.hassConfigPresent, errors);
           break;
       }
 
