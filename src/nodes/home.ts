@@ -43,7 +43,7 @@ export class HomeNode extends Node<HomeConfig> {
 
     this.setCssVariables(this.style);
 
-    if (getConfigValue(this.coloursConfigs, ColourOptions.Value_Export) !== ColourMode.Largest_Value) {
+    if (getConfigValue(this.coloursConfigs, ColourOptions.Value_Export) !== ColourMode.Automatic) {
       this.style.setProperty(`--value-electric-home-color`, this.colours.exportValue);
       this.style.setProperty(`--value-gas-home-color`, this.colours.exportValue);
     }
@@ -207,7 +207,7 @@ export class HomeNode extends Node<HomeConfig> {
     const homeLargestColour: string = gasSourcesMode === GasSourcesMode.Do_Not_Show || electricSources[electricLargestSource].value >= gasSources[gasLargestSource].value ? electricLargestColour : gasLargestColour;
 
     HOME_UI_ELEMENTS.forEach(options => {
-      if (getConfigValue(this.coloursConfigs, options) === ColourMode.Largest_Value) {
+      if (getConfigValue(this.coloursConfigs, options) === ColourMode.Automatic) {
         if (options === ColourOptions.Value_Export) {
           if (gasSourcesMode === GasSourcesMode.Show_Separately) {
             style.setProperty(`--value-electric-home-color`, electricLargestColour);

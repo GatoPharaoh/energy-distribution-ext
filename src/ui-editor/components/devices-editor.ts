@@ -266,7 +266,7 @@ export class DevicesEditor extends LitElement {
     if (mode) {
       if (getConfigValue(config, DeviceOptions.Energy_Direction) === EnergyDirection.Both) {
         if (!BASIC_COLOUR_MODES_DUAL.includes(mode)) {
-          coloursConfig[option] = ColourMode.Larger_Value;
+          coloursConfig[option] = ColourMode.Automatic;
         }
       } else if (!BASIC_COLOUR_MODES_SINGLE.includes(mode)) {
         coloursConfig[option] = ColourMode.Flow;

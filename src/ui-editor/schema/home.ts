@@ -4,7 +4,7 @@ import { ColourOptions, NodeOptions, HomeConfig, GlobalOptions, HomeOptions, Ene
 import { DEFAULT_HOME_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
-const COLOUR_MODES: ColourMode[] = [ColourMode.Do_Not_Colour, ColourMode.Largest_Value, ColourMode.Solar, ColourMode.High_Carbon, ColourMode.Low_Carbon, ColourMode.Battery, ColourMode.Gas, ColourMode.Custom];
+const COLOUR_MODES: ColourMode[] = [ColourMode.Do_Not_Colour, ColourMode.Automatic, ColourMode.Solar, ColourMode.High_Carbon, ColourMode.Low_Carbon, ColourMode.Battery, ColourMode.Gas, ColourMode.Custom];
 
 export const homeSchema = memoizeOne((config: EnergyFlowCardExtConfig, mode: DisplayMode, secondaryEntities: string[]): any[] => {
   const homeConfig: HomeConfig = getConfigValue([config, DEFAULT_HOME_CONFIG], EditorPages.Home);

@@ -49,8 +49,7 @@ export default {
   "ColourMode": {
     [ColourMode.Do_Not_Colour]: "Do not color",
     [ColourMode.Flow]: "Same as flow",
-    [ColourMode.Larger_Value]: "Larger value",
-    [ColourMode.Largest_Value]: "Largest value",
+    [ColourMode.Automatic]: "Automatic",
     [ColourMode.Import]: {
       [EditorPages.Battery]: "Discharge",
       [EditorPages.Devices]: "Producer",

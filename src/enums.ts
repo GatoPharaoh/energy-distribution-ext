@@ -8,8 +8,7 @@ namespace Enums {
   export const ColourMode = {
     Do_Not_Colour: "none",
     Flow: "flow",
-    Larger_Value: "larger_value",
-    Largest_Value: "largest_value",
+    Automatic: "auto",
     Import: "import",
     Export: "export",
     Dynamic: "dynamic",

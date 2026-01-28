@@ -98,7 +98,6 @@ export class Colours {
         }
 
       case ColourMode.Do_Not_Colour:
-      case ColourMode.Largest_Value:
         return STYLE_PRIMARY_TEXT_COLOR;
 
       case ColourMode.Dynamic:
@@ -127,7 +126,7 @@ export class Colours {
       case ColourMode.Import:
         return this.importFlow;
 
-      case ColourMode.Larger_Value:
+      case ColourMode.Automatic:
         return this._state!.import >= this._state!.export ? this.importFlow : this.exportFlow;
 
       case ColourMode.Custom:
