@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, TemplateResult, CSSResultGroup } from '
 import { customElement, state } from 'lit/decorators.js';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { assert } from 'superstruct';
-import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, SecondaryInfoOptions, DeviceConfig, isValidSecondaryEntity, AppearanceOptions, EnergyUnitsOptions } from '@/config';
+import { EditorPages, EnergyFlowCardExtConfig, NodeOptions, EntitiesOptions, GlobalOptions, SecondaryInfoOptions, DeviceConfig, isValidSecondaryEntity } from '@/config';
 import { appearanceSchema, dateRangeSchema, generalConfigSchema } from './schema';
 import { localize } from '@/localize/localize';
 import { gridSchema } from './schema/grid';
@@ -163,14 +163,6 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
   public async setConfig(config: EnergyFlowCardExtConfig): Promise<void> {
     assert(config, cardConfigStruct);
     this._config = populateConfigDefaults(config, this.hass);
-
-    if (this._config) {
-      const threshold: number = getConfigValue(this._config, [EditorPages.Appearance, AppearanceOptions.Energy_Units, EnergyUnitsOptions.Prefix_Threshold]);
-
-      if (threshold !== undefined) {
-        this._config[EditorPages.Appearance]![AppearanceOptions.Energy_Units]![EnergyUnitsOptions.Prefix_Threshold] = threshold.toString();
-      }
-    }
   }
 
   protected render(): TemplateResult | typeof nothing {
@@ -373,15 +365,7 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
   //================================================================================================================================================================================//
 
   private _cleanupConfig(config: EnergyFlowCardExtConfig): EnergyFlowCardExtConfig {
-    config = removeConfigDefaults(config, this.hass);
-
-    const threshold: string = getConfigValue(config, [EditorPages.Appearance, AppearanceOptions.Energy_Units, EnergyUnitsOptions.Prefix_Threshold]);
-
-    if (threshold) {
-      config[EditorPages.Appearance]![AppearanceOptions.Energy_Units]![EnergyUnitsOptions.Prefix_Threshold] = Number.parseInt(threshold);
-    }
-
-    return config;
+    return removeConfigDefaults(config, this.hass);
   }
 
   //================================================================================================================================================================================//

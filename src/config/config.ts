@@ -1,6 +1,6 @@
-import { ColourMode, LowCarbonDisplayMode, UnitPosition, GasSourcesMode, EnergyType, EnergyDirection, EnergyUnits, UnitPrefixes, VolumeUnits, InactiveFlowsMode, Scale, DateRange, DateRangeDisplayMode, PrefixThreshold, AnimationMode, DisplayMode } from "@/enums";
+import { ColourMode, LowCarbonDisplayMode, UnitPosition, GasSourcesMode, EnergyType, EnergyDirection, EnergyUnits, UnitPrefixes, VolumeUnits, InactiveFlowsMode, Scale, DateRange, DateRangeDisplayMode, AnimationMode, DisplayMode } from "@/enums";
 import { HomeAssistant } from 'custom-card-helpers';
-import { AppearanceConfig, BatteryConfig, DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, GasConfig, GridConfig, HomeConfig, HomeOptions, LowCarbonConfig, LowCarbonOptions, SecondaryInfoConfig, SecondaryInfoOptions, SolarConfig } from ".";
+import { AppearanceConfig, BatteryConfig, DeviceConfig, DeviceOptions, EnergyFlowCardExtConfig, GasConfig, GridConfig, GridOptions, HomeConfig, HomeOptions, LowCarbonConfig, LowCarbonOptions, OverridesConfig, OverridesOptions, PowerOutageOptions, SecondaryInfoConfig, SecondaryInfoOptions, SolarConfig } from ".";
 import { CARD_NAME } from "@/const";
 import { AppearanceOptions, ColourOptions, EditorPages, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions } from "@/config";
 import { localize } from "@/localize/localize";
@@ -99,9 +99,21 @@ function getDefaultConfig(numDevices: number, hass: HomeAssistant | undefined): 
 
 export function removeConfigDefaults(config: EnergyFlowCardExtConfig, hass: HomeAssistant): EnergyFlowCardExtConfig {
   const defaultConfig: EnergyFlowCardExtConfig = getDefaultConfig(config.devices?.length ?? 0, hass);
-  config = { ...config };
+  const dateRange: DateRange = getConfigValue(config, GlobalOptions.Date_Range);
+  const threshold: string = getConfigValue(config, [EditorPages.Appearance, AppearanceOptions.Energy_Units, EnergyUnitsOptions.Prefix_Threshold]);
+
+  config = structuredClone(config);
+
+  if (threshold !== undefined) {
+    config[EditorPages.Appearance]![AppearanceOptions.Energy_Units]![EnergyUnitsOptions.Prefix_Threshold] = Number.parseInt(threshold);
+  }
+
   removeDefaultsRecursively(config, defaultConfig);
-  config.type = 'custom:' + CARD_NAME;
+
+  if (dateRange !== undefined) {
+    config[GlobalOptions.Date_Range] = dateRange;
+  }
+
   return config;
 }
 
@@ -109,15 +121,21 @@ export function removeConfigDefaults(config: EnergyFlowCardExtConfig, hass: Home
 
 function removeDefaultsRecursively(config: any, defaultConfig: any): void {
   for (const key in defaultConfig) {
-    const currentNode: any = config[key];
-    const defaultNode: any = defaultConfig[key];
+    if (key === "type") {
+      continue;
+    }
 
-    if (currentNode === undefined || Object.keys(currentNode).length === 0 || equal(currentNode, defaultNode)) {
+    const defaultNode: any = defaultConfig[key];
+    const currentNode: any = config[key];
+
+    if (currentNode === undefined ||
+      (typeof currentNode === "object" && Object.keys(currentNode).length === 0) ||
+      equal(currentNode, defaultNode)) {
       delete config[key];
     } else if (!(defaultNode instanceof Array) && typeof defaultNode === "object") {
       removeDefaultsRecursively(currentNode, defaultNode);
 
-      if (Object.keys(currentNode).length === 0) {
+      if (typeof currentNode === "object" && Object.keys(currentNode).length === 0) {
         delete config[key];
       }
     }
@@ -128,8 +146,17 @@ function removeDefaultsRecursively(config: any, defaultConfig: any): void {
 
 export function populateConfigDefaults(config: EnergyFlowCardExtConfig, hass: HomeAssistant): EnergyFlowCardExtConfig {
   const defaultConfig: EnergyFlowCardExtConfig = getDefaultConfig(config.devices?.length ?? 0, hass);
-  config = { ...config };
+
+  config = structuredClone(config);
+
   setDefaultsRecursively(config, defaultConfig);
+
+  const threshold: number = getConfigValue(config, [EditorPages.Appearance, AppearanceOptions.Energy_Units, EnergyUnitsOptions.Prefix_Threshold]);
+
+  if (threshold !== undefined) {
+    config[EditorPages.Appearance]![AppearanceOptions.Energy_Units]![EnergyUnitsOptions.Prefix_Threshold] = threshold.toString();
+  }
+
   return config;
 }
 
@@ -137,8 +164,8 @@ export function populateConfigDefaults(config: EnergyFlowCardExtConfig, hass: Ho
 
 function setDefaultsRecursively(config: any, defaultConfig: any): void {
   for (const key in defaultConfig) {
-    const currentNode: any = config[key];
     const defaultNode: any = defaultConfig[key];
+    const currentNode: any = config[key];
 
     if (currentNode === undefined) {
       config[key] = defaultNode;
@@ -156,7 +183,9 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
       [AppearanceOptions.Show_Zero_States]: true,
       [AppearanceOptions.Clickable_Entities]: false,
       [AppearanceOptions.Segment_Gaps]: false,
-      [AppearanceOptions.Use_HASS_Style]: true
+      [AppearanceOptions.Use_HASS_Style]: true,
+      [AppearanceOptions.Dashboard_Link]: undefined,
+      [AppearanceOptions.Dashboard_Link_Label]: undefined
     },
     [AppearanceOptions.Energy_Units]: {
       [EnergyUnitsOptions.Electric_Units]: EnergyUnits.WattHours,
@@ -183,25 +212,30 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
 
 export function getDefaultGridConfig(): GridConfig {
   return {
-    [NodeOptions.Import_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
-    [NodeOptions.Export_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
-    [NodeOptions.Power_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
+    ...getDefaultEntitiesConfig(),
+    [NodeOptions.Overrides]: getDefaultOverridesConfig(),
     [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
+      [ColourOptions.Flow_Import_Colour]: [],
       [ColourOptions.Flow_Export]: ColourMode.Default,
+      [ColourOptions.Flow_Export_Colour]: [],
       [ColourOptions.Circle]: ColourMode.Import,
-      [ColourOptions.Value_Import]: ColourMode.Flow,
-      [ColourOptions.Value_Export]: ColourMode.Flow,
+      [ColourOptions.Circle_Colour]: [],
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
+      [ColourOptions.Icon_Colour]: [],
+      [ColourOptions.Value_Import]: ColourMode.Flow,
+      [ColourOptions.Value_Import_Colour]: [],
+      [ColourOptions.Value_Export]: ColourMode.Flow,
+      [ColourOptions.Value_Export_Colour]: [],
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary_Colour]: []
     },
-    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
+    [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig(),
+    [GridOptions.Power_Outage]: {
+      [PowerOutageOptions.Alert_Icon]: undefined,
+      [PowerOutageOptions.Alert_State]: undefined,
+      [PowerOutageOptions.Entity_Id]: undefined
+    }
   };
 }
 
@@ -209,23 +243,23 @@ export function getDefaultGridConfig(): GridConfig {
 
 export function getDefaultBatteryConfig(): BatteryConfig {
   return {
-    [NodeOptions.Import_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
-    [NodeOptions.Export_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
-    [NodeOptions.Power_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
+    ...getDefaultEntitiesConfig(),
+    [NodeOptions.Overrides]: getDefaultOverridesConfig(),
     [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
+      [ColourOptions.Flow_Import_Colour]: [],
       [ColourOptions.Flow_Export]: ColourMode.Default,
+      [ColourOptions.Flow_Export_Colour]: [],
       [ColourOptions.Circle]: ColourMode.Export,
+      [ColourOptions.Circle_Colour]: [],
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Icon_Colour]: [],
       [ColourOptions.Value_Import]: ColourMode.Flow,
+      [ColourOptions.Value_Import_Colour]: [],
       [ColourOptions.Value_Export]: ColourMode.Flow,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value_Export_Colour]: [],
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary_Colour]: []
     },
     [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
@@ -235,18 +269,23 @@ export function getDefaultBatteryConfig(): BatteryConfig {
 
 export function getDefaultSolarConfig(): SolarConfig {
   return {
-    [NodeOptions.Import_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
-    [NodeOptions.Power_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
+    ...getDefaultEntitiesConfig(),
+    [NodeOptions.Overrides]: getDefaultOverridesConfig(),
     [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
+      [ColourOptions.Flow_Import_Colour]: [],
+      [ColourOptions.Flow_Export]: ColourMode.Default,
+      [ColourOptions.Flow_Export_Colour]: [],
       [ColourOptions.Circle]: ColourMode.Flow,
+      [ColourOptions.Circle_Colour]: [],
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Icon_Colour]: [],
       [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value_Import_Colour]: [],
+      [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Export_Colour]: [],
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary_Colour]: []
     },
     [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
@@ -256,18 +295,23 @@ export function getDefaultSolarConfig(): SolarConfig {
 
 export function getDefaultGasConfig(): GasConfig {
   return {
-    [NodeOptions.Import_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
-    [NodeOptions.Power_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
+    ...getDefaultEntitiesConfig(),
+    [NodeOptions.Overrides]: getDefaultOverridesConfig(),
     [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
+      [ColourOptions.Flow_Import_Colour]: [],
+      [ColourOptions.Flow_Export]: ColourMode.Default,
+      [ColourOptions.Flow_Export_Colour]: [],
       [ColourOptions.Circle]: ColourMode.Flow,
+      [ColourOptions.Circle_Colour]: [],
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Icon_Colour]: [],
       [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value_Import_Colour]: [],
+      [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Export_Colour]: [],
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary_Colour]: []
     },
     [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
@@ -277,11 +321,23 @@ export function getDefaultGasConfig(): GasConfig {
 
 export function getDefaultHomeConfig(): HomeConfig {
   return {
+    ...getDefaultEntitiesConfig(),
+    [NodeOptions.Overrides]: getDefaultOverridesConfig(),
     [NodeOptions.Colours]: {
+      [ColourOptions.Flow_Import]: ColourMode.Default,
+      [ColourOptions.Flow_Import_Colour]: [],
+      [ColourOptions.Flow_Export]: ColourMode.Default,
+      [ColourOptions.Flow_Export_Colour]: [],
       [ColourOptions.Circle]: ColourMode.Dynamic,
+      [ColourOptions.Circle_Colour]: [],
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Icon_Colour]: [],
+      [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Import_Colour]: [],
       [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value_Export_Colour]: [],
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary_Colour]: []
     },
     [GlobalOptions.Options]: {
       [HomeOptions.Gas_Sources]: GasSourcesMode.Do_Not_Show,
@@ -296,12 +352,23 @@ export function getDefaultHomeConfig(): HomeConfig {
 
 export function getDefaultLowCarbonConfig(): LowCarbonConfig {
   return {
+    ...getDefaultEntitiesConfig(),
+    [NodeOptions.Overrides]: getDefaultOverridesConfig(),
     [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
+      [ColourOptions.Flow_Import_Colour]: [],
+      [ColourOptions.Flow_Export]: ColourMode.Default,
+      [ColourOptions.Flow_Export_Colour]: [],
       [ColourOptions.Circle]: ColourMode.Flow,
+      [ColourOptions.Circle_Colour]: [],
       [ColourOptions.Icon]: ColourMode.Flow,
+      [ColourOptions.Icon_Colour]: [],
       [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value_Import_Colour]: [],
+      [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Export_Colour]: [],
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary_Colour]: []
     },
     [GlobalOptions.Options]: {
       [LowCarbonOptions.Low_Carbon_Mode]: LowCarbonDisplayMode.Energy
@@ -314,25 +381,23 @@ export function getDefaultLowCarbonConfig(): LowCarbonConfig {
 
 export function getDefaultDeviceConfig(importColour: number[], exportColour: number[]): DeviceConfig {
   return {
-    [NodeOptions.Import_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
-    [NodeOptions.Export_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
-    [NodeOptions.Power_Entities]: {
-      [EntitiesOptions.Entity_Ids]: []
-    },
+    ...getDefaultEntitiesConfig(),
+    [NodeOptions.Overrides]: getDefaultOverridesConfig(),
     [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,
       [ColourOptions.Flow_Import_Colour]: importColour,
       [ColourOptions.Flow_Export]: ColourMode.Default,
       [ColourOptions.Flow_Export_Colour]: exportColour,
       [ColourOptions.Circle]: ColourMode.Flow,
+      [ColourOptions.Circle_Colour]: [],
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Icon_Colour]: [],
       [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Import_Colour]: [],
       [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
-      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour
+      [ColourOptions.Value_Export_Colour]: [],
+      [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Secondary_Colour]: []
     },
     [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig(),
     [DeviceOptions.Name]: localize("common.new_device"),
@@ -344,8 +409,36 @@ export function getDefaultDeviceConfig(importColour: number[], exportColour: num
 
 //================================================================================================================================================================================//
 
+function getDefaultEntitiesConfig(): object {
+  return {
+    [NodeOptions.Import_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
+    },
+    [NodeOptions.Export_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
+    },
+    [NodeOptions.Power_Entities]: {
+      [EntitiesOptions.Entity_Ids]: []
+    }
+  };
+}
+
+//================================================================================================================================================================================//
+
+function getDefaultOverridesConfig(): OverridesConfig {
+  return {
+    [OverridesOptions.Name]: undefined,
+    [OverridesOptions.Icon]: ""
+  };
+}
+
+//================================================================================================================================================================================//
+
 function getDefaultSecondaryInfoConfig(): SecondaryInfoConfig {
   return {
+    [SecondaryInfoOptions.Display_Precision]: undefined,
+    [SecondaryInfoOptions.Entity_Id]: undefined,
+    [SecondaryInfoOptions.Icon]: undefined,
     [SecondaryInfoOptions.Unit_Position]: UnitPosition.After_Space
   };
 }

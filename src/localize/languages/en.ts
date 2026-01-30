@@ -88,6 +88,7 @@ export default {
       [EditorPages.Devices]: "Producer flow",
       [EditorPages.Gas]: "Flow",
       [EditorPages.Grid]: "Import flow",
+      [EditorPages.Low_Carbon]: "Flow",
       [EditorPages.Solar]: "Flow"
     },
     [ColourOptions.Flow_Import_Colour]: {
@@ -95,6 +96,7 @@ export default {
       [EditorPages.Devices]: "Producer color",
       [EditorPages.Gas]: "Flow color",
       [EditorPages.Grid]: "Import color",
+      [EditorPages.Low_Carbon]: "Flow color",
       [EditorPages.Solar]: "Flow color"
     },
     [ColourOptions.Icon]: "Icon",
@@ -104,18 +106,21 @@ export default {
     [ColourOptions.Value_Export]: {
       [EditorPages.Battery]: "Charge value",
       [EditorPages.Devices]: "Consumer value",
-      [EditorPages.Grid]: "Export value"
+      [EditorPages.Grid]: "Export value",
+      [EditorPages.Home]: "Value"
     },
     [ColourOptions.Value_Export_Colour]: {
       [EditorPages.Battery]: "Charge color",
       [EditorPages.Devices]: "Consumer color",
-      [EditorPages.Grid]: "Export color"
+      [EditorPages.Grid]: "Export color",
+      [EditorPages.Home]: "Value color"
     },
     [ColourOptions.Value_Import]: {
       [EditorPages.Battery]: "Discharge value",
       [EditorPages.Devices]: "Producer value",
       [EditorPages.Gas]: "Value",
       [EditorPages.Grid]: "Import value",
+      [EditorPages.Low_Carbon]: "Value",
       [EditorPages.Solar]: "Value"
     },
     [ColourOptions.Value_Import_Colour]: {
@@ -123,6 +128,7 @@ export default {
       [EditorPages.Devices]: "Producer color",
       [EditorPages.Gas]: "Value color",
       [EditorPages.Grid]: "Import color",
+      [EditorPages.Low_Carbon]: "Value color",
       [EditorPages.Solar]: "Value color"
     }
   },

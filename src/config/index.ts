@@ -1,5 +1,5 @@
 import { HomeAssistant, LovelaceCard, LovelaceCardConfig } from 'custom-card-helpers';
-import { ColourMode, LowCarbonDisplayMode, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, DateRange, DateRangeDisplayMode, PrefixThreshold, DeviceClasses, AnimationMode, DisplayMode } from '@/enums';
+import { ColourMode, LowCarbonDisplayMode, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, DateRange, DateRangeDisplayMode, DeviceClasses, AnimationMode, DisplayMode } from '@/enums';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -250,8 +250,8 @@ export interface HomeOptionsConfig {
 export interface NodeConfig {
   [NodeOptions.Export_Entities]?: EntityConfig;
   [NodeOptions.Import_Entities]?: EntityConfig;
-  [NodeOptions.Overrides]?: OverridesConfig;
   [NodeOptions.Power_Entities]?: EntityConfig;
+  [NodeOptions.Overrides]?: OverridesConfig;
   [NodeOptions.Secondary_Info]?: SecondaryInfoConfig;
   [NodeOptions.Colours]?: ColoursConfig;
 };
