@@ -1,6 +1,7 @@
-import { GlobalOptions, isValidSecondaryEntity, SecondaryInfoConfig, SecondaryInfoOptions } from "@/config";
+import { isValidSecondaryEntity, SecondaryInfoConfig, SecondaryInfoOptions } from "@/config";
 import { HomeAssistant } from "custom-card-helpers";
 import { DEFAULT_SECONDARY_INFO_CONFIG, getConfigValue } from "@/config/config";
+import { DisplayMode } from "@/enums";
 
 export class SecondaryInfo {
   public readonly entity: string | undefined;
@@ -10,10 +11,10 @@ export class SecondaryInfo {
 
   config: SecondaryInfoConfig[];
 
-  public constructor(hass: HomeAssistant, config: SecondaryInfoConfig) {
+  public constructor(hass: HomeAssistant, mode: DisplayMode, config: SecondaryInfoConfig) {
     this.config = [config, DEFAULT_SECONDARY_INFO_CONFIG];
     this.configEntity = getConfigValue(config, SecondaryInfoOptions.Entity_Id);
-    this.entity = isValidSecondaryEntity(hass, getConfigValue(config, GlobalOptions.Mode), this.configEntity) ? this.configEntity : undefined;
+    this.entity = isValidSecondaryEntity(hass, mode, this.configEntity) ? this.configEntity : undefined;
     this.icon = getConfigValue([config, DEFAULT_SECONDARY_INFO_CONFIG], SecondaryInfoOptions.Icon);
     this.isPresent = this.entity !== undefined;
   }

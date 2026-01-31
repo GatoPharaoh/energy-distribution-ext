@@ -105,7 +105,7 @@ export abstract class Node<T> {
 
     this._name = getConfigValue(this.nodeConfigs, [NodeOptions.Overrides, OverridesOptions.Name]);
     this._icon = getConfigValue(this.nodeConfigs, [NodeOptions.Overrides, OverridesOptions.Icon]);
-    this.secondary = new SecondaryInfo(hass, getConfigValue(this.nodeConfigs, NodeOptions.Secondary_Info));
+    this.secondary = new SecondaryInfo(hass, this.mode, getConfigValue(this.nodeConfigs, NodeOptions.Secondary_Info));
 
     this.isPresent = this.importEntities.length !== 0 || this.exportEntities.length !== 0;
     this.hassConfigPresent = hassImportEntities.length !== 0 || hassExportEntities.length !== 0;

@@ -143,19 +143,8 @@ const CONFIG_PAGES: {
 
 @customElement(EDITOR_ELEMENT_NAME)
 export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardEditor {
+  public hass!: HomeAssistant;
   private _mode!: DisplayMode;
-
-  public get hass(): HomeAssistant {
-    return this._hass;
-  }
-  public set hass(hass: HomeAssistant) {
-    this._hass = hass;
-
-    if (!this._secondaryEntities) {
-      this._secondaryEntities = Object.values(hass["entities"]).map(entity => (entity as EntityRegistryEntry).entity_id).filter(entityId => isValidSecondaryEntity(hass, this._mode, entityId));
-    }
-  }
-  private _hass!: HomeAssistant;
 
   @state() private _config?: EnergyFlowCardExtConfig;
   @state() private _currentConfigPage?: EditorPages;
@@ -168,6 +157,10 @@ export class EnergyFlowCardExtEditor extends LitElement implements LovelaceCardE
     assert(config, cardConfigStruct);
     this._config = populateConfigDefaults(config, this.hass);
     this._mode = getConfigValue(this._config, GlobalOptions.Mode);
+
+    if (!this._secondaryEntities) {
+      this._secondaryEntities = Object.values(this.hass["entities"]).map(entity => (entity as EntityRegistryEntry).entity_id).filter(entityId => isValidSecondaryEntity(this.hass, this._mode, entityId));
+    }
   }
 
   //================================================================================================================================================================================//
