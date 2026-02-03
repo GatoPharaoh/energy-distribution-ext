@@ -10,18 +10,18 @@ module.exports = {
       {
         replacements: [
           {
-            files: ["dist/energy-flow-card-plus.js"],
-            from: /Energy Flow Card Plus v(\d+\.\d+\.\d+)/,
-            to: "Energy Flow Card Plus v${nextRelease.version}",
+            files: ["dist/energy-distribution-ext.js"],
+            from: /Energy Distribution Extended v(\d+\.\d+\.\d+)/,
+            to: "Energy Distribution Extended v${nextRelease.version}",
             results: [
               {
-                file: "dist/energy-flow-card-plus.js",
+                file: "dist/energy-distribution-ext.js",
                 hasChanged: true,
                 numMatches: 2,
-                numReplacements: 2,
+                numReplacements: 2
               },
             ],
-            countMatches: true,
+            countMatches: true
           },
         ],
       },
@@ -30,14 +30,14 @@ module.exports = {
     [
       "@semantic-release/git",
       {
-        assets: ["CHANGELOG.md", "README.md", "package.json", "pnpm-lock.yaml"],
-      },
+        assets: ["CHANGELOG.md", "README.md", "package.json", "pnpm-lock.yaml"]
+      }
     ],
     [
       "@semantic-release/github",
       {
-        assets: "dist/*.js",
-      },
-    ],
-  ],
+        assets: "dist/*.js"
+      }
+    ]
+  ]
 };

@@ -1,8 +1,26 @@
-# Energy Flow Card Plus
+# Energy Distribution Extended
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/alex-taylor/energy-flow-card-plus?style=flat-square)
-![GitHub all releases](https://img.shields.io/github/downloads/alex-taylor/energy-flow-card-plus/total?style=flat-square)
-![commit_activity](https://img.shields.io/github/commit-activity/y/alex-taylor/energy-flow-card-plus?color=brightgreen&label=Commits&style=flat-square)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/alex-taylor/energy-distribution-ext?style=flat-square)
+![GitHub all releases](https://img.shields.io/github/downloads/alex-taylor/energy-distribution-ext/total?style=flat-square)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=flat-square)](https://github.com/hacs/integration)
+![commit_activity](https://img.shields.io/github/commit-activity/y/alex-taylor/energy-distribution-ext?color=brightgreen&label=Commits&style=flat-square)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <details> <summary>✅ Advantages of this Card compared to the official Energy Distribution Card</summary>
 
@@ -33,16 +51,6 @@
 Although the code base is very different, the design of this card is heavily inspired by the [Official Energy Distribution Card](https://www.home-assistant.io/dashboards/energy/#energy-distribution).
 
 The goal is to deliver a card that fits in the overall design of the Energy Dashboard, while providing more features, such as Individual Devices, Secondary Information and bringing small UI enhancements.
-
-## Scope
-
-This card **does not** aim to display Values (Meaning instantaneous/current consumption).
-If this is your goal, check out the [Power Flow Card Plus](https://github.com/flixlix/power-flow-card-plus).
-
-## Recommendation
-
-![](https://user-images.githubusercontent.com/61006057/238181763-b5064161-b8dd-4fa5-865a-5815635d3cbb.png)
-If you would like to customize the Energy period selector and its dates, check out this card: [Energy Period Selector Plus](https://github.com/flixlix/energy-period-selector-plus)
 
 ## Install
 
@@ -314,56 +322,3 @@ wh_kwh_threshold: 0
 This should give you something like this:
 
 ![demo-grid-solar-and-battery-minimal](https://github.com/flixlix/energy-flow-card-plus/assets/61006057/402b50be-d92c-4684-8f8e-0ffb5f4b48a5)
-
-### Flow Formula
-
-This formula is based on the official formula used by the Energy Distribution card.
-
-```js
-max - (value / totalLines) * (max - min);
-// max = max_flow_rate
-// min = min_flow_rate
-// value = line value, solar to grid for example
-// totalLines = gridConsumption + solarConsumption + solarToBattery +
-//   solarToGrid + batteryConsumption + batteryFromGrid + batteryToGrid
-```
-
-### New Flow Formula
-
-In contrast to the old flow formula, this formula calculates the flow rate independently from other lines, making it more intuitive to interpret the perceived energy. This means that a state of `10W` will always flow with the same velocity, no matter what other lines are doing. In other words this flow rate is calculated in absolute and not relative values.
-
-To get this new Flow Formula to work, simply set `use_new_flow_rate_model` in the main configuration to true. You may want to play around with the `max_expected_energy`, `min_expected_energy`, `max_flow_rate` and `min_flow_rate` to get the speeds that you wish
-
-```js
-if(value > maxIn) return maxOut; // In case energy exceeds maximum expected energy, use the fastest speed and ignore the rest.
-return ((value  -  minIn) * (maxOut  -  minOut)) / (maxIn  -  minIn) +  minOut;
-
-// value = value of the current line to calculate (eg: grid to home)
-//
-// minIn = amount of watthours at which the lowest speed will be selected. 
-//   ↳ In your configuration this is `min_expected_energy`
-//   ↳ eg: setting this at `100` means that at `100` watthours, the dots will still flow at the lowest speed
-// maxIn = amount of watthours at which the highest speed will be selected. 
-//   ↳ In your configuration this is `max_expected_energy`
-//   ↳ eg: setting this at `2000` means that everything more than `2000` will flow at the highest speed selected
-//
-// minOut = amount of watthours at which the lowest speed will be selected. 
-//   ↳ In your configuration this is `max_flow_rate`
-//   ↳ eg: setting this at `5` means that one dot will take `5` second to travel
-// maxOut = amount of watthours at which the highest speed will be selected. 
-//   ↳ In your configuration this is `min_flow_rate`
-//   ↳ eg: setting this at `1` means that one dot will take `1` second to travel
-```
-
-The following video aims to show the diffence between the two flow formulas:
-
-
-https://user-images.githubusercontent.com/61006057/231479254-91d6c625-8f38-4abb-b9ba-8dd24d6395f3.mp4
-
-Notice that when the Energy changes to only coming from the sun, the old formula accelerates to maintain a constant amount of dots/second. 
-Using the new formula is more intuitive, since you can immediately see that the Solar Energy is relatively low since the dots are flowing very slowly.
-On the old Flow Formula you might think that the sun produced a lot of energy, which in this case is not true.
-
-At the end of the day these are two options and depending on what you're interested, one might suit you better than the other, that's why I kept the old formula, you have the choice. 🙂
-
-I am still just one person working on this project and obviously have other things going on in my life, so feel free to contribute to the project. You can also feel free to create a PR with a new feature and I'll try my best to review it 😊

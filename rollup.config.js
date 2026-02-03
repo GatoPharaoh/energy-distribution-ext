@@ -15,8 +15,8 @@ const serveOptions = {
   port: 5000,
   allowCrossOrigin: true,
   headers: {
-    "Access-Control-Allow-Origin": "*",
-  },
+    "Access-Control-Allow-Origin": "*"
+  }
 };
 
 export default [
@@ -26,8 +26,8 @@ export default [
       {
         dir: "dist",
         format: "es",
-        inlineDynamicImports: true,
-      },
+        inlineDynamicImports: true
+      }
     ],
     plugins: [
       minifyHTML(),
@@ -35,14 +35,14 @@ export default [
       typescript(),
       nodeResolve(),
       json({
-        compact: true,
+        compact: true
       }),
       commonjs(),
       babel({
         exclude: "node_modules/**",
-        babelHelpers: "bundled",
+        babelHelpers: "bundled"
       }),
-      ...(dev ? [serve(serveOptions)] : [/*terser()*/]),
+      ...(dev ? [serve(serveOptions)] : [/*terser()*/])
     ],
     moduleContext: (id) => {
       const thisAsWindowForModules = [
@@ -52,6 +52,6 @@ export default [
       if (thisAsWindowForModules.some((id_) => id.trimRight().endsWith(id_))) {
         return "window";
       }
-    },
-  },
+    }
+  }
 ];
