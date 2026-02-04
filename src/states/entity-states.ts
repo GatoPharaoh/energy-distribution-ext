@@ -311,7 +311,7 @@ export class EntityStates {
     this._populateEntityArrays();
 
     if (this._primaryEntityIds.length !== 0 || this._secondaryEntityIds.length !== 0) {
-      this._inferEntityModes();
+      await this._inferEntityModes();
     }
 
     this._isConfigPresent = true;
@@ -902,7 +902,7 @@ export class EntityStates {
       if (!entityStats || entityStats.length === 0 || entityStats[0].start > periodStart.getTime()) {
         let dummyStat: StatisticValue;
 
-        logDebug("entityStats: " + entityStats + ", previousStats: " + previousStatistics);
+        logDebug("entity: " + entity + ", entityStats: " + entityStats + ", previousStats: " + previousStatistics);
 
         if (previousStatistics && previousStatistics[entity] && previousStatistics[entity].length !== 0) {
           // This entry is the final stat prior to the period we are interested in.  It is only needed for the case where we need to calculate
@@ -937,7 +937,8 @@ export class EntityStates {
         if (entityStats) {
           entityStats.unshift(dummyStat);
         } else {
-          currentStatistics[entity] = [dummyStat];
+          entityStats = [dummyStat];
+          currentStatistics[entity] = entityStats;
         }
 
         idx++;
