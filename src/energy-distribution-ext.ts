@@ -26,7 +26,7 @@ import { DeviceNode } from "@/nodes/device";
 import equal from "fast-deep-equal";
 import memoizeOne from "memoize-one";
 import { SecondaryInfo } from "@/nodes/secondary-info";
-import { logDebug } from "./logging";
+import { LOGGER } from "./logging";
 
 //================================================================================================================================================================================//
 
@@ -995,6 +995,10 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
   private _calculateDotRate(value: number, total: number): number {
     if (value <= 0 || total <= 0) {
+      if (value < 0 || total < 0) {
+        LOGGER.debug("_calculateDotRate @" + new Date() + ": value = " + value + ", total = " + total);
+      }
+
       return 0;
     }
 
@@ -1004,7 +1008,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     }
 
     if (value >= total) {
-      logDebug("_calculateDotRate @ " + new Date() + ": value=" + value + ", total=" + total);
+      LOGGER.debug("_calculateDotRate @ " + new Date() + ": value=" + value + ", total=" + total);
     }
 
     return FLOW_RATE_MAX - (value / total) * (FLOW_RATE_MAX - FLOW_RATE_MIN);

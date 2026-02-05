@@ -10,7 +10,7 @@ import { SolarNode } from "@/nodes/solar";
 import { DeviceNode } from "@/nodes/device";
 import { addDays, addHours, differenceInDays, endOfToday, getHours, isFirstDayOfMonth, isLastDayOfMonth, startOfDay, startOfToday } from "date-fns";
 import { EnergyUnits, SIUnitPrefixes, EntityMode, VolumeUnits, checkEnumValue, DateRange, EnergyType, DeviceClasses, EnergyDirection, DisplayMode } from "@/enums";
-import { logDebug } from "@/logging";
+import { LOGGER } from "@/logging";
 import { getEnergyDataCollection } from "@/energy";
 import { BiDiState, Flows, States } from "@/nodes";
 import { UNIT_CONVERSIONS } from "./unit-conversions";
@@ -247,7 +247,7 @@ export class EntityStates {
           this._loadStatistics(data.start, data.end || endOfToday())
         }))
         .catch(err => {
-          logDebug(err);
+          LOGGER.debug(err);
           return (): void => { };
         });
     }
@@ -480,7 +480,7 @@ export class EntityStates {
 
       const timeout: NodeJS.Timeout = setTimeout(() => {
         this._dataStatus = DataStatus.Timed_Out;
-        logDebug(`No energy statistics received after ${ENERGY_DATA_TIMEOUT * 2}ms`);
+        LOGGER.debug(`No energy statistics received after ${ENERGY_DATA_TIMEOUT * 2}ms`);
       },
         ENERGY_DATA_TIMEOUT * 2
       );
@@ -500,7 +500,13 @@ export class EntityStates {
         secondaries.length !== 0 ? this._fetchStatistics(periodStart, periodEnd, secondaries, period) : Promise.resolve()
       ]);
 
-      logDebug(`Received per-${primaryPeriod} stats (primary${this.lowCarbon.isPresent ? ", low-carbon" : ""}${secondaries.length !== 0 ? ", secondary" : ""}) for period ${periodStart} - ${periodEnd}] at ${new Date()} in ${Date.now() - fetchStartTime}ms`);
+      console.log("primary: %O", primaryData);
+      console.log("preivousPrimary: %O", previousPrimaryData);
+      console.log("secondary: %O", secondaryData);
+      console.log("preivousSecondary: %O", previousSecondaryData);
+
+      LOGGER.debug(`Received per-${primaryPeriod} stats (primary${this.lowCarbon.isPresent ? ", low-carbon" : ""}${secondaries.length !== 0 ? ", secondary" : ""}) for period ${periodStart} - ${periodEnd}] in ${Date.now() - fetchStartTime}ms`);
+
       clearTimeout(timeout);
 
       this._co2data = co2data || undefined;
@@ -542,7 +548,7 @@ export class EntityStates {
           mode = EntityMode.Resetting;
         }
 
-        logDebug(`${entity} is a ${mode} sensor (change=${firstStat.change}, state=${firstStat.state})`);
+        LOGGER.debug(`${entity} is a ${mode} sensor (change=${firstStat.change}, state=${firstStat.state})`);
         entityModes.set(entity, mode);
       } else {
         entityModes.set(entity, EntityMode.Totalising);
@@ -902,7 +908,7 @@ export class EntityStates {
       if (!entityStats || entityStats.length === 0 || entityStats[0].start > periodStart.getTime()) {
         let dummyStat: StatisticValue;
 
-        logDebug("entity: " + entity + ", entityStats: " + entityStats + ", previousStats: " + previousStatistics);
+        LOGGER.debug("entity: " + entity + ", entityStats: " + entityStats + ", previousStats: " + previousStatistics[entity]);
 
         if (previousStatistics && previousStatistics[entity] && previousStatistics[entity].length !== 0) {
           // This entry is the final stat prior to the period we are interested in.  It is only needed for the case where we need to calculate
@@ -910,7 +916,7 @@ export class EntityStates {
           // not want to include its values in the stats calculations.
           const previousStat: StatisticValue = previousStatistics[entity][0];
 
-          logDebug("using previous: " + previousStat)
+          LOGGER.debug("using previous: " + previousStat);
 
           dummyStat = {
             ...previousStat,
@@ -918,7 +924,9 @@ export class EntityStates {
             state: this._entityModes.get(entity) === EntityMode.Totalising ? previousStat.state : 0
           };
         } else {
-          logDebug("no previous, creating dummy");
+          LOGGER.debug("no previous, creating dummy");
+
+          LOGGER.debug("current sensor state=" + this.hass.states[entity].state + " changed@ " + this.hass.states[entity].last_changed + " updated@ " + this.hass.states[entity].last_updated);
 
           dummyStat = {
             change: 0,
@@ -976,6 +984,8 @@ export class EntityStates {
   //================================================================================================================================================================================//
 
   private _fetchStatistics(periodStart: Date, periodEnd: Date, entityIds: string[], period: Period): Promise<Statistics> {
+    LOGGER.debug("fetching stats for period " + periodStart + " to " + periodEnd);
+
     return this.hass.callWS<Statistics>({
       type: "recorder/statistics_during_period",
       start_time: periodStart.toISOString(),
