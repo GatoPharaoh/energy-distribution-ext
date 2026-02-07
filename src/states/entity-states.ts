@@ -8,7 +8,7 @@ import { HomeNode } from "@/nodes/home";
 import { LowCarbonNode } from "@/nodes/low-carbon";
 import { SolarNode } from "@/nodes/solar";
 import { DeviceNode } from "@/nodes/device";
-import { addDays, addHours, differenceInDays, endOfToday, getHours, isFirstDayOfMonth, isLastDayOfMonth, startOfDay, startOfToday } from "date-fns";
+import { addDays, addHours, addMonths, differenceInDays, endOfToday, getHours, isFirstDayOfMonth, isLastDayOfMonth, startOfDay, startOfMonth, startOfToday } from "date-fns";
 import { EnergyUnits, SIUnitPrefixes, EntityMode, VolumeUnits, checkEnumValue, DateRange, EnergyType, DeviceClasses, EnergyDirection, DisplayMode } from "@/enums";
 import { LOGGER } from "@/logging";
 import { getEnergyDataCollection } from "@/energy";
@@ -448,11 +448,7 @@ export class EntityStates {
             const delta: number = state - lastState;
             const units: string | undefined = stateObj.attributes.unit_of_measurement;
 
-            if (delta > 0) {
-              deltaSum += this._toBaseUnits(delta, units, requestedUnits);
-            } else if (delta < 0) {
-              deltaSum += this._toBaseUnits(state, units, requestedUnits);
-            }
+            deltaSum += this._toBaseUnits(delta, units, requestedUnits);
           }
         }
       });
@@ -892,6 +888,8 @@ export class EntityStates {
       let idx: number = 0;
 
       if (!entityStats || entityStats.length === 0 || entityStats[0].start > periodStart.getTime()) {
+        const stateObj: HassEntity = this.hass.states[entity];
+        const state: number = Date.parse(stateObj.last_changed) <= periodEnd.getTime() ? Number(stateObj.state) : 0;
         let dummyStat: StatisticValue;
 
         if (previousStatistics && previousStatistics[entity] && previousStatistics[entity].length !== 0) {
@@ -903,13 +901,12 @@ export class EntityStates {
           dummyStat = {
             ...previousStat,
             change: 0,
-            state: this._entityModes.get(entity) === EntityMode.Totalising && previousStat.state ? previousStat.state : 0
+            state: this._entityModes.get(entity) === EntityMode.Totalising ? previousStat.state : state
           };
         } else {
-          const state: number = Number(this.hass.states[entity].state);
           dummyStat = {
             change: 0,
-            state: this._entityModes.get(entity) === EntityMode.Totalising && Date.parse(this.hass.states[entity].last_changed) <= periodEnd.getTime() ? state : 0,
+            state: state,
             sum: 0,
             start: periodStart.getTime(),
             end: periodEnd.getTime(),

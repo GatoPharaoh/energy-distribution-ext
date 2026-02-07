@@ -7,6 +7,20 @@
 
 An upgraded and configurable Energy Distribution Card, with a raft of new features and improvements.  It supports both Energy and Power flows, additional Devices and live sensor-data display.
 
+---
+
+[What's new](#features)
+
+[Installation](#installation)
+
+[Getting started](#getting-started)
+
+[Customising the card](#customisation)
+
+[Example configurations](#example-configurations)
+
+---
+
 ### Features
 - Optional automatic loading of the config from the [Energy Dashboard](https://www.home-assistant.io/docs/energy/) for hassle-free out-of-the-box setup
 - Configure entities independently of the Energy Dashboard
@@ -39,22 +53,26 @@ An upgraded and configurable Energy Distribution Card, with a raft of new featur
 - Circles can show where the energy they produce was sent, and where the energy they received came from
 - The flow-line dots stay the same size as the card is resized
 - Circles resize to fit their content
-- Show gaps between segments in circles to improve clarity
+- Optional gaps between segments in circles to improve clarity
+
+---
 
 ## Installation
 
 ### HACS (recommended)
 
 This card is available in [HACS](https://hacs.xyz/) (Home Assistant Community Store).
-_HACS is a third party community store and is not included in Home Assistant out of the box. To install it, please follow their instructions [here](https://www.hacs.xyz/docs/use/)._
+_HACS is a third party community store and is not included in Home Assistant out of the box. To install it, please follow their instructions [here](https://www.hacs.xyz/docs/use/).
 
 To install:
 
-- Go to [HACS](http://home-assistant.local:8123/hacs/dashboard)
+- Go to [HACS](http://home-assistant.local:8123/hacs/dashboard) in your Home Assistant
 - Search for `Energy Distribution Extended`
 - Install via the UI
 
-### <details>  <summary>Manual Install</summary>
+<details>
+
+<summary>Manual Install</summary>
 
 1. Download and copy `energy-distribution-ext.js` from the [latest release](https://github.com/alex-taylor/energy-distribution-ext/releases/latest) into your `config/www` directory.
 
@@ -62,7 +80,7 @@ To install:
 
 ### Add resource reference
 
-If you configure Dashboards via YAML, add a reference to `energy-distribution-ext.js` inside your `configuration.yaml`:
+If you configure dashboards via YAML, add a reference to `energy-distribution-ext.js` inside your `configuration.yaml`:
 
 ```yaml
 resources:
@@ -81,171 +99,224 @@ If you use the graphical editor, add the resource:
  
 </details>
 
+---
+
 ## Getting started
 
-> ⚠️ This card offers a **LOT** of configuration options. Don't worry, if you want your card's appearance to match the oficial Energy Flow Card, you will only need to setup the entities. The rest of the options only enable further customization. If this is your goal, please go to [Minimal Configuration](#minimal-configuration)
+A newly-created Energy Distribution Extended card will have a similar appearance and behaviour to the official HASS card.  If that is all you need then no additional configuration is needed!  But it offers [many more options](#customisation) for customisation...
 
+---
 
-### Options
+## Customisation
+
+The card offers a *lot* of configuration options!  You may find it simpler to use the UI, but if you need to edit the YAML directly it's all documented here.
+
+The only option is is required is the `type`: this will set the card up to mimic the official Energy Dashboard Card without any further tweaking needed.
+
+Many options are mode-specific: they will only work in either `energy` or `power` mode.  It is always safe to leave these options in your config; they will be ignored if not used.
 
 #### Card options
 
-| Name                | Type      |   Default    | Description                                                                                                                                                                  |
-|---------------------| --------- |:------------:|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| type                | `string`  | **required** | `custom:energy-flow-card-plus`.                                                                                                                                               |
-| entities            | `object`  | **required** | One or more sensor entities, see [entities object](#entities-object) for additional entity options.                                                                          |
-| title               | `string`  |              | Shows a title at the top of the card.                                                                                                                                        |
-| energy_date_selection | `boolean` | true | If set to `true`, will follow the energy date picker (that is in the same dashboard) and get entities information from the statistics. |
-| dashboard_link      | `string`  |              | Shows a link to an Energy Dashboard. Should be a url path to location of your choice. If you wanted to link to the built-in dashboard you would enter `/energy` for example. |
-| inverted_entities   | `string`  |              | Comma seperated list of entities that should be inverted (negative for consumption and positive for production). Example: `inverted_entities: battery, grid`           |
-| wh_decimals          | `number`  |      1       | Number of decimals rounded to when watthours are displayed.                                                                                                                      |
-| kwh_decimals         | `number`  |      1       | Number of decimals rounded to when kilowatthours are displayed.                                                                                                                  |
-| mwh_decimals          | `number`  |      1       | Number of decimals rounded to when megawatthours are displayed.                                                                                                                      |
-| min_flow_rate       | `number`  |     .75      | Represents how much time it takes for the quickest dot to travel from one end to the other in seconds. |
-| max_flow_rate       | `number`  |      6       | Represents how much time it takes for the slowest dot to travel from one end to the other in seconds. |
-| wh_kwh_threshold      | `number`  |      1000       | The number of watthours to display before converting to and displaying kilowatthours. Setting of 0 will always display in kilowatthours. |
-| kwh_mwh_threshold      | `number`  |      1000       | The number of kilowatthours to display before converting to and displaying megawatthours. Setting of 0 will always display in megawatthours. |
-| clickable_entities  | `boolean` |    false     | If true, clicking on the entity will open the entity's more info dialog. |
-| min_expected_energy | `number`  |    0.01 | Represents the minimum amount of energy (in Watthours) expected to flow through the system at a given moment. Only used in the [New Flow Formula](#new-flow-formula). |
-| max_expected_energy | `number`  | 2000 | Represents the maximum amount of energy (in Watthours) expected to flow through the system at a given moment. Only used in the [New Flow Formula](#new-flow-formula). |
-| display_zero_lines | `boolean` | true | If false, lines where no energy is flowing will be hidden. |
-| use_new_flow_rate_model | `boolean` | false | If set to true, the card will use the [New Flow Formula](#new-flow-formula).
+[test](docs/config.md)
 
-#### Entities object
-
-At least one of _grid_, _battery_, or _solar_ is required. All entites (except _battery_charge_) should have a `unit_of_measurement` attribute of Wh(Watthours) or kW(kilowatthours).
-
-| Name           | Type                | Description                                                                                                                                                                                                     |
-| -------------- | :------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| grid           | `object` | Check [Grid Configuration](#grid-configuration) for more information. |
-| solar          | `object` | Check [Solar Configuration](#solar-configuration) for more information. |
-| battery        | `object` | Check [Battery Configuration](#battery-configuration) for more information. |
-| individual1    | `object` | Check [Individual Devices](#individual-configuration) for more information. |
-| individual2    | `object` | Check [Individual Devices](#individual-configuration) for more information. |
-| home           | `object` | Check [Home Configuration](#home-configuration) for more information. |
-| fossil_fuel_percentage | `object` | Check [Fossil Fuel Percentage](#fossil-fuel-configuration) for more information. |
-
-#### Grid Configuration
-
-| Name        | Type    | Default  | Description                                                                                       |
-| ----------- | ------- | -------- | ------------------------------------------------------------------------------------------------- |
-| entity | `object` | `undefined` required | Object containing `production` and/or `consumption` properties with one or a list of Entity IDs of a sensor supporting a state with positive values. Check [split entites](#split-entities) for more info. |
-| name  | `string` | `Grid` | If you don't populate this option, the label will continue to update based on the language selected. |
-| icon | `string` | `mdi:transmission-tower` | Icon path for the icon inside the Grid Circle. |
-| color | `object` |  | Check [Color Objects](#color-object) for more information. |
-| color_icon | `boolean` or "production" or "consumption" | `false` | If set to `true`, icon color will match the highest value. If set to `production`, icon color will match the production. If set to `consumption`, icon color will match the consumption. |
-| color_circle | `boolean` or "production" or "consumption" | `false` | If set to `production`, circle color will match the production. If set to `consumption`, circle color will match the consumption. If set to `false`, circle color will match the consumption. |
-| secondary_info | `object` | `undefined` | Check [Secondary Info Object](#secondary-info-configuration) |
-
-#### Solar Configuration
-
-| Name        | Type    | Default  | Description                                                                                       |
-| ----------- | ------- | -------- | ------------------------------------------------------------------------------------------------- |
-| entity | `string` | `undefined` required | One or a list of Entity IDs providing a state with the value of solar production. |
-| name  | `string` | `Solar` | Label for the solar option. If you don't populate this option, the label will continue to update based on the language selected. |
-| icon | `string` | `mdi:solar-power` | Icon path for the icon inside the Solar Circle. |
-| color | `string` |  | HEX value of the color for circles labels and lines of solar production. |
-| color_icon | `boolean` | `false` | If set to `true`, icon color will match the circle's color. If set to `false`, icon color will match the text's color.  |
-| color_value | `boolean` | `false` | If set to `true`, text color of the state will match the circle's color. If set to `false`, text color of the state will be your primary text color.  |
-| display_zero_state | `boolean` | `true` | If set to `true`, the state will be shown even if it is `0`. If set to `false`, the state will be hidden if it is `0`. |
-| secondary_info | `object` | `undefined` | Check [Secondary Info Object](#secondary-info-configuration) |
-
-#### Battery Configuration
-
-| Name        | Type    | Default  | Description                                                                                       |
-| ----------- | ------- | -------- | ------------------------------------------------------------------------------------------------- |
-| entity | `object` | `undefined` required | Object containing `production` and/or `consumption` properties with one or a list of Entity IDs of a sensor supporting a state with positive values. Check [split entites](#split-entities) for more info. |
-| state_of_charge | `string` | `undefined` required | Entity ID providing a state with the state of charge of the battery in percent (state of  `100` for a full battery). |
-| state_of_charge_unit | `string` | `%` | Unit of the state of charge. |
-| state_of_charge_unit_white_space | `boolean` | `true` | If set to `false`, the unit of the state of charge will not have a white space in front of it. |
-| state_of_charge_decimals | `number` | `0` | Number of decimals to show for the state of charge. |
-| name  | `string` | `Battery` | Label for the battery option. If you don't populate this option, the label will continue to update based on the language selected. |
-| icon | `string` | `mdi:battery` or dynamic based on state of the battery | Icon path for the icon inside the Battery Circle. |
-| color | `object` |  | Check [Color Objects](#color-object) for more information. |
-| color_icon | `boolean` or "production" or "consumption" | `false` | If set to `true`, icon color will match the highest value. If set to `production`, icon color will match the production. If set to `consumption`, icon color will match the consumption. |
-| state_of_charge_unit_white_space | `boolean` | `true` | If set to `false`, there will be no white space between the state of charge and the unit of the state of charge. |
-| color_state_of_charge_value | `boolean` or "production" or "consumption" | If set to `true`, state of charge text color will match the highest value. If set to `production`, state of charge text color will match the production. If set to `consumption`, state of charge text color will match the consumption. |
-| color_circle | `boolean` or "production" or "consumption" | If set to `production`, circle color will match the production. If set to `consumption`, circle text color will match the consumption. |
-
-#### Individual Configuration
-
-| Name        | Type    | Default  | Description                                                                                       |
-| ----------- | ------- | -------- | ------------------------------------------------------------------------------------------------- |
-| entity | `string` | `undefined` required | One or a list of Entity IDs providing a state with the value of an individual consumption. |
-| name  | `string` | `Car` or `Motorcycle` | Label for the individual device option. If you don't populate this option, the label will continue to update based on the language selected. |
-| icon | `string` | `mdi:car-electric` or `mdi:motorbike-electric` | Icon path for the icon inside the Individual Device Circle. |
-| color | `string` | `#d0cc5b` or `#964cb5` | HEX value of the color for circles labels and lines of the individual device. |
-| color_icon | `boolean` | `false` | If set to `true`, icon color will match the circle's color. If set to `false`, icon color will match the text's color.  |
-| unit_of_measurement | `string` | `Wh`or `kWh` (dynamic) | Sets the unit of measurement to show in the corresponding circle |
-| inverted_animation |`boolean` | `false` | If set to true, the small dots will flow in the opposite direction. |
-| display_zero | `boolean` | `false` | If set to `true`, the device will be displayed even if the entity state is `0` or not a number (eg: `unavailable`). Otherwise, the non-fossil section will be hidden. |
-| display_zero_tolerance | `number` | `0` | If set, the device will be displayed if the state is greater than the tolerance set (This is also available for the secondary info). No need to set `display_zero` property to true. |
-| display_zero_state | `boolean` | `true` | If set to `true`, the state will be shown even if it is `0`. If set to `false`, the state will be hidden if it is `0`. |
-| color_value | `boolean` | `false` | If set to `true`, state text color will match the circle's color. If set to `false`, state text color will be the primary text color.  |
-| secondary_info | `object` | `undefined` | Check [Secondary Info Object](#secondary-info-configuration) |
-
-#### Home Configuration
-
-| Name        | Type    | Default  | Description                                                                                       |
-| ----------- | ------- | -------- | ------------------------------------------------------------------------------------------------- |
-| entity | `string` | `undefined` required | One or a list of Entity IDs providing a state with the value of your home's consumption. Note that this entity will not be displayed and will only be used for the more info dialog when clicking the home section. |
-| name  | `string` | `Home` | Label for the home option. If you don't populate this option, the label will continue to update based on the language selected. |
-| icon | `string` | `mdi:home` | Icon path for the icon inside the Home Circle. |
-| color_icon | `boolean` or "solar" or "grid" or "battery" | `false` | If set to `true`, icon color will match the highest value. If set to `solar`, icon color will match the color of solar. If set to `grid`, icon color will match the color of the grid consumption. If set to `battery`, icon color will match the color of the battery consumption. |
-| color_value | `boolean` or "solar" or "grid" or "battery" | `false` | If set to `true`, state text color will match the highest value. If set to `solar`, state text color will match the color of solar. If set to `grid`, state text color will match the color of the grid consumption. If set to `battery`, state text color will match the color of the battery consumption. |
-| secondary_info | `object` | `undefined` | Check [Secondary Info Object](#secondary-info-configuration) |
-| subtract_individual | `boolean` | false | If set to `true`, the home consumption will be calculated by subtracting the sum of the individual devices from the home consumption. |
-| override_state | `boolean` | `false` | If set to `true`, the home consumption will be the state of the entity provided. By default the home consumption is caluclated by adding up all sources. This is useful, when for example you are using an inverter and it has energy losses. |
-
-#### Fossil Fuel Configuration
-
-| Name        | Type    | Default  | Description                                                                                       |
-| ----------- | ------- | -------- | ------------------------------------------------------------------------------------------------- |
-| show | `boolean` | `false` | If set to `true`, the fossil fuel section will be displayed. This information is probvided by the HA Energy Integration, so make sure you have it and CO2-Signal set up correctly. |
-| entity           | `string` | `none` | Entity ID for opening the more info dialog. |
-| name        | `string` | Low-carbon | Name to appear as a label on top of the circle. |
-| icon | `string`            | `mdi:leaf` | Icon path (eg: `mdi:home`) to display inside the circle of the device. |
-| color          | `string`        | `#0f9d58` |  HEX Value of a color to display as the stroke of the circle and line connecting to the grid. |
-| color_icon | `boolean` | `false` | If `true`, the icon will be colored with the color property. Otherwise it will be the same color as all other icons. |
-| display_zero | `boolean` | `true` | If set to `true`, the device will be displayed even if the entity state is `0` or not a number (eg: `unavailable`). Otherwise, the non-fossil section will be hidden. |
-| display_zero_state | `boolean` | `true` | If set to `true`, the state will be shown even if it is `0`. If set to `false`, the state will be hidden if it is `0`. |
-| state_type | `string` | `energy` | The type of state to use for the entity. Can be `energy` or `percentage`. When set to `energy` the state will be the amount of energy from the grid that is low-carbon. When set to `percentage` the state will be the percentage of energy from the grid that is low-carbon. |
-| unit_white_space | `boolean` | `true` | If set to `false` will not add any whitespace between unit and state. Otherwise, white space will be added. |
-| calculate_flow_rate | `boolean` or `number` | `false` | If set to `true`, the flow rate will be calculated by using the flow rate formula (either the new or the old one, depending on your configuration). If set to a number, the flow rate will be set to that number. For example, defining the value `10` will ensure one dot will flow every 10 seconds. |
-| secondary_info | `object` | `undefined` | Check [Secondary Info Object](#secondary-info-configuration) |
-
-#### Color Object
-
-| Name        | Type    | Description                                                                                       |
-| ----------- | ------- | ------------------------------------------------------------------------------------------------- |
-| production | `string` | HEX value of the color for circles labels and lines of production. |
-| consumption | `string` | HEX value of the color for circles labels and lines of consumption. |
-
-#### Split entities
-
-Can be use with either Grid or Battery configuration. The same `unit_of_measurement` rule as above applies.
-
-| Name        | Type     | Description                                                                                       |
-| ----------- | -------- | ------------------------------------------------------------------------------------------------- |
-| consumption | `string` | Entity ID providing a state value for consumption, this is required if using a split grid object. |
-| production  | `string` | Entity ID providing a state value for production                                                  |
-
-#### Secondary Info Configuration
-
-This Feature allows you to configure an additional small text for each Individual Device. Here you can put , for example, the state of charge of an electric car.
-
-| Name        | Type     | Description                                                                                       |
-| ----------- | -------- | ------------------------------------------------------------------------------------------------- |
-| entity| `string` required | Entity ID providing a state value that is going to be displayed. |
-| unit_of_measurement | `string` | A string to be used as the unit of measurement. (Important: don't forget surrounding string with quotes) |
-| icon | `string` | An icon path to be displayed next to the state of the individual device. This is optional, meaning if you don't use this, no icon will be displayed. |
-| unit_white_space | `boolean` |  Default is `true`. If set to `false` will not add any whitespace between unit and state. Otherwise, white space will be added. |
-| display_zero | `boolean` | Default is `false`. If set to `true` info will still be displayed if state of the entity is `0` or `unavailable`. |
-| display_zero_tolerance | `number` | `0` | If set, the device will be displayed if the state is greater than the tolerance set. No need to set `display_zero` property to true. |
-| template | `string` | `undefined` | Here you can enter a [HA Template](https://www.home-assistant.io/docs/configuration/templating/). The output of the template will be displayed. Space is limited inside the circle and too much text will result in overflow using ellipsis, so use with caution. Will update automatically in case one of the provided entities inside the template updates. Can only be used in case `entity` was not set. |
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `type` | `string` | **required** | Must be set to `custom:energy-distribution-card-ext` |
+| `mode` | `energy | power` | `energy` | Selects whether the card should display energy or power flows |
+| `title` | `string` | | Shows a title at the top of the card |
+| `use_hass_config` | `boolean` | `true` | Loads the entities configured for the HASS Energy Dashboard |
+| `date_range` | `today | yesterday | this_week | this_month | this_quarter | this_year | now-7d | now-30d | now-12m | custom | from_date_picker` | `from_date_picker` if an `energy-date-selection` card is present in the dashboard;<br>`today` otherwise | The date-range to display (`energy` mode only) |
+| `date_range_from` | `string` | | The start of the date-range to display, in `YYYY-MM-DD` format (if `date_range` is `custom`) |
+| `date_range_to` | `string` | | The end of the date-range to display, in `YYYY-MM-DD` format (if `date_range` is `custom`) |
+| `date_range_live` | `boolean` | `false` | Include the latest data from the entities in the display (`energy` mode only) |
+| `date_range_display` | `do_not_show | label | dates | both` | `do_not_show` | Display the selected date-range at the top of the card (`energy` mode only) |
+| `appearance` | `Appearance` | | [Appearance options section](docs/appearance.md) |
+| `battery` | `Battery` | | [Battery options section](#battery-options-section) |
+| `gas` | `Gas` | | [Gas options section](#gas-options-section) |
+| `grid` | `Grid` | | [Grid options section](#grid-options-section) |
+| `home` | `Home` | | [Home options section](#home-options-section) |
+| `low-carbon` | `Low-carbon` | | [Low-carbon options section](#low-carbon-options-section) |
+| `solar` | `Solar` | | [Solar options section](#solar-options-section) |
+| `Devices` | array of `Devices` | | [Devices options section](#devices-options-section) | 
 
 
-### Minimal Configuration
+
+<details><summary>Battery</summary>
+
+#### Battery options section
+`Import` is energy discharged from the battery; `export` is energy used to charge the battery.
+
+In `power` mode, the entities must return positive values for discharging and negative values for charging.
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
+| `export_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
+| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
+| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
+| `colours` | | | [Battery colours section](#battery-colours-section) |
+| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section)<br>If the selected entity is a state-of-charge, the icon for the battery circle will, if not [overridden](#overrides-settings-section), reflect the charge level of the battery (`power` mode only) |
+<p>
+<details><summary>Colours Settings</summary>
+
+##### Battery colours section
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `flow_import_mode` | `default | custom` | `default` | If `default` the flow-colour will use the HASS setting; otherwise you can select your own colour using the `flow_import_colour` property |
+| `flow_import_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
+| `flow_export_mode` | `default | custom` | `default` | If `default` the flow-colour will use the HASS setting; otherwise you can select your own colour using the `flow_import_colour` property |
+| `flow_export_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
+| `circle_mode` | `dynamic | auto | import | export | none | custom` | `export` | If `dynamic` the circle will display the sources of energy/power exported to the battery and the destinations of energy/power imported from the battery; if `auto` the circle will take the colour of the larger of the flows |
+| `circle_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
+| `icon_mode` | `auto | import | export | none | custom` | `none` | If `auto` the icon will take the colour of the larger of the flows |
+| `icon_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
+| `value_import_mode` | `none | flow | custom` | `flow` | If `flow` the value will take the colour of the flow |
+| `value_import_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
+| `value_export_mode` | `none | flow | custom` | `flow` | If `flow` the value will take the colour of the flow |
+| `value_export_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
+| `secondary_mode` | `auto | import | export | none | custom` | `none` | If `auto` the secondary value will take the colour of the larger of the flows |
+| `icon_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
+
+</details>
+
+</details>
+<p>
+<details><summary>Gas</summary>
+
+#### Gas options section
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
+| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
+| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
+| `colours` | | | [Gas colours section](#gas-colours-section) |
+| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
+
+</details>
+<p>
+<details><summary>Grid</summary>
+
+#### Grid options section
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
+| `export_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
+| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
+| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
+| `colours` | | | [Grid colours section](#grid-colours-section) |
+| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
+| `power_outage` | | | Power-outage section |
+
+</details>
+<p>
+<details><summary>Home</summary>
+
+#### Home options section
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
+| `colours` | | | [Home colours section](#home-colours-section) |
+| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
+| `options` | | | [Home settings section](#home-settings-section) |
+
+</details>
+<p>
+<details><summary>Low-Carbon</summary>
+
+#### Low-carbon options section
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
+| `colours` | | | [Low-carbon colours section](#low-carbon-colours-section) |
+| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
+| `options` | | | [Low-carbon settings section](#low-carbon-settings-section) |
+
+</details>
+<p>
+<details><summary>Solar</summary>
+
+#### Solar options section
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
+| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
+| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
+| `colours` | | | [Solar colours section](#solar-colours-section) |
+| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
+
+</details>
+<p>
+<details><summary>Devices</summary>
+
+#### Devices options section
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `name` | `string` | `New Device` | The name for the device |
+| `icon` | `string` | `mdi:devices` | The icon for the device |
+| `energy_type` | `electric | gas` | **required** | The type of the device |
+| `energy_direction` | `consumer | producer | both` | **required** | Whether the device acts as a consumer of energy/power, a producer or both |
+| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
+| `export_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
+| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
+| `colours` | | | [Device colours section](#device-colours-section) |
+| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
+
+</details>
+<p>
+<details><summary>Entities</summary>
+
+##### Entities settings section
+Any number of entities may be selected, and their values will be summed for display. If [use_hass_config](#card-options) is `true`, the Energy Dashboard's entities will be loaded automatically and added to the totals. Selecting entities here will not override these.
+
+If `mode` is `energy`, the entities must be of `device_class` `energy` and `state_class` `total` or `total_increasing`.
+
+If `mode` is `power`, the entities must be of `device_class` `power` and `state_class` `measurement`.
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `entity_ids` | `string[]` | | An array of entity IDs |
+
+</details>
+<p>
+<details><summary>Secondary-Info</summary>
+
+##### Secondary-info settings section
+If `mode` is `energy`, the entity must be of `state_class` `total` or `total_increasing`.
+
+If `mode` is `power`, the entity must be of `state_class` `measurement`.
+
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `entity_id` | `string` | | The entity to display |
+| `icon` | `string` | | An icon to be displayed next to the entity's value |
+| `unit_position` | `after_space | before_space | after | before | hidden` | `after_space` | The position of the units relative to the value, and whether to separate the units and value with a space |
+| `display_precision` | number | The number of decimal places to show; if not set, the entity's settings will be used |
+
+</details>
+<p>
+<details><summary>Overrides</summary>
+
+##### Overrides settings section
+| Name | Type | Default | Description |
+|---|---|---|---|
+| `name` | `string` | | Provides a different name for the circle |
+| `icon` | `icon` | | Provides a different icon for the circle |
+
+</details>
+
+
+
+
+
+
+
+
+
+
+
+---
+
+### Example Configurations
 
 > Don't forget to change the entity ids
 

@@ -4,6 +4,11 @@ TODO
 Code
 ----
 
+  - the sensor-type inference will only detect resetting sensors which reset at the start of the current day
+    - this is fine for daily-resetting, but not for anything else
+    - it also can't detect a resetting sensor which has not yet reset at all (eg, a newly-created one)
+    - so the docs need to emphasise that non-resetting sensors are preferred and daily-resetters are tolerated
+
   - BUG: the dots are being rendered at the (0,0) of the lines panel
     - may now be fixed?
   - BUG: the 'Loading' message appears over a very short card, looks like while the lines are being rendered the nodes are not
@@ -64,7 +69,6 @@ Before release
   - look into better default colours for devices which work in both light and dark modes
   - README and CHANGELOG updates
   - unit-testing
-  - add license
   - reinstate terser in rollup.config.js
   - check against the Plus cards for missing/broken functionality
   - check against the Plus issue-lists for features which might be worth adding

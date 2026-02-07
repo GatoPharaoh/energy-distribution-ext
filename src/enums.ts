@@ -58,7 +58,7 @@ namespace Enums {
 
   export const EnergyDirection = {
     Consumer_Only: "consumer",
-    Producer_Only: "source",
+    Producer_Only: "producer",
     Both: "both"
   } as const satisfies Record<string, string>;
 

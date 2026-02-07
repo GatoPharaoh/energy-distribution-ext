@@ -351,7 +351,6 @@ export function getDefaultHomeConfig(): HomeConfig {
 
 export function getDefaultLowCarbonConfig(): LowCarbonConfig {
   return {
-    ...getDefaultEntitiesConfig(),
     [NodeOptions.Overrides]: getDefaultOverridesConfig(),
     [NodeOptions.Colours]: {
       [ColourOptions.Flow_Import]: ColourMode.Default,

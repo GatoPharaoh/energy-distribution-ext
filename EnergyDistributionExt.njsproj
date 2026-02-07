@@ -4,7 +4,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{787f3ad3-f21e-41bc-8cb7-c10ec1d388f4}</ProjectGuid>
-    <ProjectHome></ProjectHome>
+    <ProjectHome>
+    </ProjectHome>
     <ProjectView>ShowAllFiles</ProjectView>
     <StartupFile>.eslintrc.ts</StartupFile>
     <WorkingDirectory>.</WorkingDirectory>
@@ -19,6 +20,10 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
+    <Content Include="docs\appearance.md" />
+    <Content Include="docs\config.md">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="hacs.json" />
     <Content Include="package.json" />
     <Content Include="src\ui-editor\components\page-header.ts">
@@ -53,6 +58,7 @@
     <None Include="src\ui-editor\schema\index.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="docs\" />
     <Folder Include="src\nodes\" />
     <Folder Include="src\ui-helpers\" />
     <Folder Include="src\states\" />
