@@ -117,8 +117,6 @@ Many options are mode-specific: they will only work in either `energy` or `power
 
 #### Card options
 
-[test](docs/config.md)
-
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `type` | `string` | **required** | Must be set to `custom:energy-distribution-card-ext` |
@@ -131,178 +129,15 @@ Many options are mode-specific: they will only work in either `energy` or `power
 | `date_range_live` | `boolean` | `false` | Include the latest data from the entities in the display (`energy` mode only) |
 | `date_range_display` | `do_not_show | label | dates | both` | `do_not_show` | Display the selected date-range at the top of the card (`energy` mode only) |
 | `appearance` | `Appearance` | | [Appearance options section](docs/appearance.md) |
-| `battery` | `Battery` | | [Battery options section](#battery-options-section) |
-| `gas` | `Gas` | | [Gas options section](#gas-options-section) |
-| `grid` | `Grid` | | [Grid options section](#grid-options-section) |
-| `home` | `Home` | | [Home options section](#home-options-section) |
-| `low-carbon` | `Low-carbon` | | [Low-carbon options section](#low-carbon-options-section) |
-| `solar` | `Solar` | | [Solar options section](#solar-options-section) |
-| `Devices` | array of `Devices` | | [Devices options section](#devices-options-section) | 
+| `battery` | `Battery` | | [Battery options section](docs/battery.md) |
+| `gas` | `Gas` | | [Gas options section](docs/gas.md) |
+| `grid` | `Grid` | | [Grid options section](docs/grid.md) |
+| `home` | `Home` | | [Home options section](docs/home.md) |
+| `low-carbon` | `Low-carbon` | | [Low-carbon options section](docs/low-carbon.md) |
+| `solar` | `Solar` | | [Solar options section](docs/solar.md) |
+| `Devices` | array of `Devices` | | [Devices options section](docs/devices.md) | 
 
 
-
-<details><summary>Battery</summary>
-
-#### Battery options section
-`Import` is energy discharged from the battery; `export` is energy used to charge the battery.
-
-In `power` mode, the entities must return positive values for discharging and negative values for charging.
-
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
-| `export_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
-| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
-| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
-| `colours` | | | [Battery colours section](#battery-colours-section) |
-| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section)<br>If the selected entity is a state-of-charge, the icon for the battery circle will, if not [overridden](#overrides-settings-section), reflect the charge level of the battery (`power` mode only) |
-<p>
-<details><summary>Colours Settings</summary>
-
-##### Battery colours section
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `flow_import_mode` | `default | custom` | `default` | If `default` the flow-colour will use the HASS setting; otherwise you can select your own colour using the `flow_import_colour` property |
-| `flow_import_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
-| `flow_export_mode` | `default | custom` | `default` | If `default` the flow-colour will use the HASS setting; otherwise you can select your own colour using the `flow_import_colour` property |
-| `flow_export_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
-| `circle_mode` | `dynamic | auto | import | export | none | custom` | `export` | If `dynamic` the circle will display the sources of energy/power exported to the battery and the destinations of energy/power imported from the battery; if `auto` the circle will take the colour of the larger of the flows |
-| `circle_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
-| `icon_mode` | `auto | import | export | none | custom` | `none` | If `auto` the icon will take the colour of the larger of the flows |
-| `icon_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
-| `value_import_mode` | `none | flow | custom` | `flow` | If `flow` the value will take the colour of the flow |
-| `value_import_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
-| `value_export_mode` | `none | flow | custom` | `flow` | If `flow` the value will take the colour of the flow |
-| `value_export_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
-| `secondary_mode` | `auto | import | export | none | custom` | `none` | If `auto` the secondary value will take the colour of the larger of the flows |
-| `icon_colour` | `number[]` | | An RGB triad of the colour to use (`custom` mode only) |
-
-</details>
-
-</details>
-<p>
-<details><summary>Gas</summary>
-
-#### Gas options section
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
-| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
-| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
-| `colours` | | | [Gas colours section](#gas-colours-section) |
-| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
-
-</details>
-<p>
-<details><summary>Grid</summary>
-
-#### Grid options section
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
-| `export_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
-| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
-| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
-| `colours` | | | [Grid colours section](#grid-colours-section) |
-| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
-| `power_outage` | | | Power-outage section |
-
-</details>
-<p>
-<details><summary>Home</summary>
-
-#### Home options section
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
-| `colours` | | | [Home colours section](#home-colours-section) |
-| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
-| `options` | | | [Home settings section](#home-settings-section) |
-
-</details>
-<p>
-<details><summary>Low-Carbon</summary>
-
-#### Low-carbon options section
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
-| `colours` | | | [Low-carbon colours section](#low-carbon-colours-section) |
-| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
-| `options` | | | [Low-carbon settings section](#low-carbon-settings-section) |
-
-</details>
-<p>
-<details><summary>Solar</summary>
-
-#### Solar options section
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
-| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
-| `overrides` | | | [Overrides settings section](#overrides-settings-section) |
-| `colours` | | | [Solar colours section](#solar-colours-section) |
-| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
-
-</details>
-<p>
-<details><summary>Devices</summary>
-
-#### Devices options section
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `name` | `string` | `New Device` | The name for the device |
-| `icon` | `string` | `mdi:devices` | The icon for the device |
-| `energy_type` | `electric | gas` | **required** | The type of the device |
-| `energy_direction` | `consumer | producer | both` | **required** | Whether the device acts as a consumer of energy/power, a producer or both |
-| `import_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
-| `export_entities` | | | [Entities settings section](#entities-settings-section) (`energy` mode only) |
-| `power_entities` | | | [Entities settings section](#entities-settings-section) (`power` mode only) |
-| `colours` | | | [Device colours section](#device-colours-section) |
-| `secondary_info` | | | [Secondary-info settings section](#secondary-info-settings-section) |
-
-</details>
-<p>
-<details><summary>Entities</summary>
-
-##### Entities settings section
-Any number of entities may be selected, and their values will be summed for display. If [use_hass_config](#card-options) is `true`, the Energy Dashboard's entities will be loaded automatically and added to the totals. Selecting entities here will not override these.
-
-If `mode` is `energy`, the entities must be of `device_class` `energy` and `state_class` `total` or `total_increasing`.
-
-If `mode` is `power`, the entities must be of `device_class` `power` and `state_class` `measurement`.
-
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `entity_ids` | `string[]` | | An array of entity IDs |
-
-</details>
-<p>
-<details><summary>Secondary-Info</summary>
-
-##### Secondary-info settings section
-If `mode` is `energy`, the entity must be of `state_class` `total` or `total_increasing`.
-
-If `mode` is `power`, the entity must be of `state_class` `measurement`.
-
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `entity_id` | `string` | | The entity to display |
-| `icon` | `string` | | An icon to be displayed next to the entity's value |
-| `unit_position` | `after_space | before_space | after | before | hidden` | `after_space` | The position of the units relative to the value, and whether to separate the units and value with a space |
-| `display_precision` | number | The number of decimal places to show; if not set, the entity's settings will be used |
-
-</details>
-<p>
-<details><summary>Overrides</summary>
-
-##### Overrides settings section
-| Name | Type | Default | Description |
-|---|---|---|---|
-| `name` | `string` | | Provides a different name for the circle |
-| `icon` | `icon` | | Provides a different icon for the circle |
-
-</details>
 
 
 

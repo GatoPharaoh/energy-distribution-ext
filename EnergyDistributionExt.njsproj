@@ -21,9 +21,19 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
   <ItemGroup>
     <Content Include="docs\appearance.md" />
+    <Content Include="docs\battery.md" />
     <Content Include="docs\config.md">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="docs\devices.md" />
+    <Content Include="docs\entities.md" />
+    <Content Include="docs\gas.md" />
+    <Content Include="docs\grid.md" />
+    <Content Include="docs\home.md" />
+    <Content Include="docs\low-carbon.md" />
+    <Content Include="docs\overrides.md" />
+    <Content Include="docs\secondary-info.md" />
+    <Content Include="docs\solar.md" />
     <Content Include="hacs.json" />
     <Content Include="package.json" />
     <Content Include="src\ui-editor\components\page-header.ts">
