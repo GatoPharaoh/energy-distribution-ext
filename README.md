@@ -15,7 +15,7 @@ An upgraded and configurable Energy Distribution Card, with a raft of new featur
 - Add Devices - entities which either consume energy within the home, supply energy to it or both - so you can see where in your home energy is being used
 - Show secondary data from other entities
 - Click on values to display the entity's details
-- Connect to an Energy Date Picker card and update itself as the selected date-range changes, or it can be set to a fixed date-range
+- Connect to an Energy Date Picker card and refresh as the selected date-range changes, or select a fixed date-range
 - Show the latest values from the entities, rather than just the current statistics from the database
 - Use hourly statistics to calculate the flows more accurately
 - Show energy in watt-hours, joules or calories

@@ -167,7 +167,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     this._configs = [config, DEFAULT_CONFIG];
     this.resetSubscriptions();
 
-    this._mode = getConfigValue(this._configs, GlobalOptions.Mode);
+    this._mode = getConfigValue(this._configs, GlobalOptions.Mode, value => checkEnumValue(value, DisplayMode));
 
     const appearanceConfig: AppearanceOptions[] = getConfigObjects(this._configs, [EditorPages.Appearance, GlobalOptions.Options]);
     this._useHassStyles = getConfigValue(appearanceConfig, AppearanceOptions.Use_HASS_Style);
@@ -177,7 +177,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     const flowsConfig: FlowsOptions[] = getConfigObjects(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows]);
     this._scale = getConfigValue(flowsConfig, FlowsOptions.Scale, value => checkEnumValue(value, Scale));
-    this._animationMode = getConfigValue(flowsConfig, FlowsOptions.Animation);
+    this._animationMode = getConfigValue(flowsConfig, FlowsOptions.Animation, value => checkEnumValue(value, AnimationMode));
 
     switch (this._animationMode) {
       case AnimationMode.System_Setting:
@@ -224,8 +224,8 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
       this._dateRangeDisplayMode = DateRangeDisplayMode.Do_Not_Show;
       this._electricUnits = this._gasUnits = POWER_UNITS;
     } else {
-      this._dateRange = getConfigValue(this._configs, GlobalOptions.Date_Range);
-      this._dateRangeDisplayMode = getConfigValue(this._configs, GlobalOptions.Date_Range_Display);
+      this._dateRange = getConfigValue(this._configs, GlobalOptions.Date_Range, value => checkEnumValue(value, DateRange));
+      this._dateRangeDisplayMode = getConfigValue(this._configs, GlobalOptions.Date_Range_Display, value => checkEnumValue(value, DateRangeDisplayMode));
       this._electricUnits = getConfigValue(energyUnitsConfig, EnergyUnitsOptions.Electric_Units, value => checkEnumValue(value, EnergyUnits));
       this._gasUnits = getConfigValue(energyUnitsConfig, EnergyUnitsOptions.Gas_Units, value => checkEnumValue(value, VolumeUnits));
     }
@@ -1195,3 +1195,5 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
   //================================================================================================================================================================================//
 }
+
+//================================================================================================================================================================================//
