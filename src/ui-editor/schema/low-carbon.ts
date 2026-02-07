@@ -4,6 +4,8 @@ import { dropdownSelector, nodeConfigSchema, SchemaTypes, singleValueColourSchem
 import { DEFAULT_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
+//================================================================================================================================================================================//
+
 export const lowCarbonSchema = memoizeOne((config: EnergyDistributionExtConfig, mode: DisplayMode, secondaryEntities: string[]): any[] => {
   const lowCarbonConfig: LowCarbonConfig = getConfigValue([config, DEFAULT_CONFIG], EditorPages.Low_Carbon);
 
@@ -20,3 +22,5 @@ export const lowCarbonSchema = memoizeOne((config: EnergyDistributionExtConfig, 
       }
     );
 });
+
+//================================================================================================================================================================================//

@@ -3,6 +3,8 @@ import { CssClass, GasSourcesMode } from "@/enums";
 import { States } from "@/nodes";
 import { getConfigValue } from "@/config/config";
 
+//================================================================================================================================================================================//
+
 export interface Segment {
   state: number;
   cssClass: CssClass;
@@ -37,6 +39,8 @@ export interface AnimationDurations {
   homeToDevicesGas: number[];
 }
 
+//================================================================================================================================================================================//
+
 export function getGasSourcesMode(configs: HomeConfig[], states: States): GasSourcesMode {
   const gasSourcesMode: GasSourcesMode = getConfigValue(configs, [GlobalOptions.Options, HomeOptions.Gas_Sources]);
   const gasThreshold: number = getConfigValue(configs, [GlobalOptions.Options, HomeOptions.Gas_Sources_Threshold]);
@@ -47,3 +51,5 @@ export function getGasSourcesMode(configs: HomeConfig[], states: States): GasSou
       : GasSourcesMode.Show_Separately
     : gasSourcesMode;
 }
+
+//================================================================================================================================================================================//

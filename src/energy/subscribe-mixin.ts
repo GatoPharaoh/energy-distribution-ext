@@ -8,12 +8,16 @@ import { UnsubscribeFunc } from "home-assistant-js-websocket";
 import { PropertyValues, ReactiveElement } from "lit";
 import { property } from "lit/decorators.js";
 
+
+//================================================================================================================================================================================//
 export interface HassSubscribeElement {
   hassSubscribe(): UnsubscribeFunc[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Constructor<T = any> = new (...args: any[]) => T;
+
+//================================================================================================================================================================================//
 
 export function SubscribeMixin<T extends Constructor<ReactiveElement>>(superClass: T) {
   class SubscribeClass extends superClass {
@@ -74,3 +78,5 @@ export function SubscribeMixin<T extends Constructor<ReactiveElement>>(superClas
 
   return SubscribeClass;
 }
+
+//================================================================================================================================================================================//

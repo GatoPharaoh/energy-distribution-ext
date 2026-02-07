@@ -14,7 +14,6 @@ import { gasSchema } from './schema/gas';
 import "./components/date-range-picker";
 import "./components/page-header";
 import "./components/devices-editor";
-import { CARD_NAME } from '@/const';
 import { cardConfigStruct } from '@/config/validation';
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from '.';
 import { getDefaultLowCarbonConfig, getDefaultAppearanceConfig, getDefaultGridConfig, getDefaultGasConfig, getDefaultSolarConfig, getDefaultBatteryConfig, getDefaultHomeConfig, getCo2SignalEntity, getConfigValue, populateConfigDefaults, removeConfigDefaults } from '@/config/config';
@@ -30,10 +29,11 @@ import { DateRange, DisplayMode, ELECTRIC_ENTITY_CLASSES, GAS_ENTITY_CLASSES } f
 import { endOfToday, formatDate, startOfToday } from 'date-fns';
 import { EntityRegistryEntry } from '@/hass';
 import { Node } from '@/nodes/node';
+import { name } from '../../package.json';
 
 //================================================================================================================================================================================//
 
-export const EDITOR_ELEMENT_NAME = CARD_NAME + "-editor";
+export const EDITOR_ELEMENT_NAME: string = `${name}-editor`;
 
 //================================================================================================================================================================================//
 
@@ -156,11 +156,14 @@ export class EnergyDistributionExtEditor extends LitElement implements LovelaceC
   public async setConfig(config: EnergyDistributionExtConfig): Promise<void> {
     assert(config, cardConfigStruct);
     this._config = populateConfigDefaults(config, this.hass);
-    this._mode = getConfigValue(this._config, GlobalOptions.Mode);
 
-    if (!this._secondaryEntities) {
-      this._secondaryEntities = Object.values(this.hass["entities"]).map(entity => (entity as EntityRegistryEntry).entity_id).filter(entityId => isValidSecondaryEntity(this.hass, this._mode, entityId));
+    const mode: DisplayMode = getConfigValue(this._config, GlobalOptions.Mode);
+
+    if (!this._secondaryEntities || mode !== this._mode) {
+      this._secondaryEntities = Object.values(this.hass["entities"]).map(entity => (entity as EntityRegistryEntry).entity_id).filter(entityId => isValidSecondaryEntity(this.hass, mode, entityId));
     }
+
+    this._mode = mode;
   }
 
   //================================================================================================================================================================================//
@@ -275,7 +278,6 @@ export class EnergyDistributionExtEditor extends LitElement implements LovelaceC
 
   //================================================================================================================================================================================//
 
-
   private _renderPageLinks(): TemplateResult[] {
     return CONFIG_PAGES.map(page => this._renderPageLink(page.page, page.icon, page.statusIcon(this._config!, this._mode, this.style, this.hass)));
   };
@@ -350,7 +352,7 @@ export class EnergyDistributionExtEditor extends LitElement implements LovelaceC
       return;
     }
 
-    let config = ev.detail.value;
+    let config: any = ev.detail.value;
 
     if (this._currentConfigPage) {
       config = {
@@ -471,3 +473,5 @@ export class EnergyDistributionExtEditor extends LitElement implements LovelaceC
 
   //================================================================================================================================================================================//
 }
+
+//================================================================================================================================================================================//

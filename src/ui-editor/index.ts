@@ -6,6 +6,8 @@ import { HELPTEXT_SUFFIX } from "@/const";
 import memoizeOne from "memoize-one";
 import { DisplayMode } from "@/enums";
 
+//================================================================================================================================================================================//
+
 export const computeLabelCallback = memoizeOne((schema: any): string => {
   if (!schema) {
     return "";
@@ -45,6 +47,8 @@ export enum Status {
 
 export const STATUS_ICONS: string[] = ["", "mdi:check-circle", "mdi:alert", "mdi:alert-octagon"];
 export const STATUS_CLASSES: string[] = ["", "page-valid", "page-warning", "page-error"];
+
+//================================================================================================================================================================================//
 
 export function getStatusIcon(hass: HomeAssistant, mode: DisplayMode, node: Node<any>, deviceClasses: string[], supportsPrimaries: boolean, requiresPrimaries: boolean = false): Status {
   let primaryEntityCount: number = 0;
@@ -94,6 +98,8 @@ export function getStatusIcon(hass: HomeAssistant, mode: DisplayMode, node: Node
   return Status.Valid;
 }
 
+//================================================================================================================================================================================//
+
 export function validatePrimaryEntities(hass: HomeAssistant, mode: DisplayMode, label: string, entityIds: string[] = [], deviceClasses: string[], requirePrimary: boolean, errors: object): void {
   delete errors[label];
 
@@ -108,7 +114,7 @@ export function validatePrimaryEntities(hass: HomeAssistant, mode: DisplayMode, 
       if (!entityId || entityId === "") {
         error += localize("editor.missing_entity") + "\n";
       } else if (!isValidPrimaryEntity(hass, mode, entityId, deviceClasses)) {
-        error += "'" + (hass.states[entityId]?.attributes?.friendly_name || entityId) + "' " + localize("editor.invalid_primary_entity") + "\n";
+        error += `'${hass.states[entityId]?.attributes?.friendly_name || entityId}' ${localize("editor.invalid_primary_entity")}\n`;
       }
     });
   }
@@ -117,6 +123,8 @@ export function validatePrimaryEntities(hass: HomeAssistant, mode: DisplayMode, 
     errors[label] = error;
   }
 }
+
+//================================================================================================================================================================================//
 
 export function validateSecondaryEntity(hass: HomeAssistant, mode: DisplayMode, label: string, entityId: string, errors: object): void {
   delete errors[label];
@@ -128,6 +136,8 @@ export function validateSecondaryEntity(hass: HomeAssistant, mode: DisplayMode, 
   if (!entityId || entityId === "") {
     errors[label] = localize("editor.missing_entity");
   } else if (!isValidSecondaryEntity(hass, mode, entityId)) {
-    errors[label] = "'" + (hass.states[entityId]?.attributes?.friendly_name || entityId) + "' " + localize("editor.invalid_secondary_entity");
+    errors[label] = `'${hass.states[entityId]?.attributes?.friendly_name || entityId}' ${localize("editor.invalid_secondary_entity")}`;
   }
 }
+
+//================================================================================================================================================================================//

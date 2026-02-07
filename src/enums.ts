@@ -186,6 +186,8 @@ export type VolumeUnits = typeof VolumeUnits[keyof typeof VolumeUnits];
   });
 })();
 
+//================================================================================================================================================================================//
+
 export enum CssClass {
   None = "",
   Battery = "battery",
@@ -225,9 +227,23 @@ export enum EntityMode {
   Misconfigured_Resetting = "misconfigured resetting"
 }
 
+export enum DevicesLayout {
+  None,
+  Inline_Above,
+  Inline_Below,
+  Horizontal,
+  Vertical
+}
+
+//================================================================================================================================================================================//
+
 export function checkEnumValue(value: any, type: any): boolean {
   return Object.values(type).includes(value);
 }
 
+//================================================================================================================================================================================//
+
 export const ELECTRIC_ENTITY_CLASSES: DeviceClasses[] = [DeviceClasses.Energy];
 export const GAS_ENTITY_CLASSES: DeviceClasses[] = [DeviceClasses.Energy, DeviceClasses.Gas];
+
+//================================================================================================================================================================================//

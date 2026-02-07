@@ -5,8 +5,6 @@ export const ICON_PADDING: number = 2;
 
 export const DOT_RADIUS: number = 4.5;
 
-export const CARD_NAME: string = "energy-distribution-ext";
-
 export const HELPTEXT_SUFFIX: string = "#helptext";
 
 export const POWER_UNITS: string = "W";

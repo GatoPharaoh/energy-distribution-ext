@@ -1,14 +1,14 @@
 import { fireEvent, HomeAssistant } from "custom-card-helpers";
 import { css, CSSResultGroup, html, LitElement, PropertyValues, TemplateResult } from "lit";
-import { CARD_NAME } from "@/const";
 import { endOfToday, startOfToday } from "date-fns";
 import { DateRange } from "@/enums";
 import { renderDateRange, getRangePresetName } from "@/ui-helpers/date-fns";
 import { customElement, property } from "lit/decorators.js";
+import { name } from '../../../package.json';
 
 //================================================================================================================================================================================//
 
-const DATE_RANGE_PICKER_ELEMENT_NAME = CARD_NAME + "-date-range-picker";
+const DATE_RANGE_PICKER_ELEMENT_NAME: string = `${name}-date-range-picker`;
 
 const PRESET_KEYS: DateRange[] = Object.values(DateRange).filter(range => range !== DateRange.Custom);
 
@@ -25,6 +25,8 @@ export class DateRangePicker extends LitElement {
   private _ranges: {} = {};
   @property() private _label: string = "";
 
+  //================================================================================================================================================================================//
+
   protected firstUpdated(changedProps: PropertyValues) {
     super.firstUpdated(changedProps);
 
@@ -34,6 +36,8 @@ export class DateRangePicker extends LitElement {
 
     this._label = this._generateLabel(this.range);
   }
+
+  //================================================================================================================================================================================//
 
   protected render(): TemplateResult {
     return html`
@@ -104,6 +108,8 @@ export class DateRangePicker extends LitElement {
       `
     ];
   }
+
+  //================================================================================================================================================================================//
 }
 
 //================================================================================================================================================================================//

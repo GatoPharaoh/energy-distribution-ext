@@ -1,6 +1,8 @@
 import { any, assign, boolean, integer, number, object, optional, string, array } from 'superstruct';
 import { AppearanceOptions, ColourOptions, DeviceOptions, EditorPages, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions, GridOptions, HomeOptions, LowCarbonOptions, OverridesOptions, PowerOutageOptions, SecondaryInfoOptions } from '.';
 
+//================================================================================================================================================================================//
+
 const baseLovelaceCardConfigStruct = object({
   type: string(),
   view_layout: any(),
@@ -135,7 +137,7 @@ const deviceConfigStruct = object({
   [DeviceOptions.Name]: optional(string()),
   [DeviceOptions.Icon]: optional(string()),
   [DeviceOptions.Energy_Type]: optional(string()),
-  [DeviceOptions.Energy_Direction]: optional(string()),
+  [DeviceOptions.Energy_Direction]: optional(string())
 });
 
 export const cardConfigStruct = assign(
@@ -159,3 +161,5 @@ export const cardConfigStruct = assign(
     [EditorPages.Devices]: optional(array(deviceConfigStruct))
   })
 );
+
+//================================================================================================================================================================================//

@@ -4,7 +4,11 @@ import { ColourOptions, NodeOptions, HomeConfig, GlobalOptions, HomeOptions, Ene
 import { DEFAULT_HOME_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
+//================================================================================================================================================================================//
+
 const COLOUR_MODES: ColourMode[] = [ColourMode.Do_Not_Colour, ColourMode.Automatic, ColourMode.Solar, ColourMode.High_Carbon, ColourMode.Low_Carbon, ColourMode.Battery, ColourMode.Gas, ColourMode.Custom];
+
+//================================================================================================================================================================================//
 
 export const homeSchema = memoizeOne((config: EnergyDistributionExtConfig, mode: DisplayMode, secondaryEntities: string[]): any[] => {
   const homeConfig: HomeConfig = getConfigValue([config, DEFAULT_HOME_CONFIG], EditorPages.Home);
@@ -60,6 +64,8 @@ export const homeSchema = memoizeOne((config: EnergyDistributionExtConfig, mode:
     );
 });
 
+//================================================================================================================================================================================//
+
 const dynamicHomeOptionsSchema = memoizeOne((schemaConfig: HomeConfig): {} => {
   if (getConfigValue([schemaConfig, DEFAULT_HOME_CONFIG], [GlobalOptions.Options, HomeOptions.Gas_Sources]) !== GasSourcesMode.Automatic) {
     return {};
@@ -67,3 +73,5 @@ const dynamicHomeOptionsSchema = memoizeOne((schemaConfig: HomeConfig): {} => {
 
   return { key: HomeOptions, name: HomeOptions.Gas_Sources_Threshold, required: true, selector: { number: { mode: SelectorModes.Box, min: 0, max: 100, step: 1, unit_of_measurement: "%" } } };
 });
+
+//================================================================================================================================================================================//

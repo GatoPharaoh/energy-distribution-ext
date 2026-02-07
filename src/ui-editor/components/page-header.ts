@@ -2,12 +2,12 @@ import { mdiArrowLeft } from "@mdi/js";
 import { fireEvent } from "custom-card-helpers";
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { CARD_NAME } from "@/const";
 import { localize } from "@/localize/localize";
+import { name } from '../../../package.json';
 
 //================================================================================================================================================================================//
 
-const PAGE_HEADER_ELEMENT_NAME = CARD_NAME + "-page-header";
+const PAGE_HEADER_ELEMENT_NAME: string = `${name}-page-header`;
 
 //================================================================================================================================================================================//
 
@@ -58,6 +58,8 @@ export class PageHeader extends LitElement {
       `
     ];
   }
+
+  //================================================================================================================================================================================//
 }
 
 //================================================================================================================================================================================//

@@ -3,7 +3,6 @@ import { mdiArrowLeft, mdiArrowRight, mdiDelete, mdiDrag, mdiPlus } from "@mdi/j
 import { HomeAssistant, fireEvent } from "custom-card-helpers";
 import { css, CSSResultGroup, html, LitElement, nothing, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { CARD_NAME } from "@/const";
 import { ColourOptions, DeviceConfig, DeviceOptions, EnergyDistributionExtConfig, NodeOptions, EntitiesOptions, SecondaryInfoOptions, GlobalOptions } from "@/config";
 import { deviceSchema } from "../schema/device";
 import { computeHelperCallback, computeLabelCallback, getStatusIcon, Status, STATUS_CLASSES, STATUS_ICONS, validatePrimaryEntities, validateSecondaryEntity } from "..";
@@ -12,6 +11,7 @@ import { localize } from "@/localize/localize";
 import { BASIC_COLOUR_MODES_DUAL, BASIC_COLOUR_MODES_SINGLE, getConfigValue, getDefaultDeviceConfig } from '@/config/config';
 import { DeviceNode } from '@/nodes/device';
 import { ColourMode, DisplayMode, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from '@/enums';
+import { name } from '../../../package.json';
 
 //================================================================================================================================================================================//
 
@@ -34,7 +34,7 @@ const DEVICE_COLOURS = [
   [0x66, 0xCD, 0xAA]
 ];
 
-const DEVICES_EDITOR_ELEMENT_NAME = CARD_NAME + "-devices-editor";
+const DEVICES_EDITOR_ELEMENT_NAME: string = `${name}-devices-editor`;
 
 //================================================================================================================================================================================//
 
@@ -50,6 +50,8 @@ export class DevicesEditor extends LitElement {
   private _entityKeys = new WeakMap<DeviceConfig, string>();
   private _nextDeviceColour: number = 0;
   private _mode!: DisplayMode;
+
+  //================================================================================================================================================================================//
 
   protected render(): TemplateResult {
     if (!this.config || !this.hass) {
@@ -350,4 +352,8 @@ export class DevicesEditor extends LitElement {
       `
     ];
   }
+
+  //================================================================================================================================================================================//
 }
+
+//================================================================================================================================================================================//

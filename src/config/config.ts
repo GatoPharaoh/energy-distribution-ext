@@ -1,13 +1,13 @@
 import { ColourMode, LowCarbonDisplayMode, UnitPosition, GasSourcesMode, EnergyType, EnergyDirection, EnergyUnits, UnitPrefixes, VolumeUnits, InactiveFlowsMode, Scale, DateRange, DateRangeDisplayMode, AnimationMode, DisplayMode } from "@/enums";
 import { HomeAssistant } from 'custom-card-helpers';
 import { AppearanceConfig, BatteryConfig, DeviceConfig, DeviceOptions, EnergyDistributionExtConfig, GasConfig, GridConfig, GridOptions, HomeConfig, HomeOptions, LowCarbonConfig, LowCarbonOptions, OverridesConfig, OverridesOptions, PowerOutageOptions, SecondaryInfoConfig, SecondaryInfoOptions, SolarConfig } from ".";
-import { CARD_NAME } from "@/const";
 import { AppearanceOptions, ColourOptions, EditorPages, EnergyUnitsOptions, NodeOptions, EntitiesOptions, FlowsOptions, GlobalOptions } from "@/config";
 import { localize } from "@/localize/localize";
 import { getEnergyDataCollection } from "@/energy";
 import { HassEntity } from "home-assistant-js-websocket";
 import equal from 'fast-deep-equal';
 import { EntityRegistryEntry } from "@/hass";
+import { name } from '../../package.json';
 
 //================================================================================================================================================================================//
 
@@ -70,7 +70,7 @@ export function getConfigObjects(configs: any[], path: string[] | string): any[]
 
 export function getMinimalConfig(hass: HomeAssistant | undefined): EnergyDistributionExtConfig {
   return {
-    type: 'custom:' + CARD_NAME,
+    type: 'custom:' + name,
     [GlobalOptions.Date_Range]: getEnergyDataCollection(hass) ? DateRange.From_Date_Picker : DateRange.Today,
     [GlobalOptions.Date_Range_Live]: false,
     [GlobalOptions.Date_Range_Display]: DateRangeDisplayMode.Do_Not_Show,
@@ -148,7 +148,6 @@ export function populateConfigDefaults(config: EnergyDistributionExtConfig, hass
   const defaultConfig: EnergyDistributionExtConfig = getDefaultConfig(config.devices?.length ?? 0, hass);
 
   config = structuredClone(config);
-
   setDefaultsRecursively(config, defaultConfig);
 
   const threshold: number = getConfigValue(config, [EditorPages.Appearance, AppearanceOptions.Energy_Units, EnergyUnitsOptions.Prefix_Threshold]);
@@ -197,7 +196,7 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
       [EnergyUnitsOptions.Display_Precision_Under_100]: 1,
       [EnergyUnitsOptions.Display_Precision_Default]: 0,
       [EnergyUnitsOptions.Prefix_Threshold]: 1000,
-      [EnergyUnitsOptions.Gas_Calorific_Value]: 39,
+      [EnergyUnitsOptions.Gas_Calorific_Value]: 39
     },
     [AppearanceOptions.Flows]: {
       [FlowsOptions.Use_Hourly_Stats]: false,

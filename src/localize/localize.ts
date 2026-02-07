@@ -1,10 +1,14 @@
 import * as en from "./languages/en";
 
+//================================================================================================================================================================================//
+
 const LANGUAGES: Record<string, unknown> = {
   en
 };
 
 const DEFAULT_LANGUAGE: string = "en";
+
+//================================================================================================================================================================================//
 
 function getTranslatedString(key: string, lang: string): string | undefined {
   try {
@@ -13,6 +17,8 @@ function getTranslatedString(key: string, lang: string): string | undefined {
     return undefined;
   }
 }
+
+//================================================================================================================================================================================//
 
 export function localize(key: string, fallback: string | undefined = undefined): string {
   const lang: string = (localStorage.getItem("selectedLanguage") || DEFAULT_LANGUAGE).replace(/['"]+/g, "").replace("-", "_");;
@@ -36,3 +42,5 @@ export function localize(key: string, fallback: string | undefined = undefined):
 
   return translated ?? fallback ?? key;
 }
+
+//================================================================================================================================================================================//

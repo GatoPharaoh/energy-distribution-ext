@@ -1,6 +1,8 @@
 import { HomeAssistant, LovelaceCard, LovelaceCardConfig } from 'custom-card-helpers';
 import { ColourMode, LowCarbonDisplayMode, InactiveFlowsMode, UnitPosition, UnitPrefixes, EnergyDirection, EnergyType, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, DateRange, DateRangeDisplayMode, DeviceClasses, AnimationMode, DisplayMode, StateClasses } from '@/enums';
 
+//================================================================================================================================================================================//
+
 declare global {
   interface HTMLElementTagNameMap {
     "hui-error-card": LovelaceCard;
@@ -169,11 +171,11 @@ export const SecondaryInfoOptions = ConfigKeys.SecondaryInfoOptions;
 export type SecondaryInfoOptions = typeof SecondaryInfoOptions[keyof typeof SecondaryInfoOptions];
 
 (() => {
-  Object.keys(ConfigKeys).forEach(e => {
-    const type = ConfigKeys[e];
+  Object.keys(ConfigKeys).forEach(name => {
+    const type = ConfigKeys[name];
 
     Object.defineProperty(type, "name", {
-      value: e,
+      value: name,
       configurable: true
     });
   });

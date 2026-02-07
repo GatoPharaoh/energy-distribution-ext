@@ -25,6 +25,13 @@ import { POWER_UNITS } from "@/const";
 const ENERGY_DATA_TIMEOUT: number = 10000;
 const ENERGY_DATA_POLL: number = 100;
 
+const Direction = {
+  Normal: 0,
+  Reverse: 1
+} as const;
+
+type Direction = typeof Direction[keyof typeof Direction];
+
 const Period = {
   Hour: "hour",
   Day: "day",
@@ -174,12 +181,11 @@ export class EntityStates {
     if (this._mode === DisplayMode.Power) {
       this._dateRange = DateRange.Today;
       this._dateRangeLive = true;
-      this._energyUnits = this._gasUnits = POWER_UNITS;
+      this._energyUnits = this._gasUnits = this._volumeUnits = POWER_UNITS;
       this._dataStatus = DataStatus.Received;
-      this._volumeUnits = this._gasUnits;
       this._useHourlyStats = false;
     } else {
-      this._dateRange = getConfigValue(configs, GlobalOptions.Date_Range);
+      this._dateRange = getConfigValue(configs, GlobalOptions.Date_Range, value => checkEnumValue(value, DateRange));
       this._dateRangeLive = getConfigValue(configs, GlobalOptions.Date_Range_Live);
       this._energyUnits = getConfigValue(energyUnitsConfig, EnergyUnitsOptions.Electric_Units, value => checkEnumValue(value, EnergyUnits));
       this._gasUnits = getConfigValue(energyUnitsConfig, EnergyUnitsOptions.Gas_Units, value => checkEnumValue(value, VolumeUnits));
@@ -195,17 +201,7 @@ export class EntityStates {
       return undefined;
     }
 
-    const states: States = {
-      ...this._states,
-      battery: { ...this._states.battery },
-      grid: { ...this._states.grid },
-      devicesElectric: this._states.devicesElectric.flatMap(state => { return { ...state } }),
-      devicesGas: this._states.devicesGas.flatMap(state => { return { ...state } }),
-      devicesGasVolume: this._states.devicesGasVolume.flatMap(state => { return { ...state } }),
-      devicesSecondary: this._states.devicesSecondary.concat(),
-      flows: { ...this._states.flows }
-    };
-
+    const states: States = structuredClone(this._states);
     this._addStateDeltas(states);
 
     states.lowCarbon = this.lowCarbon.isPresent ? states.grid.import - states.highCarbon : 0;
@@ -244,7 +240,7 @@ export class EntityStates {
 
       return new Promise<EnergyCollection>(getEnergyDataCollectionPoll)
         .then(async (collection: EnergyCollection) => collection.subscribe(async (data: EnergyData) => {
-          this._loadStatistics(data.start, data.end || endOfToday())
+          this._loadStatistics(data.start, data.end || endOfToday());
         }))
         .catch(err => {
           LOGGER.debug(err);
@@ -304,8 +300,8 @@ export class EntityStates {
     this._home = new HomeNode(hass, cardConfig, style);
     this._lowCarbon = new LowCarbonNode(hass, cardConfig, style);
     this._solar = new SolarNode(hass, cardConfig, style, energySources);
-    const deviceConfigs: DeviceConfig[] = getConfigValue(configs, EditorPages.Devices) || [];
 
+    const deviceConfigs: DeviceConfig[] = getConfigValue(configs, EditorPages.Devices) || [];
     this._devices = deviceConfigs.flatMap((_, index) => new DeviceNode(hass, cardConfig, style, index));
 
     this._populateEntityArrays();
@@ -313,8 +309,6 @@ export class EntityStates {
     if (this._primaryEntityIds.length !== 0 || this._secondaryEntityIds.length !== 0) {
       await this._inferEntityModes();
     }
-
-    this._isConfigPresent = true;
 
     this._states.electricPresent = this.battery.isPresent || this.grid.isPresent || this.solar.isPresent;
     this._states.gasPresent = this.gas.isPresent;
@@ -331,6 +325,8 @@ export class EntityStates {
       this._states.devicesGasVolume[index] = { export: 0, import: 0 };
       this._states.devicesSecondary[index] = 0;
     });
+
+    this._isConfigPresent = true;
   }
 
   //================================================================================================================================================================================//
@@ -340,20 +336,16 @@ export class EntityStates {
       return;
     }
 
-    const periodStart: Date = this._periodStart!;
-    const periodEnd: Date = this._periodEnd!;
     const primaryStatistics: Statistics = this._primaryStatistics!;
     const secondaryStatistics: Statistics = this._secondaryStatistics!;
     const energyUnits: string = this._energyUnits;
     const volumeUnits: string = this._volumeUnits;
 
-    const solarImportDelta: number = this._getStateDelta(periodStart, periodEnd, 1, primaryStatistics, this.solar.importEntities, energyUnits);
-    const batteryImportDelta: number = this._getStateDelta(periodStart, periodEnd, 1, primaryStatistics, this.battery.importEntities, energyUnits);
-    const batteryExportDelta: number = this._getStateDelta(periodStart, periodEnd, -1, primaryStatistics, this.battery.exportEntities, energyUnits);
-    const gridImportDelta: number = this._getStateDelta(periodStart, periodEnd, 1, primaryStatistics, this.grid.importEntities, energyUnits);
-    const gridExportDelta: number = this._getStateDelta(periodStart, periodEnd, -1, primaryStatistics, this.grid.exportEntities, energyUnits);
-    const flowDeltas: Flows = this._calculateFlows(solarImportDelta, batteryImportDelta, batteryExportDelta, gridImportDelta, gridExportDelta);
-
+    const solarImportDelta: number = this._getStateDelta(Direction.Normal, primaryStatistics, this.solar.importEntities, energyUnits);
+    const batteryImportDelta: number = this._getStateDelta(Direction.Normal, primaryStatistics, this.battery.importEntities, energyUnits);
+    const batteryExportDelta: number = this._getStateDelta(Direction.Reverse, primaryStatistics, this.battery.exportEntities, energyUnits);
+    const gridImportDelta: number = this._getStateDelta(Direction.Normal, primaryStatistics, this.grid.importEntities, energyUnits);
+    const gridExportDelta: number = this._getStateDelta(Direction.Reverse, primaryStatistics, this.grid.exportEntities, energyUnits);
     states.battery.import += batteryImportDelta;
     states.battery.export += batteryExportDelta;
     states.grid.import += gridImportDelta;
@@ -363,27 +355,41 @@ export class EntityStates {
     this.devices.forEach((device, index) => {
       if (device.type === EnergyType.Gas) {
         if (device.direction !== EnergyDirection.Consumer_Only) {
-          states.devicesGas[index].import += this._getStateDelta(periodStart, periodEnd, 1, primaryStatistics, device.importEntities, energyUnits);
-          states.devicesGasVolume[index].import += this._getStateDelta(periodStart, periodEnd, 1, primaryStatistics, device.importEntities, volumeUnits);
+          states.devicesGas[index].import += this._getStateDelta(Direction.Normal, primaryStatistics, device.importEntities, energyUnits);
+          states.devicesGasVolume[index].import += this._getStateDelta(Direction.Normal, primaryStatistics, device.importEntities, volumeUnits);
         }
 
         if (device.direction !== EnergyDirection.Producer_Only) {
-          states.devicesGas[index].export += this._getStateDelta(periodStart, periodEnd, -1, primaryStatistics, device.exportEntities, energyUnits);
-          states.devicesGasVolume[index].export += this._getStateDelta(periodStart, periodEnd, -1, primaryStatistics, device.exportEntities, volumeUnits);
+          states.devicesGas[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, energyUnits);
+          states.devicesGasVolume[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, volumeUnits);
         }
       } else {
         if (device.direction !== EnergyDirection.Consumer_Only) {
-          states.devicesElectric[index].import += this._getStateDelta(periodStart, periodEnd, 1, primaryStatistics, device.importEntities, energyUnits);
+          states.devicesElectric[index].import += this._getStateDelta(Direction.Normal, primaryStatistics, device.importEntities, energyUnits);
         }
 
         if (device.direction !== EnergyDirection.Producer_Only) {
-          states.devicesElectric[index].export += this._getStateDelta(periodStart, periodEnd, -1, primaryStatistics, device.exportEntities, energyUnits);
+          states.devicesElectric[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, energyUnits);
         }
       }
 
-      states.devicesSecondary[index] += this._getStateDelta(periodStart, periodEnd, 1, secondaryStatistics, device.secondary.entity);
+      states.devicesSecondary[index] += this._getStateDelta(Direction.Normal, secondaryStatistics, device.secondary.entity);
     });
 
+    states.gasImport += this._getStateDelta(Direction.Normal, primaryStatistics, this.gas.importEntities, energyUnits);
+    states.gasImportVolume += this._getStateDelta(Direction.Normal, primaryStatistics, this.gas.importEntities, volumeUnits);
+
+    const highCarbonDelta: number = this.lowCarbon.isPresent ? gridImportDelta * Number(this.hass.states[this.lowCarbon.firstImportEntity!].state) / 100 : 0;
+    states.highCarbon += highCarbonDelta;
+
+    states.batterySecondary += this._getStateDelta(Direction.Normal, secondaryStatistics, this.battery.secondary.entity);
+    states.gasSecondary += this._getStateDelta(Direction.Normal, secondaryStatistics, this.gas.secondary.entity);
+    states.gridSecondary += this._getStateDelta(Direction.Normal, secondaryStatistics, this.grid.secondary.entity);
+    states.homeSecondary += this._getStateDelta(Direction.Normal, secondaryStatistics, this.home.secondary.entity);
+    states.lowCarbonSecondary += this._getStateDelta(Direction.Normal, secondaryStatistics, this.lowCarbon.secondary.entity);
+    states.solarSecondary += this._getStateDelta(Direction.Normal, secondaryStatistics, this.solar.secondary.entity);
+
+    const flowDeltas: Flows = this._calculateFlows(solarImportDelta, batteryImportDelta, batteryExportDelta, gridImportDelta, gridExportDelta);
     states.flows.batteryToGrid += flowDeltas.batteryToGrid;
     states.flows.solarToGrid += flowDeltas.solarToGrid;
     states.flows.gridToBattery += flowDeltas.gridToBattery;
@@ -391,26 +397,17 @@ export class EntityStates {
     states.flows.batteryToHome += flowDeltas.batteryToHome;
     states.flows.gridToHome += flowDeltas.gridToHome;
     states.flows.solarToHome += flowDeltas.solarToHome;
-
-    states.gasImport += this._getStateDelta(periodStart, periodEnd, 1, primaryStatistics, this.gas.importEntities, energyUnits);
-    states.gasImportVolume += this._getStateDelta(periodStart, periodEnd, 1, primaryStatistics, this.gas.importEntities, volumeUnits);
-
-    const highCarbonDelta: number = this.lowCarbon.isPresent ? gridImportDelta * Number(this.hass.states[this.lowCarbon.firstImportEntity!].state) / 100 : 0;
-    states.highCarbon += highCarbonDelta;
-
-    states.batterySecondary += this._getStateDelta(periodStart, periodEnd, 1, secondaryStatistics, this.battery.secondary.entity);
-    states.gasSecondary += this._getStateDelta(periodStart, periodEnd, 1, secondaryStatistics, this.gas.secondary.entity);
-    states.gridSecondary += this._getStateDelta(periodStart, periodEnd, 1, secondaryStatistics, this.grid.secondary.entity);
-    states.homeSecondary += this._getStateDelta(periodStart, periodEnd, 1, secondaryStatistics, this.home.secondary.entity);
-    states.lowCarbonSecondary += this._getStateDelta(periodStart, periodEnd, 1, secondaryStatistics, this.lowCarbon.secondary.entity);
-    states.solarSecondary += this._getStateDelta(periodStart, periodEnd, 1, secondaryStatistics, this.solar.secondary.entity);
   }
 
   //================================================================================================================================================================================//
 
-  private _getStateDelta(periodStart: Date, periodEnd: Date, direction: number, statistics: Statistics | undefined, entityIds: string[] | string | undefined = [], requestedUnits?: string): number {
+  private _getStateDelta(direction: Direction, statistics: Statistics, entityIds: string[] | string | undefined = [], requestedUnits?: string): number {
     if (typeof entityIds === "string") {
       entityIds = [entityIds];
+    }
+
+    if (entityIds.length === 0) {
+      return 0;
     }
 
     let deltaSum: number = 0;
@@ -420,25 +417,22 @@ export class EntityStates {
         const stateObj: HassEntity = this.hass.states[entityId];
 
         if (stateObj) {
-          const state: number = Number(stateObj.state);
-          const units: string | undefined = stateObj.attributes.unit_of_measurement;
-          deltaSum += this._toBaseUnits(state, units, requestedUnits);
-        }
-
-        if (direction < 0) {
-          if (deltaSum < 0) {
-            deltaSum = -deltaSum;
-          } else {
-            deltaSum = 0;
-          }
-        } else if (deltaSum < 0) {
-          deltaSum = 0;
+          deltaSum += this._toBaseUnits(Number(stateObj.state), stateObj.attributes.unit_of_measurement, requestedUnits);
         }
       });
-    } else {
-      if (!statistics || entityIds.length === 0) {
-        return 0;
+
+      if (direction === Direction.Reverse) {
+        if (deltaSum < 0) {
+          deltaSum = -deltaSum;
+        } else {
+          deltaSum = 0;
+        }
+      } else if (deltaSum < 0) {
+        deltaSum = 0;
       }
+    } else {
+      const periodStart: number = this._periodStart!.getTime();
+      const periodEnd: number = this._periodEnd!.getTime();
 
       entityIds.forEach(entityId => {
         const stateObj: HassEntity = this.hass.states[entityId];
@@ -446,16 +440,17 @@ export class EntityStates {
         if (stateObj) {
           const lastChanged: number = Date.parse(stateObj.last_changed);
 
-          if (lastChanged >= periodStart.getTime() && lastChanged <= periodEnd.getTime()) {
+          if (lastChanged >= periodStart && lastChanged <= periodEnd) {
             const entityStats: StatisticValue[] = statistics[entityId];
+            const lastStat: StatisticValue = entityStats[entityStats.length - 1];
+            const lastState: number = lastStat.state ?? 0;
             const state: number = Number(stateObj.state);
+            const delta: number = state - lastState;
             const units: string | undefined = stateObj.attributes.unit_of_measurement;
 
-            if (this._entityModes.get(entityId) === EntityMode.Totalising) {
-              if (entityStats && entityStats.length !== 0) {
-                deltaSum += this._toBaseUnits(state - (entityStats[entityStats.length - 1].state ?? 0), units, requestedUnits);
-              }
-            } else {
+            if (delta > 0) {
+              deltaSum += this._toBaseUnits(delta, units, requestedUnits);
+            } else if (delta < 0) {
               deltaSum += this._toBaseUnits(state, units, requestedUnits);
             }
           }
@@ -475,12 +470,8 @@ export class EntityStates {
   //================================================================================================================================================================================//
 
   private async _loadStatistics(periodStart: Date, periodEnd: Date): Promise<void> {
-    const isNewPeriod: boolean = !this._isRollover(periodStart) && (periodStart !== this.periodStart || periodEnd !== this.periodEnd);
-    this._periodStart = periodStart;
-    this._periodEnd = periodEnd;
-
     if (this._primaryEntityIds.length !== 0 || this._secondaryEntityIds.length !== 0) {
-      if (isNewPeriod) {
+      if (!this._isRollover(periodStart) && (periodStart !== this.periodStart || periodEnd !== this.periodEnd)) {
         this._primaryStatistics = undefined;
         this._secondaryStatistics = undefined;
         this._dataStatus = DataStatus.Requested;
@@ -508,7 +499,7 @@ export class EntityStates {
         secondaries.length !== 0 ? this._fetchStatistics(periodStart, periodEnd, secondaries, period) : Promise.resolve()
       ]);
 
-      LOGGER.debug(`Received per-${primaryPeriod} stats (primary${this.lowCarbon.isPresent ? ", low-carbon" : ""}${secondaries.length !== 0 ? ", secondary" : ""}) for period [${periodStart.toISOString()} - ${periodEnd.toISOString() }] in ${Date.now() - fetchStartTime}ms`);
+      LOGGER.debug(`Received per-${primaryPeriod} stats (primary${this.lowCarbon.isPresent ? ", low-carbon" : ""}${secondaries.length !== 0 ? ", secondary" : ""}) for period [${periodStart.toISOString()} - ${periodEnd.toISOString()}] in ${Date.now() - fetchStartTime}ms`);
 
       clearTimeout(timeout);
 
@@ -527,6 +518,8 @@ export class EntityStates {
       }
     }
 
+    this._periodStart = periodStart;
+    this._periodEnd = periodEnd;
     this._dataStatus = DataStatus.Received;
   }
 
@@ -539,7 +532,7 @@ export class EntityStates {
     for (const entity in statistics) {
       if (statistics[entity].length !== 0) {
         const firstStat: StatisticValue = statistics[entity][0];
-        let mode;
+        let mode: EntityMode;
 
         if (this._isMisconfiguredResettingSensor(firstStat)) {
           mode = EntityMode.Misconfigured_Resetting;
@@ -791,11 +784,7 @@ export class EntityStates {
     }
 
     let stateSum: number = 0;
-
-    entityIds.forEach(entityId =>
-      stateSum += entry.get(entityId) ?? 0
-    );
-
+    entityIds.forEach(entityId => stateSum += entry.get(entityId) ?? 0);
     return stateSum;
   }
 
@@ -803,17 +792,13 @@ export class EntityStates {
 
   private _getHomeFlowEntityStates(entityIds: string[] | undefined = [], requestedUnits: string): number {
     let stateSum: number = 0;
-
-    entityIds.forEach(entityId => {
-      stateSum += this._getEntityStatesFromStatistics(this._primaryStatistics!, entityId, undefined, requestedUnits);
-    });
-
+    entityIds.forEach(entityId => stateSum += this._getEntityStatesFromStatistics(this._primaryStatistics!, entityId, undefined, requestedUnits));
     return stateSum;
   }
 
   //================================================================================================================================================================================//
 
-  private _getEntityStatesFromStatistics(statistics: Statistics, entityId: string, units: string | undefined, requestedUnits: string | undefined = undefined): number {
+  private _getEntityStatesFromStatistics(statistics: Statistics, entityId: string, units: string | undefined, requestedUnits?: string): number {
     const entityStats: StatisticValue[] = statistics[entityId];
 
     if (entityStats.length !== 0) {
@@ -909,15 +894,11 @@ export class EntityStates {
       if (!entityStats || entityStats.length === 0 || entityStats[0].start > periodStart.getTime()) {
         let dummyStat: StatisticValue;
 
-        LOGGER.debug("entity: " + entity + ", entityStats: " + entityStats + ", previousStats: " + previousStatistics[entity]);
-
         if (previousStatistics && previousStatistics[entity] && previousStatistics[entity].length !== 0) {
           // This entry is the final stat prior to the period we are interested in.  It is only needed for the case where we need to calculate
           // the Live-mode state-delta at midnight on the current date (ie, before the first stat of the new day has been generated) so we do
           // not want to include its values in the stats calculations.
           const previousStat: StatisticValue = previousStatistics[entity][0];
-
-          LOGGER.debug("using previous: " + previousStat.state);
 
           dummyStat = {
             ...previousStat,
@@ -926,10 +907,6 @@ export class EntityStates {
           };
         } else {
           const state: number = Number(this.hass.states[entity].state);
-          LOGGER.debug("no previous, creating dummy");
-
-          LOGGER.debug("current sensor state=" + state + " changed@ " + this.hass.states[entity].last_changed + " updated@ " + this.hass.states[entity].last_updated);
-
           dummyStat = {
             change: 0,
             state: this._entityModes.get(entity) === EntityMode.Totalising && Date.parse(this.hass.states[entity].last_changed) <= periodEnd.getTime() ? state : 0,
@@ -1145,7 +1122,7 @@ export class EntityStates {
     const toGrid: number = states.flows.batteryToGrid + states.flows.solarToGrid;
 
     if (toGrid > 0) {
-      const scale = states.grid.export / toGrid;
+      const scale: number = states.grid.export / toGrid;
 
       if (scale > 0) {
         states.flows.batteryToGrid *= scale;
@@ -1156,7 +1133,7 @@ export class EntityStates {
     const toBattery: number = states.flows.gridToBattery + states.flows.solarToBattery;
 
     if (toBattery > 0) {
-      const scale = states.battery.export / toBattery;
+      const scale: number = states.battery.export / toBattery;
 
       if (scale > 0) {
         states.flows.gridToBattery *= scale;
@@ -1167,3 +1144,5 @@ export class EntityStates {
 
   //================================================================================================================================================================================//
 }
+
+//================================================================================================================================================================================//

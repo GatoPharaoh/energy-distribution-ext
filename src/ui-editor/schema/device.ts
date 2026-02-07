@@ -4,6 +4,8 @@ import { ColourMode, DeviceClasses, DisplayMode, EnergyDirection, EnergyType } f
 import { BASIC_COLOUR_MODES_DUAL, BASIC_COLOUR_MODES_SINGLE, DEFAULT_DEVICE_CONFIG, getConfigValue } from '@/config/config';
 import memoizeOne from 'memoize-one';
 
+//================================================================================================================================================================================//
+
 export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig, mode: DisplayMode, secondaryEntities: string[]): any[] => {
   const deviceConfig: DeviceConfig[] = [schemaConfig, DEFAULT_DEVICE_CONFIG];
   const energyDirection: EnergyDirection = getConfigValue(deviceConfig, DeviceOptions.Energy_Direction);
@@ -150,3 +152,5 @@ export const deviceSchema = memoizeOne((schemaConfig: DeviceConfig, mode: Displa
 
   return result;
 });
+
+//================================================================================================================================================================================//

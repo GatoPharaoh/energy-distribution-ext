@@ -6,7 +6,7 @@ import { CssClass, DisplayMode, ELECTRIC_ENTITY_CLASSES, EnergyDirection, Energy
 import { States } from ".";
 import { Colours } from "./colours";
 import { html, LitElement, nothing, TemplateResult } from "lit";
-import { POWER_UNITS } from "../const";
+import { POWER_UNITS } from "@/const";
 
 //================================================================================================================================================================================//
 
@@ -17,15 +17,8 @@ export class DeviceNode extends Node<DeviceConfig> {
   public exportIcon: string = "";
   public importIcon: string = "";
 
-  protected get defaultName(): string {
-    return this._defaultName;
-  }
-  private _defaultName: string;
-
-  protected get defaultIcon(): string {
-    return this._defaultIcon;
-  }
-  private _defaultIcon: string;
+  protected readonly defaultName: string;
+  protected readonly defaultIcon: string;
 
   private _index: number;
 
@@ -44,8 +37,8 @@ export class DeviceNode extends Node<DeviceConfig> {
 
     this._index = index;
 
-    this._defaultName = getConfigValue(this.nodeConfigs, DeviceOptions.Name);
-    this._defaultIcon = getConfigValue(this.nodeConfigs, DeviceOptions.Icon);
+    this.defaultName = getConfigValue(this.nodeConfigs, DeviceOptions.Name);
+    this.defaultIcon = getConfigValue(this.nodeConfigs, DeviceOptions.Icon);
 
     this.type = getConfigValue(this.nodeConfigs, DeviceOptions.Energy_Type);
     this.direction = getConfigValue(this.nodeConfigs, DeviceOptions.Energy_Direction);
@@ -168,3 +161,5 @@ export class DeviceNode extends Node<DeviceConfig> {
 
   //================================================================================================================================================================================//
 }
+
+//================================================================================================================================================================================//

@@ -1,7 +1,7 @@
 import { DateRange } from "@/enums";
 import { isFirstDayOfMonth, isLastDayOfMonth, isSameDay, isSameMonth, isSameYear } from "date-fns";
 import memoizeOne from "memoize-one";
-import { localize } from "../localize/localize";
+import { localize } from "@/localize/localize";
 import { HomeAssistant } from "custom-card-helpers";
 
 //================================================================================================================================================================================//

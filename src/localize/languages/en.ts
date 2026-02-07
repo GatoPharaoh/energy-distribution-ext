@@ -2,9 +2,12 @@ import { AppearanceOptions, ColourOptions, DeviceOptions, EditorPages, EnergyUni
 import { AnimationMode, ColourMode, DateRangeDisplayMode, DisplayMode, EnergyDirection, EnergyType, EnergyUnits, GasSourcesMode, InactiveFlowsMode, LowCarbonDisplayMode, Scale, UnitPosition, UnitPrefixes, VolumeUnits } from "@/enums";
 import { HELPTEXT_SUFFIX } from "@/const";
 
+//================================================================================================================================================================================//
+
 export default {
   "common": {
     "go_to_dashboard": "Go to the {title} dashboard",
+    "idle": "Idle",
     "initialising": "Initializing...",
     "invalid_configuration": "Invalid configuration",
     "loading": "Loading data...",
@@ -323,3 +326,5 @@ export default {
     [VolumeUnits.Litres]: "Liters"
   }
 };
+
+//================================================================================================================================================================================//

@@ -12,9 +12,9 @@ import { SolarNode } from "@/nodes/solar";
 import { States, Flows } from "@/nodes";
 import { DataStatus, EntityStates } from "@/states/entity-states";
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
-import { LowCarbonDisplayMode, UnitPrefixes, CssClass, SIUnitPrefixes, InactiveFlowsMode, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, checkEnumValue, DateRange, DateRangeDisplayMode, EnergyType, AnimationMode, EnergyDirection, DisplayMode } from "@/enums";
+import { LowCarbonDisplayMode, UnitPrefixes, CssClass, SIUnitPrefixes, InactiveFlowsMode, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, checkEnumValue, DateRange, DateRangeDisplayMode, EnergyType, AnimationMode, EnergyDirection, DisplayMode, DevicesLayout } from "@/enums";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
-import { CARD_NAME, CIRCLE_STROKE_WIDTH_SEGMENTS, DOT_RADIUS, HOMEPAGE, ICON_PADDING, POWER_UNITS } from "@/const";
+import { CIRCLE_STROKE_WIDTH_SEGMENTS, DOT_RADIUS, HOMEPAGE, ICON_PADDING, POWER_UNITS } from "@/const";
 import { EnergyDistributionExtConfig, AppearanceOptions, EditorPages, GlobalOptions, FlowsOptions, EnergyUnitsOptions, EnergyUnitsConfig, HomeOptions, LowCarbonOptions } from "@/config";
 import { getRangePresetName, renderDateRange } from "@/ui-helpers/date-fns";
 import { AnimationDurations, FlowLine, getGasSourcesMode } from "@/ui-helpers";
@@ -26,7 +26,7 @@ import { DeviceNode } from "@/nodes/device";
 import equal from "fast-deep-equal";
 import memoizeOne from "memoize-one";
 import { SecondaryInfo } from "@/nodes/secondary-info";
-import { LOGGER } from "./logging";
+import { description, friendlyName, name } from '../package.json';
 
 //================================================================================================================================================================================//
 
@@ -56,9 +56,9 @@ function registerCustomCard(params: RegisterCardParams): void {
 }
 
 registerCustomCard({
-  type: CARD_NAME,
-  name: "Energy Distribution Extended",
-  description: "A custom card for displaying energy and power flow in Home Assistant. Inspired by the official Energy Distribution Card and Energy Flow Card Plus."
+  type: name,
+  name: friendlyName,
+  description: description
 });
 
 //================================================================================================================================================================================//
@@ -77,19 +77,11 @@ const FLOW_RATE_MAX: number = 6;
 const NODE_SPACER: TemplateResult = html`<div class="node-spacer"></div>`;
 const HORIZ_SPACER: TemplateResult = html`<div class="horiz-spacer"></div>`;
 
-enum DevicesLayout {
-  None,
-  Inline_Above,
-  Inline_Below,
-  Horizontal,
-  Vertical
-}
-
 type NodeRenderFn = ((nodeClass: CssClass, states?: States, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes) => TemplateResult) | undefined;
 
 //================================================================================================================================================================================//
 
-@customElement(CARD_NAME)
+@customElement(name)
 export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
   static styles: CSSResult = styles;
 
@@ -310,7 +302,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     const animationDurations: AnimationDurations | undefined = states ? this._calculateAnimationDurations(states) : undefined;
 
     return html`
-      <div class="card-content" id=${CARD_NAME}>
+      <div class="card-content" id=${name}>
         <!-- date-range -->
         ${this._renderDateRange()}
 
@@ -854,13 +846,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     const entityStates: EntityStates = this._entityStates;
     const layoutGrid: NodeRenderFn[][] = [];
 
-    if (devicesLayout === DevicesLayout.Vertical) {
-      entityStates.battery.importIcon = mdiArrowLeft;
-      entityStates.battery.exportIcon = mdiArrowRight;
-    } else {
-      entityStates.battery.importIcon = mdiArrowUp;
-      entityStates.battery.exportIcon = mdiArrowDown;
-    }
+    entityStates.battery.orientation = devicesLayout;
 
     layoutGrid[0] = [
       entityStates.lowCarbon.isPresent && entityStates.grid.isPresent
@@ -995,20 +981,12 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
   private _calculateDotRate(value: number, total: number): number {
     if (value <= 0 || total <= 0) {
-      if (value < 0 || total < 0) {
-        LOGGER.debug("_calculateDotRate: value = " + value + ", total = " + total);
-      }
-
       return 0;
     }
 
     if (this._scale === Scale.Logarithmic) {
       value = Math.log(value);
       total = Math.log(total);
-    }
-
-    if (value > total) {
-      LOGGER.debug("_calculateDotRate: value=" + value + ", total=" + total);
     }
 
     return FLOW_RATE_MAX - (value / total) * (FLOW_RATE_MAX - FLOW_RATE_MIN);
