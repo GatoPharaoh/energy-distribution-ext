@@ -25,7 +25,7 @@
     <Content Include="docs\config.md">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="docs\devices.md" />
+    <Content Include="docs\device.md" />
     <Content Include="docs\entities.md" />
     <Content Include="docs\gas.md" />
     <Content Include="docs\grid.md" />

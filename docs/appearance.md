@@ -31,12 +31,12 @@
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `unit_position` | `after_space \| before_space \| after \| before \| hidden` | `after_space` | The position of the units relative to the value, and whether to separate the units and value with a space |
-| `prefix_threshold` | `number` | `1000` | The threshold at which the next unit prefix is selected |
-| `electric_units` | `Wh \| J \| cal` | `Wh` | The units for electric values |
+| `prefix_threshold` | `900 \| 925 \| 950 \| 975 \| 1000 \| 1025 \| 1050 \| 1075 \| 1100` | `1000` | The threshold at which the next unit prefix is selected |
+| `electric_units` | `Wh \| J \| cal` | `Wh` | The units to display electric values in; entities which report their values in other units will have them converted automatically |
 | `electric_unit_prefixes` | `unified \| individual` | `unified` | If `unified`, all electric values will have the same unit-prefix, selected based on the largest value to be display; otherwise the prefixes will be selected for each value independently |
-| `gas_units` | `same_as_electric \| ft³ \| m³ \| CCF \| MCF \| L` | `same_as_electric` | The units for gas values |
+| `gas_units` | `same_as_electric \| ft³ \| m³ \| CCF \| MCF \| L` | `same_as_electric` | The units to display gas values in; entities which report their values in other units will have them converted automatically |
+| `gas_calorific_value` | `number` | `39` | The calorific value to use when converting between gas volume and energy values; this can usually be found on your gas bill, and may vary over time |
 | `gas_unit_prefixes` | `unified \| individual` | `unified` | If `unified`, all gas values will have the same unit-prefix, selected based on the largest value to be display; otherwise the prefixes will be selected for each value independently |
 | `display_precision_under_10` | `number` | `2` | The number of decimal places to show for values less than 10 |
 | `display_precision_under_100` | `number` | `1` | The number of decimal places to show for values less than 100 |
 | `display_precision_default` | `number` | `0` | The number of decimal places to show for values >= 100 |
-| `gas_calorific_value` | `number` | `39` | The calorific value to use when converting between gas volume and energy values; this can usually be found on your gas bill, and may vary over time |

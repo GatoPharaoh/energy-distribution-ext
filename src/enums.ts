@@ -87,7 +87,7 @@ namespace Enums {
   } as const satisfies Record<string, string>;
 
   export const LowCarbonDisplayMode = {
-    Energy: "energy",
+    Value: "value",
     Percentage: "percentage",
     Both: "both"
   } as const satisfies Record<string, string>;
@@ -219,12 +219,6 @@ export enum SIUnitPrefixes {
   Mega = "M",
   Giga = "G",
   Tera = "T"
-}
-
-export enum EntityMode {
-  Totalising = "totalising",
-  Resetting = "resetting",
-  Misconfigured_Resetting = "misconfigured resetting"
 }
 
 export enum DevicesLayout {

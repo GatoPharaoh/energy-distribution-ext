@@ -248,7 +248,7 @@ export default {
   },
 
   "LowCarbonDisplayMode": {
-    [LowCarbonDisplayMode.Energy]: "Energy",
+    [LowCarbonDisplayMode.Value]: "Energy",
     [LowCarbonDisplayMode.Percentage]: "Percentage",
     [LowCarbonDisplayMode.Both]: "Both"
   },

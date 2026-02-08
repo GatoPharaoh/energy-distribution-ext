@@ -1,5 +1,8 @@
 ## Secondary-info configuration
+
 If `mode` is `energy`, the entity must be of `state_class` `total` or `total_increasing`.
+
+> An entity with `state_class` `total` will display unpredictable results if its value resets periodically (for example, daily), as there is no way for HASS to distinguish between a reset and a normal decrease in value.
 
 If `mode` is `power`, the entity must be of `state_class` `measurement`.
 

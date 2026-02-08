@@ -1,4 +1,4 @@
-import { HomeAssistant, round } from "custom-card-helpers";
+import { HomeAssistant } from "custom-card-helpers";
 import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
 import { EnergyCollection, EnergyData, EnergyPreferences, EnergySource, Statistics, StatisticValue } from "@/hass";
 import { AppearanceOptions, DeviceConfig, EditorPages, EnergyDistributionExtConfig, EnergyUnitsConfig, EnergyUnitsOptions, FlowsOptions, GlobalOptions, HomeOptions } from "@/config";
@@ -8,8 +8,8 @@ import { HomeNode } from "@/nodes/home";
 import { LowCarbonNode } from "@/nodes/low-carbon";
 import { SolarNode } from "@/nodes/solar";
 import { DeviceNode } from "@/nodes/device";
-import { addDays, addHours, addMonths, differenceInDays, endOfToday, getHours, isFirstDayOfMonth, isLastDayOfMonth, startOfDay, startOfMonth, startOfToday } from "date-fns";
-import { EnergyUnits, SIUnitPrefixes, EntityMode, VolumeUnits, checkEnumValue, DateRange, EnergyType, DeviceClasses, EnergyDirection, DisplayMode } from "@/enums";
+import { addDays, addHours, differenceInDays, endOfToday, isFirstDayOfMonth, isLastDayOfMonth, startOfDay, startOfToday } from "date-fns";
+import { EnergyUnits, SIUnitPrefixes, VolumeUnits, checkEnumValue, DateRange, EnergyType, DeviceClasses, EnergyDirection, DisplayMode } from "@/enums";
 import { LOGGER } from "@/logging";
 import { getEnergyDataCollection } from "@/energy";
 import { BiDiState, Flows, States } from "@/nodes";
@@ -157,7 +157,6 @@ export class EntityStates {
   private _secondaryEntityIds: string[] = [];
   private _primaryStatistics?: Statistics;
   private _secondaryStatistics?: Statistics;
-  private _entityModes: Map<string, EntityMode> = new Map();
   private _co2data?: Record<string, number>;
   private _energyUnits: string;
   private _gasUnits: string;
@@ -306,10 +305,6 @@ export class EntityStates {
 
     this._populateEntityArrays();
 
-    if (this._primaryEntityIds.length !== 0 || this._secondaryEntityIds.length !== 0) {
-      await this._inferEntityModes();
-    }
-
     this._states.electricPresent = this.battery.isPresent || this.grid.isPresent || this.solar.isPresent;
     this._states.gasPresent = this.gas.isPresent;
 
@@ -443,12 +438,11 @@ export class EntityStates {
           if (lastChanged >= periodStart && lastChanged <= periodEnd) {
             const entityStats: StatisticValue[] = statistics[entityId];
             const lastStat: StatisticValue = entityStats[entityStats.length - 1];
-            const lastState: number = lastStat.state ?? 0;
-            const state: number = Number(stateObj.state);
-            const delta: number = state - lastState;
             const units: string | undefined = stateObj.attributes.unit_of_measurement;
+            const state: number = Number(stateObj.state);
+            const lastState: number = lastStat.state ?? 0;
 
-            deltaSum += this._toBaseUnits(delta, units, requestedUnits);
+            deltaSum += this._toBaseUnits(state - lastState, units, requestedUnits);
           }
         }
       });
@@ -502,13 +496,13 @@ export class EntityStates {
       this._co2data = co2data || undefined;
 
       if (primaryData) {
-        this._validateStatistics(primaries, primaryData, previousPrimaryData, periodStart, periodEnd);
+        this._prepStatistics(primaries, primaryData, previousPrimaryData, periodStart, periodEnd);
         this._primaryStatistics = primaryData;
         this._calculatePrimaryStatistics();
       }
 
       if (secondaryData) {
-        this._validateStatistics(secondaries, secondaryData, previousSecondaryData!, periodStart, periodEnd);
+        this._prepStatistics(secondaries, secondaryData, previousSecondaryData!, periodStart, periodEnd);
         this._secondaryStatistics = secondaryData;
         this._calculateSecondaryStatistics();
       }
@@ -517,49 +511,6 @@ export class EntityStates {
     this._periodStart = periodStart;
     this._periodEnd = periodEnd;
     this._dataStatus = DataStatus.Received;
-  }
-
-  //================================================================================================================================================================================//
-
-  private async _inferEntityModes(): Promise<void> {
-    const statistics: Statistics = await this._fetchStatistics(addDays(startOfToday(), -1), startOfToday(), [...this._primaryEntityIds, ...this._secondaryEntityIds], Period.Day);
-    const entityModes: Map<string, EntityMode> = this._entityModes;
-
-    for (const entity in statistics) {
-      if (statistics[entity].length !== 0) {
-        const firstStat: StatisticValue = statistics[entity][0];
-        let mode: EntityMode;
-
-        if (this._isMisconfiguredResettingSensor(firstStat)) {
-          mode = EntityMode.Misconfigured_Resetting;
-        } else if (this._isTotalisingSensor(firstStat)) {
-          mode = EntityMode.Totalising;
-        } else {
-          mode = EntityMode.Resetting;
-        }
-
-        LOGGER.debug(`${entity} is a ${mode} sensor (change=${firstStat.change}, state=${firstStat.state})`);
-        entityModes.set(entity, mode);
-      } else {
-        entityModes.set(entity, EntityMode.Totalising);
-      }
-    }
-  }
-
-  //================================================================================================================================================================================//
-
-  private _isMisconfiguredResettingSensor(stat: StatisticValue): boolean {
-    const change: number = round(stat.change ?? 0, 6);
-    const state: number = round(stat.state ?? 0, 6);
-    return change > state || change < 0;
-  }
-
-  //================================================================================================================================================================================//
-
-  private _isTotalisingSensor(stat: StatisticValue): boolean {
-    const change: number = round(stat.change ?? 0, 6);
-    const state: number = round(stat.state ?? 0, 6);
-    return change >= 0 && change < state;
   }
 
   //================================================================================================================================================================================//
@@ -882,34 +833,29 @@ export class EntityStates {
 
   //================================================================================================================================================================================//
 
-  private _validateStatistics(entityIds: string[], currentStatistics: Statistics, previousStatistics: Statistics, periodStart: Date, periodEnd: Date): void {
+  private _prepStatistics(entityIds: string[], currentStatistics: Statistics, previousStatistics: Statistics, periodStart: Date, periodEnd: Date): void {
     entityIds.forEach(entity => {
-      let entityStats: StatisticValue[] = currentStatistics[entity];
-      let idx: number = 0;
+      const entityStats: StatisticValue[] = currentStatistics[entity];
 
       if (!entityStats || entityStats.length === 0 || entityStats[0].start > periodStart.getTime()) {
-        const stateObj: HassEntity = this.hass.states[entity];
-        const state: number = Date.parse(stateObj.last_changed) <= periodEnd.getTime() ? Number(stateObj.state) : 0;
-        let dummyStat: StatisticValue;
+        let previousStat: StatisticValue;
 
         if (previousStatistics && previousStatistics[entity] && previousStatistics[entity].length !== 0) {
           // This entry is the final stat prior to the period we are interested in.  It is only needed for the case where we need to calculate
           // the Live-mode state-delta at midnight on the current date (ie, before the first stat of the new day has been generated) so we do
           // not want to include its values in the stats calculations.
-          const previousStat: StatisticValue = previousStatistics[entity][0];
-
-          dummyStat = {
-            ...previousStat,
-            change: 0,
-            state: this._entityModes.get(entity) === EntityMode.Totalising ? previousStat.state : state
-          };
+          previousStat = previousStatistics[entity][0];
+          previousStat.change = 0;
         } else {
-          dummyStat = {
+          // no previous stat exists, so fake one up
+          const stateObj: HassEntity = this.hass.states[entity];
+
+          previousStat = {
             change: 0,
-            state: state,
+            state: Date.parse(stateObj.last_changed) <= periodEnd.getTime() ? Number(stateObj.state) : 0,
             sum: 0,
-            start: periodStart.getTime(),
-            end: periodEnd.getTime(),
+            start: -1,
+            end: -1,
             min: 0,
             mean: 0,
             max: 0,
@@ -919,40 +865,10 @@ export class EntityStates {
         }
 
         if (entityStats) {
-          entityStats.unshift(dummyStat);
+          entityStats.unshift(previousStat);
         } else {
-          entityStats = [dummyStat];
-          currentStatistics[entity] = entityStats;
+          currentStatistics[entity] = [previousStat];
         }
-
-        idx++;
-      }
-
-      if (entityStats.length > idx) {
-        let lastState: number = 0;
-
-        entityStats.forEach(stat => {
-          if (getHours(stat.start) === 0) {
-            if (this._entityModes.get(entity) === EntityMode.Misconfigured_Resetting) {
-              // this is a 'resetting' sensor which has been misconfigured such that the first 'change' value following the reset is out of range
-              stat.change = stat.state;
-            }
-
-            lastState = stat.state ?? 0;
-          } else {
-            // the 'change' values coming back from statistics are not always correct, so recalculate them from the state-diffs
-            const state: number = stat.state ?? 0;
-            const change: number = state - lastState;
-
-            if (this._entityModes.get(entity) === EntityMode.Totalising) {
-              stat.change = change;
-            } else {
-              stat.change = Math.max(0, change);
-            }
-
-            lastState = state;
-          }
-        });
       }
     });
   }
@@ -966,7 +882,7 @@ export class EntityStates {
       end_time: periodEnd.toISOString(),
       statistic_ids: entityIds,
       period: period,
-      types: ["state", "change"]
+      types: ["state", "change", "sum"]
     });
   }
 

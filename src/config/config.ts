@@ -369,7 +369,7 @@ export function getDefaultLowCarbonConfig(): LowCarbonConfig {
       [ColourOptions.Secondary_Colour]: []
     },
     [GlobalOptions.Options]: {
-      [LowCarbonOptions.Low_Carbon_Mode]: LowCarbonDisplayMode.Energy
+      [LowCarbonOptions.Low_Carbon_Mode]: LowCarbonDisplayMode.Value
     },
     [NodeOptions.Secondary_Info]: getDefaultSecondaryInfoConfig()
   };
@@ -386,13 +386,13 @@ export function getDefaultDeviceConfig(importColour: number[], exportColour: num
       [ColourOptions.Flow_Import_Colour]: importColour,
       [ColourOptions.Flow_Export]: ColourMode.Default,
       [ColourOptions.Flow_Export_Colour]: exportColour,
-      [ColourOptions.Circle]: ColourMode.Flow,
+      [ColourOptions.Circle]: ColourMode.Automatic,
       [ColourOptions.Circle_Colour]: [],
       [ColourOptions.Icon]: ColourMode.Do_Not_Colour,
       [ColourOptions.Icon_Colour]: [],
-      [ColourOptions.Value_Import]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Import]: ColourMode.Flow,
       [ColourOptions.Value_Import_Colour]: [],
-      [ColourOptions.Value_Export]: ColourMode.Do_Not_Colour,
+      [ColourOptions.Value_Export]: ColourMode.Flow,
       [ColourOptions.Value_Export_Colour]: [],
       [ColourOptions.Secondary]: ColourMode.Do_Not_Colour,
       [ColourOptions.Secondary_Colour]: []
