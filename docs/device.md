@@ -8,11 +8,11 @@ In `power` mode, the entities must return positive values for production and neg
 |---|---|---|---|
 | `name` | `string` | `New Device` | The name for the device |
 | `icon` | `string` | `mdi:devices` | The icon for the device |
-| `energy_type` | `electric | gas` | `electric` | The type of the device |
-| `energy_direction` | `consumer | producer | both` | `consumer` | Whether the device acts as a consumer of energy/power, a producer or both |
-| `import_entities` | [Entities](entities.md) | | Entities settings section (`energy` mode only) |
-| `export_entities` | [Entities](entities.md) | | Entities settings section (`energy` mode only) |
-| `power_entities` | [Entities](entities.md) | | Entities settings section (`power` mode only) |
+| `energy_type` | `electric \| gas` | `electric` | The type of the device |
+| `energy_direction` | `consumer \| producer \| both` | `consumer` | Whether the device acts as a consumer of energy/power, a producer or both |
+| `import_entities` | [Entities](entities.md) | | Entities settings section<br>(`energy` mode only) |
+| `export_entities` | [Entities](entities.md) | | Entities settings section<br>(`energy` mode only) |
+| `power_entities` | [Entities](entities.md) | | Entities settings section<br>(`power` mode only) |
 | `colours` | [Colours](#colours) | | Colours settings section |
 | `secondary_info` | [SecondaryInfo](secondary-info.md) | | Secondary-info settings section |
 

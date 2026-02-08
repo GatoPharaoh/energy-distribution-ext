@@ -4,12 +4,11 @@
 
 In `power` mode, the entities must return positive values for importing and negative values for exporting.
 
-
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `import_entities` | [Entities](entities.md) | | Entities settings section (`energy` mode only) |
-| `export_entities` | [Entities](entities.md) | | Entities settings section (`energy` mode only) |
-| `power_entities` | [Entities](entities.md) | | Entities settings section (`power` mode only) |
+| `import_entities` | [Entities](entities.md) | | Entities settings section<br>(`energy` mode only) |
+| `export_entities` | [Entities](entities.md) | | Entities settings section<br>(`energy` mode only) |
+| `power_entities` | [Entities](entities.md) | | Entities settings section<br>(`power` mode only) |
 | `overrides` | [Overrides](overrides.md) | | Overrides settings section |
 | `colours` | [Colours](#colours) | | Colours settings section |
 | `secondary_info` | [SecondaryInfo](secondary-info.md) | | Secondary-info settings section |
@@ -42,4 +41,4 @@ If configured, the Grid circle will display a message when a power-outage is occ
 |---|---|---|---|
 | `entity_id` | `string` | | An entity whose state can be checked to determine if a power-outage is occurring |
 | `alert_state` | `string` | | The state of the entity which indicates a power-outage |
-| `alert_icon` | | If set, this icon will be displayed in the circle in place of the usual icon |
+| `alert_icon` | `string` | | If set, this icon will be displayed in the circle in place of the usual icon |

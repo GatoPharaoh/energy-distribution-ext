@@ -15,7 +15,7 @@
 | `flow_import_colour` | `number[]` | | An RGB triad of the `custom` colour to use |
 | `circle_mode` | `none \| flow \| custom` | `flow` | If `flow` the circle will take the colour of the flow |
 | `circle_colour` | `number[]` | | An RGB triad of the `custom` colour to use |
-| `icon_mode` | `none \| flow \| custom` | `none` | If `flow` the icon will take the colour of the flow |
+| `icon_mode` | `none \| flow \| custom` | `flow` | If `flow` the icon will take the colour of the flow |
 | `icon_colour` | `number[]` | | An RGB triad of the `custom` colour to use |
 | `value_import_mode` | `none \| flow \| custom` | `none` | If `flow` the value will take the colour of the flow |
 | `value_import_colour` | `number[]` | | An RGB triad of the `custom` colour to use |

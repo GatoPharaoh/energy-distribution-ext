@@ -6,12 +6,12 @@ In `power` mode, the entities must return positive values for discharging and ne
 
 | Name | Type | Default | Description |
 |---|---|---|---|
-| `import_entities` | [Entities](entities.md) | | Entities settings section (`energy` mode only) |
-| `export_entities` | [Entities](entities.md) | | Entities settings section (`energy` mode only) |
-| `power_entities` | [Entities](entities.md) | | Entities settings section (`power` mode only) |
+| `import_entities` | [Entities](entities.md) | | Entities settings section<br>(`energy` mode only) |
+| `export_entities` | [Entities](entities.md) | | Entities settings section<br>(`energy` mode only) |
+| `power_entities` | [Entities](entities.md) | | Entities settings section<br>(`power` mode only) |
 | `overrides` | [Overrides](overrides.md) | | Overrides settings section |
 | `colours` | [Colours](#colours) | | Colours settings section |
-| `secondary_info` | [SecondaryInfo](secondary-info.md) | | Secondary-info settings section;<br>if the selected entity is a state-of-charge, the icon for the battery circle will, if not [overridden](overrides.md), reflect the charge level of the battery (`power` mode only) |
+| `secondary_info` | [SecondaryInfo](secondary-info.md) | | Secondary-info settings section;<br>if the selected entity is a state-of-charge, the icon for the battery circle will, if not [overridden](overrides.md), reflect the charge level of the battery<br>(`power` mode only) |
 
 ### Colours
 
