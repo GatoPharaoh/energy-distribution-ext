@@ -16,9 +16,15 @@
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">16.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>EnergyDistributionExt</Name>
+    <StartWebBrowser>True</StartWebBrowser>
+    <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <JavaScriptTestRoot>src\</JavaScriptTestRoot>
+    <JavaScriptTestFramework>Jest</JavaScriptTestFramework>
+  </PropertyGroup>
   <ItemGroup>
     <Content Include="docs\appearance.md" />
     <Content Include="docs\battery.md" />
@@ -89,6 +95,11 @@
     <TypeScriptCompile Include="src\dates.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <Compile Include="src\localize\localize.test.ts">
+      <SubType>Code</SubType>
+      <TestFramework>Jest</TestFramework>
+      <Publish>False</Publish>
+    </Compile>
     <TypeScriptCompile Include="src\nodes\colours.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
