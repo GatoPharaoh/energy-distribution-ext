@@ -26,4 +26,3 @@
 |---|---|---|---|
 | `gas_sources` | `do_not_show \| add_to_total \| show_separately \| automatic` | `do_not_show` | If enabled, the total amount of gas energy/power being consumed by the house will be displayed in addition to the electric value |
 | `gas_sources_threshold` | `number` | | If `gas_sources` is `automatic`, the gas value will be added to the electric total if it is less than this percentage of the overall total energy/power; and as a separate value otherwise |
-| `subtract_consumers` | `boolean` | `false` | If `true` the values of any energy/power-consuming [devices](device.md) will be subtracted from the totals shown in the circle |

@@ -10,6 +10,7 @@ In `power` mode, the entities must return positive values for production and neg
 | `icon` | `string` | `mdi:devices` | The icon for the device |
 | `energy_type` | `electric \| gas` | `electric` | The type of the device |
 | `energy_direction` | `consumer \| producer \| both` | `consumer` | Whether the device acts as a consumer of energy/power, a producer or both |
+| `subtract_from_home` | `boolean` | `true` | If `true` the consumption value will be subtracted from the totals shown in the Home circle |
 | `import_entities` | [Entities](entities.md) | | Entities settings section<br>(`energy` mode only) |
 | `export_entities` | [Entities](entities.md) | | Entities settings section<br>(`energy` mode only) |
 | `power_entities` | [Entities](entities.md) | | Entities settings section<br>(`power` mode only) |
