@@ -10,12 +10,6 @@ Code
     - may now be fixed?
 
 
-Docs
-----
-Entities whose values can both go up and down as well as reset are not likely to work.
-
-
-
 Under consideration
 -------------------
 

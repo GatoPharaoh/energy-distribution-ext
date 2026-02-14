@@ -9,7 +9,7 @@ import { LowCarbonNode } from "@/nodes/low-carbon";
 import { SolarNode } from "@/nodes/solar";
 import { DeviceNode } from "@/nodes/device";
 import { addDays, addHours, differenceInDays, endOfToday, isFirstDayOfMonth, isLastDayOfMonth, startOfDay, startOfToday } from "date-fns";
-import { EnergyUnits, SIUnitPrefixes, VolumeUnits, checkEnumValue, DateRange, EnergyType, DeviceClasses, EnergyDirection, DisplayMode } from "@/enums";
+import { EnergyUnits, SIUnitPrefixes, VolumeUnits, checkEnumValue, DateRange, EnergyType, DeviceClasses, EnergyDirection, DisplayMode, StateClasses } from "@/enums";
 import { LOGGER } from "@/logging";
 import { getEnergyDataCollection } from "@/energy";
 import { BiDiState, Flows, States } from "@/nodes";
@@ -439,8 +439,14 @@ export class EntityStates {
             const units: string | undefined = stateObj.attributes.unit_of_measurement;
             const state: number = Number(stateObj.state);
             const lastState: number = lastStat.state ?? 0;
+            let delta: number = state - lastState;
 
-            deltaSum += this._toBaseUnits(state - lastState, units, requestedUnits);
+            if (delta < 0 && stateObj.attributes.state_class === StateClasses.Total_Increasing) {
+              // a total_increasing sensor can only have a negative delta following a reset event
+              delta = 0;
+            }
+
+            deltaSum += this._toBaseUnits(delta, units, requestedUnits);
           }
         }
       });
