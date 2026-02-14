@@ -53,8 +53,8 @@ export class LowCarbonNode extends Node<LowCarbonConfig> {
       electricityMapUrl += `/zone/${co2State?.attributes.country_code}`;
     }
 
-    const energyState: number | undefined = !states || this._displayMode === LowCarbonDisplayMode.Percentage ? undefined : states.grid.import === 0 ? 0 : states.lowCarbon;
-    const energyPercentage: number | undefined = !states || this._displayMode === LowCarbonDisplayMode.Value ? undefined : states.grid.import === 0 ? 0 : round(states.lowCarbonPercentage, 1);
+    const energyState: number | undefined | null = !states ? null : this._displayMode === LowCarbonDisplayMode.Percentage ? undefined : states.grid.import === 0 ? 0 : states.lowCarbon;
+    const energyPercentage: number | undefined | null = !states ? null : this._displayMode === LowCarbonDisplayMode.Value ? undefined : states.grid.import === 0 ? 0 : round(states.lowCarbonPercentage, 1);
     const inactiveCss: CssClass = !energyState && !energyPercentage ? this.inactiveFlowsCss : CssClass.None;
 
     return html`

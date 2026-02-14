@@ -39,14 +39,19 @@ export class GasNode extends Node<GasConfig> {
 
   public readonly render = (target: LitElement, circleSize: number, states?: States, _?, overrideGasPrefix?: SIUnitPrefixes): TemplateResult => {
     let units: string;
-    let primaryState: number | undefined;
+    let primaryState: number | undefined | null;
 
-    if (this.gasUnits === VolumeUnits.Same_As_Electric) {
-      primaryState = states?.gasImport;
-      units = this.electricUnits;
+    if (states) {
+      if (this.gasUnits === VolumeUnits.Same_As_Electric) {
+        primaryState = states.gasImport;
+        units = this.electricUnits;
+      } else {
+        primaryState = states.gasImportVolume;
+        units = this.gasUnits;
+      }
     } else {
-      primaryState = states?.gasImportVolume;
-      units = this.gasUnits;
+      primaryState = null;
+      units = this.electricUnits;
     }
 
     const inactiveCss: CssClass = !states || !primaryState ? this.inactiveFlowsCss : CssClass.None;

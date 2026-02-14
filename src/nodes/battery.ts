@@ -47,21 +47,25 @@ export class BatteryNode extends Node<BatteryConfig> {
   //================================================================================================================================================================================//
 
   public readonly render = (target: LitElement, circleSize: number, states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult => {
-    const importState: number | undefined = states && this.firstImportEntity
-      ? this.mode === DisplayMode.Energy
-        ? states.battery.import
-        : states.battery.export === 0
+    const importState: number | undefined | null = !states
+      ? null
+      : this.firstImportEntity
+        ? this.mode === DisplayMode.Energy
           ? states.battery.import
-          : undefined
-      : undefined;
+          : states.battery.export === 0
+            ? states.battery.import
+            : undefined
+        : undefined;
 
-    const exportState: number | undefined = states && this.firstExportEntity
-      ? this.mode === DisplayMode.Energy
-        ? states.battery.export
-        : states.battery.import === 0 && states.battery.export > 0
+    const exportState: number | undefined | null = !states
+      ? null
+      : this.firstExportEntity
+        ? this.mode === DisplayMode.Energy
           ? states.battery.export
-          : undefined
-      : undefined;
+          : states.battery.import === 0 && states.battery.export > 0
+            ? states.battery.export
+            : undefined
+        : undefined;
 
     const segmentGroups: SegmentGroup[] = [];
 
@@ -113,6 +117,20 @@ export class BatteryNode extends Node<BatteryConfig> {
       }
 
       this.setCssVariables(this.style, states.battery);
+    } else if (this._circleMode == ColourMode.Dynamic) {
+      if (this.firstExportEntity) {
+        segmentGroups.push({
+          inactiveCss: CssClass.Battery_Export,
+          segments: [{ state: 0, cssClass: CssClass.None }]
+        });
+      }
+
+      if (this.firstImportEntity) {
+        segmentGroups.push({
+          inactiveCss: CssClass.Battery_Import,
+          segments: [{ state: 0, cssClass: CssClass.None }]
+        });
+      }
     }
 
     let icon: string = this.icon;

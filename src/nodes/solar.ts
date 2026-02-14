@@ -69,9 +69,14 @@ export class SolarNode extends Node<SolarConfig> {
           }
         );
       }
+    } else if (this._circleMode == ColourMode.Dynamic) {
+      segmentGroups.push({
+        inactiveCss: CssClass.Solar,
+        segments: [{ state: 0, cssClass: CssClass.None }]
+      });
     }
 
-    const primaryState: number | undefined = states && states.solarImport;
+    const primaryState: number | undefined | null = !states ? null : states.solarImport;
     const inactiveCss: CssClass = !primaryState ? this.inactiveFlowsCss : CssClass.None;
     const borderCss: CssClass = this._circleMode === ColourMode.Dynamic ? CssClass.Hidden_Circle : CssClass.None;
 

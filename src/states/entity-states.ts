@@ -43,7 +43,8 @@ type Period = typeof Period[keyof typeof Period];
 export const DataStatus = {
   Received: "Received",
   Requested: "Requested",
-  Timed_Out: "Timed out"
+  Timed_Out: "Timed out",
+  Unavailable: "Unavailable"
 } as const;
 
 export type DataStatus = typeof DataStatus[keyof typeof DataStatus];
@@ -465,6 +466,7 @@ export class EntityStates {
 
   private async _loadStatistics(periodStart: Date, periodEnd: Date): Promise<void> {
     if (this._primaryEntityIds.length !== 0 || this._secondaryEntityIds.length !== 0) {
+      // if the new period follows directly on from the current one, do not set the 'requested' flag as this will cause the display to show "Loading...", which is unnecessary
       if (!this._isRollover(periodStart) && (periodStart !== this.periodStart || periodEnd !== this.periodEnd)) {
         this._primaryStatistics = undefined;
         this._secondaryStatistics = undefined;
@@ -493,28 +495,38 @@ export class EntityStates {
         secondaries.length !== 0 ? this._fetchStatistics(periodStart, periodEnd, secondaries, period) : Promise.resolve()
       ]);
 
-      LOGGER.debug(`Received per-${primaryPeriod} stats (primary${this.lowCarbon.isPresent ? ", low-carbon" : ""}${secondaries.length !== 0 ? ", secondary" : ""}) for period [${periodStart.toISOString()} - ${periodEnd.toISOString()}] in ${Date.now() - fetchStartTime}ms`);
-
       clearTimeout(timeout);
 
       this._co2data = co2data || undefined;
 
-      if (primaryData) {
+      let primaryDataProcessed: boolean = false;
+      let secondaryDataProcessed: boolean = false;
+
+      if (primaryData && Object.keys(primaryData).length !== 0) {
         this._prepStatistics(primaries, primaryData, previousPrimaryData, periodStart, periodEnd);
         this._primaryStatistics = primaryData;
         this._calculatePrimaryStatistics();
+        primaryDataProcessed = true;
       }
 
-      if (secondaryData) {
+      if (secondaryData && Object.keys(secondaryData).length !== 0) {
         this._prepStatistics(secondaries, secondaryData, previousSecondaryData!, periodStart, periodEnd);
         this._secondaryStatistics = secondaryData;
         this._calculateSecondaryStatistics();
+        secondaryDataProcessed = true;
+      }
+
+      if (primaryDataProcessed || secondaryDataProcessed) {
+        LOGGER.debug(`Received per-${primaryPeriod} stats (primary${this.lowCarbon.isPresent ? ", low-carbon" : ""}${secondaries.length !== 0 ? ", secondary" : ""}) for period [${periodStart.toISOString()} - ${periodEnd.toISOString()}] in ${Date.now() - fetchStartTime}ms`);
+        this._dataStatus = DataStatus.Received;
+      } else {
+        LOGGER.debug(`Stats not available for period [${periodStart.toISOString()} - ${periodEnd.toISOString()}]`);
+        this._dataStatus = DataStatus.Unavailable;
       }
     }
 
     this._periodStart = periodStart;
     this._periodEnd = periodEnd;
-    this._dataStatus = DataStatus.Received;
   }
 
   //================================================================================================================================================================================//

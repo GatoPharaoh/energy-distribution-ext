@@ -280,7 +280,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
             <hr>
           </div>
         `
-        : entityStates.isDataPresent !== DataStatus.Received
+        : entityStates.isDataPresent === DataStatus.Requested || entityStates.isDataPresent === DataStatus.Timed_Out
           ? html`
             <div class="overlay">
               <hr>
@@ -536,7 +536,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
             animDuration: duration1 ?? 0
           });
           break;
-      } 
+      }
     });
 
     return html`

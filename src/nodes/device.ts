@@ -102,6 +102,9 @@ export class DeviceNode extends Node<DeviceConfig> {
           exportValue = undefined;
         }
       }
+    } else {
+      importValue = null;
+      exportValue = null;
     }
 
     const inactiveCss: CssClass = !states || (!importValue && !exportValue) ? this.inactiveFlowsCss : CssClass.None;

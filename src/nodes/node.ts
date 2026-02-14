@@ -173,7 +173,11 @@ export abstract class Node<T> {
   //================================================================================================================================================================================//
 
   public renderEnergyState(state: number | null, units: string, overridePrefix?: SIUnitPrefixes): string {
-    if (state === null || isNaN(state) || state < 0) {
+    if (state === null) {
+      return localize("common.unavailable");
+    }
+
+    if (isNaN(state) || state < 0) {
       return localize("common.unknown");
     }
 

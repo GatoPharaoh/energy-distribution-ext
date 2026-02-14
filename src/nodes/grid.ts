@@ -64,21 +64,25 @@ export class GridNode extends Node<GridConfig> {
   //================================================================================================================================================================================//
 
   public readonly render = (target: LitElement, circleSize: number, states?: States, overridePrefix?: SIUnitPrefixes): TemplateResult => {
-    const importState: number | undefined = states && this.firstImportEntity
-      ? this.mode === DisplayMode.Energy
-        ? states.grid.import
-        : states.grid.export === 0
+    const importState: number | undefined | null = !states
+      ? null
+      : this.firstImportEntity
+        ? this.mode === DisplayMode.Energy
           ? states.grid.import
-          : undefined
-      : undefined;
+          : states.grid.export === 0
+            ? states.grid.import
+            : undefined
+        : undefined;
 
-    const exportState: number | undefined = states && this.firstExportEntity
-      ? this.mode === DisplayMode.Energy
-        ? states.grid.export
-        : states.grid.import === 0 && states.grid.export > 0
+    const exportState: number | undefined | null = !states
+      ? null
+      : this.firstExportEntity
+        ? this.mode === DisplayMode.Energy
           ? states.grid.export
-          : undefined
-      : undefined;
+          : states.grid.import === 0 && states.grid.export > 0
+            ? states.grid.export
+            : undefined
+        : undefined;
 
     const segmentGroups: SegmentGroup[] = [];
 
@@ -130,6 +134,20 @@ export class GridNode extends Node<GridConfig> {
       }
 
       this.setCssVariables(this.style, states.grid);
+    } else if (this._circleMode == ColourMode.Dynamic) {
+      if (this.firstExportEntity) {
+        segmentGroups.push({
+          inactiveCss: CssClass.Grid_Export,
+          segments: [{ state: 0, cssClass: CssClass.None }]
+        });
+      }
+
+      if (this.firstImportEntity) {
+        segmentGroups.push({
+          inactiveCss: CssClass.Grid_Import,
+          segments: [{ state: 0, cssClass: CssClass.None }]
+        });
+      }
     }
 
     const inactiveCss: string = !states || (!states.grid.import && !states.grid.export) ? this.inactiveFlowsCss : CssClass.None;

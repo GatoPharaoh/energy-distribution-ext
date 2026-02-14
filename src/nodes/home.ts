@@ -38,8 +38,8 @@ export class HomeNode extends Node<HomeConfig> {
     const segmentGroups: SegmentGroup[] = [];
     let electricIcon: string | undefined;
     let gasIcon: string | undefined;
-    let electricTotal: number | undefined = states?.homeElectric;
-    let gasTotal: number | undefined;
+    let electricTotal: number | undefined | null = !states ? null : states?.homeElectric;
+    let gasTotal: number | undefined | null;
 
     this.setCssVariables(this.style);
 
@@ -123,6 +123,11 @@ export class HomeNode extends Node<HomeConfig> {
       }
 
       this._setHomeNodeCssVariables(states, this.style);
+    } else if (this._circleMode == ColourMode.Dynamic) {
+      segmentGroups.push({
+        inactiveCss: this.useHassStyles ? CssClass.Grid_Import : CssClass.Inactive,
+        segments: [{ state: 0, cssClass: CssClass.None }]
+      });
     }
 
     const inactiveCss: string = !states || states.homeElectric === 0 ? this.inactiveFlowsCss : CssClass.None;
