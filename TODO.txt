@@ -57,4 +57,3 @@ Before release
   - reinstate terser in rollup.config.js
   - check against the Plus cards for missing/broken functionality
   - check against the Plus issue-lists for features which might be worth adding
-  - HACS setup

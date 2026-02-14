@@ -115,77 +115,8 @@ The only option required is `type: custom:energy-distribution-ext`: this will se
 
 Many options are mode-specific: they will only work in either `energy` or `power` mode.  It is always safe to leave these options in your config; they will be ignored if not used.
 
-
-
-
-
-
-
-
-
-
 ---
 
 ## Example Configurations
 
 > Don't forget to change the entity ids
-
-The following configurations will allow you to achieve your results with the least amount of lines of code / complexity.
-In these examples I decided to use the Split entities option, but feel free to use the combined entity option. [More Info](#split-entities)
-
-##### Only Grid
-
-```yaml
-type: custom:energy-flow-card-plus
-entities:
-  grid:
-    entity:
-      consumption: sensor.grid_consumed_energy_daily
-      production: sensor.grid_returned_energy_daily
-wh_kwh_threshold: 0
-```
-
-This should give you something like this:
-
-![demo-only-grid-minimal](https://github.com/flixlix/energy-flow-card-plus/assets/61006057/e70d41d8-bd72-4f1a-b332-8d3b74cd1264)
-
-##### Grid and Solar
-
-```yaml
-type: custom:energy-flow-card-plus
-entities:
-  grid:
-    entity:
-      consumption: sensor.grid_consumed_energy_daily
-      production: sensor.grid_returned_energy_daily
-  solar:
-    entity: sensor.solar_energy_daily
-wh_kwh_threshold: 0
-```
-
-This should give you something like this:
-
-![demo-grid-and-solar-minimal](https://github.com/flixlix/energy-flow-card-plus/assets/61006057/185120e5-bd0a-4a7b-85c7-50509f7bc4d0)
-
-##### Grid, Solar and Battery
-
-```yaml
-type: custom:energy-flow-card-plus
-entities:
-  grid:
-    entity:
-      consumption: sensor.grid_consumed_energy_daily
-      production: sensor.grid_returned_energy_daily
-  solar:
-    entity: sensor.solar_energy_daily
-  battery:
-    entity:
-      consumption: sensor.battery_out_energy_daily
-      production: sensor.battery_in_energy_daily
-wh_kwh_threshold: 0
-
-```
-
-This should give you something like this:
-
-![demo-grid-solar-and-battery-minimal](https://github.com/flixlix/energy-flow-card-plus/assets/61006057/402b50be-d92c-4684-8f8e-0ffb5f4b48a5)
