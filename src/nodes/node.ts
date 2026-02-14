@@ -248,7 +248,7 @@ export abstract class Node<T> {
       formattedValue = formatNumber(new Decimal(state).toDecimalPlaces(decimals).toString(), this.hass.locale);
     }
 
-    return this._formatState(formattedValue, units, getConfigValue(config, SecondaryInfoOptions.Unit_Position));
+    return this._formatState(formattedValue.replace(/^-([.0]*)$/, '$1'), units, getConfigValue(config, SecondaryInfoOptions.Unit_Position));
   }
 
   //================================================================================================================================================================================//

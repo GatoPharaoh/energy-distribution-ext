@@ -43,8 +43,9 @@ An upgraded and configurable Energy Distribution Card, with a raft of new featur
 - Change the colours
 - Dim or grey-out inactive flow-lines
 - Disable flow-line animation
-- Show low-carbon as an energy value, a percentage or both
-- Add a title and a link to a HASS dashboard
+- Show low-carbon as an energy/power value, a percentage or both
+- Add a title to the card
+- Add a link to a HASS dashboard
 - Hide zero-values
 - Set your own unit-prefixes and decimal places for values
 - Choose where or if to show the units for values
@@ -62,7 +63,8 @@ An upgraded and configurable Energy Distribution Card, with a raft of new featur
 ### HACS (recommended)
 
 This card is available in [HACS](https://hacs.xyz/) (Home Assistant Community Store).
-_HACS is a third party community store and is not included in Home Assistant out of the box. To install it, please follow their instructions [here](https://www.hacs.xyz/docs/use/).
+
+_HACS is a third party community store and is not included in Home Assistant out of the box. To install it, please follow their instructions [here](https://www.hacs.xyz/docs/use/)._
 
 To install:
 
@@ -111,9 +113,9 @@ A newly-created Energy Distribution Extended card will have a similar appearance
 
 The card offers a *lot* of configuration options!  You may find it simpler to use the UI, but if you need to edit the YAML directly it's [all documented here](docs/config.md).
 
-The only option required is `type: custom:energy-distribution-ext`: this will set the card up to mimic the official Energy Dashboard Card without any further tweaking needed.
+The only configuration required is `type: custom:energy-distribution-ext`: this will set the card up to mimic the official Energy Distribution Card without any further tweaking needed.
 
-Many options are mode-specific: they will only work in either `energy` or `power` mode.  It is always safe to leave these options in your config; they will be ignored if not used.
+Some options are mode-specific: they will only work in either `energy` or `power` mode.  It is always safe to leave these options in your config; they will be ignored if not used.
 
 ---
 
