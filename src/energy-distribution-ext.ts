@@ -28,7 +28,7 @@ import {
   NodeConfig
 } from "@/config";
 import { getRangePresetName, renderDateRange } from "@/ui-helpers/date-fns";
-import { AnimationDurations, FlowLine, getGasSourcesMode } from "@/ui-helpers";
+import { AnimationDurations, FlowLine } from "@/ui-helpers";
 import { mdiArrowDown, mdiArrowUp, mdiArrowLeft, mdiArrowRight } from "@mdi/js";
 import { titleCase } from "title-case";
 import { repeat } from "lit/directives/repeat.js";
@@ -535,7 +535,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
             cssDot: cssExport,
             path: this._devicePaths[index],
             active: (flow2 ?? 0) > 0,
-            animDuration: duration2 ?? 0
+            animDuration: -(duration2 ?? 0)
           });
           break;
 
@@ -951,14 +951,17 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
   //================================================================================================================================================================================//
 
   private _calculateAnimationDurations(states: States): AnimationDurations {
-    const gasSourceMode: GasSourcesMode = getGasSourcesMode(getConfigObjects(this._configs, EditorPages.Home), states);
     const flows: Flows = states.flows;
-    const totalFlows: number = Math.max(states.homeElectric, 0)
+    const totalFlows: number = flows.batteryToHome
+      + flows.gridToHome
+      + flows.solarToHome
       + flows.batteryToGrid
       + flows.gridToBattery
       + flows.solarToBattery
       + flows.solarToGrid
-      + (gasSourceMode !== GasSourcesMode.Do_Not_Show && states.homeGas > 0 ? states.homeGas : 0);
+      + states.gasImport
+      + states.devicesElectric.reduce((a, b) => b.import + b.export + a, 0)
+      + states.devicesGas.reduce((a, b) => b.import + b.export + a, 0);
 
     const durations: AnimationDurations = {
       batteryToGrid: this._calculateDotRate(flows.batteryToGrid ?? 0, totalFlows),
@@ -969,7 +972,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
       solarToGrid: this._calculateDotRate(flows.solarToGrid ?? 0, totalFlows),
       solarToHome: this._calculateDotRate(flows.solarToHome ?? 0, totalFlows),
       lowCarbon: this._calculateDotRate(states.lowCarbon ?? 0, totalFlows),
-      gas: this._calculateDotRate(states.gasImport ?? 0, totalFlows + (gasSourceMode === GasSourcesMode.Do_Not_Show ? states.homeGas : 0)),
+      gas: this._calculateDotRate(states.gasImport ?? 0, totalFlows),
       devicesToHomeElectric: [],
       devicesToHomeGas: [],
       homeToDevicesElectric: [],

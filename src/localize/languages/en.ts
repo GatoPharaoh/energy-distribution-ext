@@ -23,6 +23,7 @@ export default {
 
   "editor": {
     "add_device": "Add Device",
+    "device": "Device",
     "from_date_picker": "Use Energy Dashboard Date Selector",
     "go_back": "Go Back",
     "invalid_primary_entity": "is not an energy sensor of type Total or Total_Increasing",

@@ -1,6 +1,6 @@
-import { HomeAssistant } from "custom-card-helpers";
-import { HassEntity, UnsubscribeFunc } from "home-assistant-js-websocket";
-import { EnergyCollection, EnergyData, EnergyPreferences, EnergySource, Statistics, StatisticValue } from "@/hass";
+import {HomeAssistant} from "custom-card-helpers";
+import {HassEntity, UnsubscribeFunc} from "home-assistant-js-websocket";
+import {EnergyCollection, EnergyData, EnergyPreferences, EnergySource, Statistics, StatisticValue} from "@/hass";
 import {
   AppearanceOptions,
   DeviceConfig,
@@ -12,23 +12,43 @@ import {
   GlobalOptions,
   NodeConfig
 } from "@/config";
-import { BatteryNode } from "@/nodes/battery";
-import { GasNode } from "@/nodes/gas";
-import { HomeNode } from "@/nodes/home";
-import { LowCarbonNode } from "@/nodes/low-carbon";
-import { SolarNode } from "@/nodes/solar";
-import { DeviceNode } from "@/nodes/device";
-import { addDays, addHours, differenceInDays, endOfToday, isFirstDayOfMonth, isLastDayOfMonth, startOfDay, startOfToday } from "date-fns";
-import { EnergyUnits, SIUnitPrefixes, VolumeUnits, checkEnumValue, DateRange, EnergyType, DeviceClasses, EnergyDirection, DisplayMode, StateClasses } from "@/enums";
-import { LOGGER } from "@/logging";
-import { getEnergyDataCollection } from "@/energy";
-import { BiDiState, Flows, States } from "@/nodes";
-import { UNIT_CONVERSIONS } from "./unit-conversions";
-import { DEFAULT_CONFIG, getConfigObjects, getConfigValue } from "@/config/config";
-import { calculateDateRange } from "@/dates";
-import { Node } from "@/nodes/node";
-import { GridNode } from "@/nodes/grid";
-import { POWER_UNITS } from "@/const";
+import {BatteryNode} from "@/nodes/battery";
+import {GasNode} from "@/nodes/gas";
+import {HomeNode} from "@/nodes/home";
+import {LowCarbonNode} from "@/nodes/low-carbon";
+import {SolarNode} from "@/nodes/solar";
+import {DeviceNode} from "@/nodes/device";
+import {
+  addDays,
+  addHours,
+  differenceInDays,
+  endOfToday,
+  isFirstDayOfMonth,
+  isLastDayOfMonth,
+  startOfDay,
+  startOfToday
+} from "date-fns";
+import {
+  EnergyUnits,
+  SIUnitPrefixes,
+  VolumeUnits,
+  checkEnumValue,
+  DateRange,
+  EnergyType,
+  DeviceClasses,
+  EnergyDirection,
+  DisplayMode,
+  StateClasses
+} from "@/enums";
+import {LOGGER} from "@/logging";
+import {getEnergyDataCollection} from "@/energy";
+import {BiDiState, Flows, States} from "@/nodes";
+import {UNIT_CONVERSIONS} from "./unit-conversions";
+import {DEFAULT_CONFIG, getConfigObjects, getConfigValue} from "@/config/config";
+import {calculateDateRange} from "@/dates";
+import {Node} from "@/nodes/node";
+import {GridNode} from "@/nodes/grid";
+import {POWER_UNITS} from "@/const";
 
 //================================================================================================================================================================================//
 
@@ -68,61 +88,73 @@ export class EntityStates {
   public get isDatePickerPresent(): boolean {
     return this._isDatePickerPresent;
   }
+
   private _isDatePickerPresent: boolean = false;
 
   public get isDataPresent(): DataStatus {
     return this._dataStatus;
   }
+
   private _dataStatus: DataStatus = DataStatus.Requested;
 
   public get isConfigPresent(): boolean {
     return this._isConfigPresent;
   }
+
   private _isConfigPresent: boolean = false;
 
   public get periodStart(): Date | undefined {
     return this._periodStart;
   }
+
   private _periodStart: Date | undefined = undefined;
 
   public get periodEnd(): Date | undefined {
     return this._periodEnd;
   }
+
   private _periodEnd: Date | undefined = undefined;
 
   public get battery(): BatteryNode {
     return this._battery;
   }
+
   private _battery!: BatteryNode;
 
   public get gas(): GasNode {
     return this._gas;
   }
+
   private _gas!: GasNode;
 
   public get grid(): GridNode {
     return this._grid;
   }
+
   private _grid!: GridNode;
 
   public get home(): HomeNode {
     return this._home;
   }
+
   private _home!: HomeNode;
 
   public get lowCarbon(): LowCarbonNode {
     return this._lowCarbon;
   }
+
   private _lowCarbon!: LowCarbonNode;
 
   public get solar(): SolarNode {
     return this._solar;
   }
+
   private _solar!: SolarNode;
 
   public get devices(): DeviceNode[] {
     return this._devices;
   }
+
   private _devices!: DeviceNode[];
 
   private _states: States = {
@@ -130,12 +162,12 @@ export class EntityStates {
     gasPresent: false,
     largestElectricValue: 0,
     largestGasValue: 0,
-    battery: { import: 0, export: 0 },
+    battery: {import: 0, export: 0},
     batterySecondary: 0,
     gasImport: 0,
     gasImportVolume: 0,
     gasSecondary: 0,
-    grid: { import: 0, export: 0 },
+    grid: {import: 0, export: 0},
     gridSecondary: 0,
     highCarbon: 0,
     homeElectric: 0,
@@ -228,7 +260,8 @@ export class EntityStates {
     await this._loadConfig(this.hass, cardConfig, style);
 
     if (this._mode === DisplayMode.Power) {
-      return (): void => { };
+      return (): void => {
+      };
     }
 
     if (this._dateRange === DateRange.From_Date_Picker) {
@@ -253,7 +286,8 @@ export class EntityStates {
         }))
         .catch(err => {
           LOGGER.debug(err);
-          return (): void => { };
+          return (): void => {
+          };
         });
     }
 
@@ -349,16 +383,32 @@ export class EntityStates {
         }
 
         if (device.direction !== EnergyDirection.Producer_Only) {
-          states.devicesGas[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, energyUnits);
-          states.devicesGasVolume[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, volumeUnits);
+          if (this._mode === DisplayMode.Power) {
+            states.devicesGas[index].export -= this._getStateDelta(Direction.Normal, primaryStatistics, device.exportEntities, energyUnits);
+            states.devicesGasVolume[index].export -= this._getStateDelta(Direction.Normal, primaryStatistics, device.exportEntities, volumeUnits);
+          } else {
+            states.devicesGas[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, energyUnits);
+            states.devicesGasVolume[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, volumeUnits);
+          }
         }
       } else {
-        if (device.direction !== EnergyDirection.Consumer_Only) {
-          states.devicesElectric[index].import += this._getStateDelta(Direction.Normal, primaryStatistics, device.importEntities, energyUnits);
-        }
+        switch (device.direction) {
+          case EnergyDirection.Producer_Only:
+            states.devicesElectric[index].import += this._getStateDelta(Direction.Normal, primaryStatistics, device.importEntities, energyUnits);
+            break;
 
-        if (device.direction !== EnergyDirection.Producer_Only) {
-          states.devicesElectric[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, energyUnits);
+          case EnergyDirection.Consumer_Only:
+            if (this._mode === DisplayMode.Power) {
+              states.devicesElectric[index].export += this._getStateDelta(Direction.Normal, primaryStatistics, device.exportEntities, energyUnits);
+            } else {
+              states.devicesElectric[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, energyUnits);
+            }
+            break;
+
+          case EnergyDirection.Both:
+            states.devicesElectric[index].import += this._getStateDelta(Direction.Normal, primaryStatistics, device.importEntities, energyUnits);
+            states.devicesElectric[index].export += this._getStateDelta(Direction.Reverse, primaryStatistics, device.exportEntities, energyUnits);
+            break;
         }
       }
 
@@ -469,12 +519,12 @@ export class EntityStates {
       gasPresent: this.gas.isPresent,
       largestElectricValue: 0,
       largestGasValue: 0,
-      battery: { import: 0, export: 0 },
+      battery: {import: 0, export: 0},
       batterySecondary: 0,
       gasImport: 0,
       gasImportVolume: 0,
       gasSecondary: 0,
-      grid: { import: 0, export: 0 },
+      grid: {import: 0, export: 0},
       gridSecondary: 0,
       highCarbon: 0,
       homeElectric: 0,
@@ -508,9 +558,9 @@ export class EntityStates {
         this._states.gasPresent = true;
       }
 
-      this._states.devicesElectric[index] = { export: 0, import: 0 };
-      this._states.devicesGas[index] = { export: 0, import: 0 };
-      this._states.devicesGasVolume[index] = { export: 0, import: 0 };
+      this._states.devicesElectric[index] = {export: 0, import: 0};
+      this._states.devicesGas[index] = {export: 0, import: 0};
+      this._states.devicesGasVolume[index] = {export: 0, import: 0};
       this._states.devicesSecondary[index] = 0;
     });
   }
@@ -527,9 +577,9 @@ export class EntityStates {
       }
 
       const timeout: NodeJS.Timeout = setTimeout(() => {
-        this._dataStatus = DataStatus.Timed_Out;
-        LOGGER.debug(`No energy statistics received after ${ENERGY_DATA_TIMEOUT * 2}ms`);
-      },
+          this._dataStatus = DataStatus.Timed_Out;
+          LOGGER.debug(`No energy statistics received after ${ENERGY_DATA_TIMEOUT * 2}ms`);
+        },
         ENERGY_DATA_TIMEOUT * 2
       );
 
@@ -718,9 +768,9 @@ export class EntityStates {
     }
 
     this.devices.forEach((device, index) => {
-      states.devicesElectric[index] = { export: 0, import: 0 };
-      states.devicesGas[index] = { export: 0, import: 0 };
-      states.devicesGasVolume[index] = { export: 0, import: 0 };
+      states.devicesElectric[index] = {export: 0, import: 0};
+      states.devicesGas[index] = {export: 0, import: 0};
+      states.devicesGasVolume[index] = {export: 0, import: 0};
 
       if (device.type === EnergyType.Gas) {
         if (device.direction !== EnergyDirection.Consumer_Only) {
@@ -738,7 +788,7 @@ export class EntityStates {
         }
 
         if (device.direction !== EnergyDirection.Producer_Only) {
-          states.devicesElectric[index].export = this._getHomeFlowEntityStates(device.importEntities, this._energyUnits);
+          states.devicesElectric[index].export = this._getHomeFlowEntityStates(device.exportEntities, this._energyUnits);
         }
       }
     });

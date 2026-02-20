@@ -89,18 +89,14 @@ export class DeviceNode extends Node<DeviceConfig> {
         if (this.type === EnergyType.Gas) {
           importValue = this.firstImportEntity ? states.devicesGas[index]?.import : null;
           exportValue = this.firstExportEntity ? states.devicesGas[index]?.export : null;
+          this.setCssVariables(this.style, states.devicesGas[index]);
         } else {
           importValue = this.firstImportEntity ? states.devicesElectric[index]?.import : null;
           exportValue = this.firstExportEntity ? states.devicesElectric[index]?.export : null;
+          this.setCssVariables(this.style, states.devicesElectric[index]);
         }
 
         units = POWER_UNITS;
-
-        if (exportValue) {
-          importValue = undefined;
-        } else {
-          exportValue = undefined;
-        }
       }
     } else {
       importValue = null;

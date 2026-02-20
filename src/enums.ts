@@ -238,6 +238,7 @@ export function checkEnumValue(value: object, type: object): boolean {
 //================================================================================================================================================================================//
 
 export const ELECTRIC_ENTITY_CLASSES: DeviceClasses[] = [DeviceClasses.Energy];
+export const POWER_ENTITY_CLASSES: DeviceClasses[] = [DeviceClasses.Power];
 export const GAS_ENTITY_CLASSES: DeviceClasses[] = [DeviceClasses.Energy, DeviceClasses.Gas];
 
 //================================================================================================================================================================================//

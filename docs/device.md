@@ -2,7 +2,7 @@
 
 `Import` is energy produced by the device; `export` is energy consumed by the device.
 
-In `power` mode, the entities must return positive values for production and negative values for consumption.
+In `power` mode, bi-directional entities must return positive values for production and negative values for consumption.  Uni-direction entities should only return positive values.
 
 | Name                 | Type                               | Default       | Description                                                                                 |
 |----------------------|------------------------------------|---------------|---------------------------------------------------------------------------------------------|

@@ -10,7 +10,13 @@ import { repeat } from "lit/directives/repeat.js";
 import { localize } from "@/localize/localize";
 import { BASIC_COLOUR_MODES_DUAL, BASIC_COLOUR_MODES_SINGLE, getConfigValue, getDefaultDeviceConfig } from '@/config/config';
 import { DeviceNode } from '@/nodes/device';
-import { ColourMode, DisplayMode, ELECTRIC_ENTITY_CLASSES, EnergyDirection } from '@/enums';
+import {
+  ColourMode,
+  DisplayMode,
+  ELECTRIC_ENTITY_CLASSES,
+  EnergyDirection,
+  POWER_ENTITY_CLASSES
+} from '@/enums';
 import { name } from '../../../package.json';
 
 //================================================================================================================================================================================//
@@ -83,7 +89,7 @@ export class DevicesEditor extends LitElement {
               class="navigation-icon"
               @click=${() => (this._onEditDevice(this._indexBeingEdited - 1))}
             ></ha-icon-button>
-            <h4>${localize("EditorPages.device")} ${this._indexBeingEdited + 1} / ${this._devices.length}</h4>
+            <h4>${localize("editor.device")} ${this._indexBeingEdited + 1} / ${this._devices.length}</h4>
             <ha-icon-button
               .label=${localize("editor.next")}
               .path=${mdiArrowRight}
@@ -167,6 +173,7 @@ export class DevicesEditor extends LitElement {
 
     validatePrimaryEntities(this.hass, this._mode, NodeOptions.Import_Entities, getConfigValue(config, [NodeOptions.Import_Entities, EntitiesOptions.Entity_Ids]), ELECTRIC_ENTITY_CLASSES, true, errors);
     validatePrimaryEntities(this.hass, this._mode, NodeOptions.Export_Entities, getConfigValue(config, [NodeOptions.Export_Entities, EntitiesOptions.Entity_Ids]), ELECTRIC_ENTITY_CLASSES, true, errors);
+    validatePrimaryEntities(this.hass, this._mode, NodeOptions.Power_Entities, getConfigValue(config, [NodeOptions.Power_Entities, EntitiesOptions.Entity_Ids]), POWER_ENTITY_CLASSES, true, errors);
 
     if (secondaryEntityId) {
       validateSecondaryEntity(this.hass, this._mode, NodeOptions.Secondary_Info, secondaryEntityId, errors);
