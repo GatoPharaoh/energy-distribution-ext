@@ -1,6 +1,9 @@
 TODO
 ----
 
+Buttons in the UI: 'reset to defaults' and 'showroom settings'
+
+
 Under consideration
 -------------------
 
@@ -44,8 +47,6 @@ Under consideration
         - for HASS the 'producer' might be [Solar,Battery,Grid] and 'consumer' [Battery,Grid,House]
         - whereas for a more realistic approach the 'consumer' would be [House,Battery,Grid]
         - we can give the user some degree of control here if/as required, but the basic algo should cope with any setup
-
-  - redesign the render code so that it's static, only refreshing on a config/layout change, and the states/css/etc are poked into it on a data-update
 
 
 Before release

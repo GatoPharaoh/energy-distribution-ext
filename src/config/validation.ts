@@ -18,7 +18,8 @@ const appearanceOptionsConfigStruct = object({
   [AppearanceOptions.Show_Zero_States]: optional(boolean()),
   [AppearanceOptions.Clickable_Entities]: optional(boolean()),
   [AppearanceOptions.Segment_Gaps]: optional(boolean()),
-  [AppearanceOptions.Use_HASS_Style]: optional(boolean())
+  [AppearanceOptions.Use_HASS_Style]: optional(boolean()),
+  [AppearanceOptions.Refresh_Period]: optional(number())
 });
 
 const energyUnitsOptionsConfigStruct = object({

@@ -15,18 +15,7 @@ import { UnsubscribeFunc } from "home-assistant-js-websocket";
 import { LowCarbonDisplayMode, UnitPrefixes, CssClass, SIUnitPrefixes, InactiveFlowsMode, GasSourcesMode, Scale, EnergyUnits, VolumeUnits, checkEnumValue, DateRange, DateRangeDisplayMode, EnergyType, AnimationMode, EnergyDirection, DisplayMode, DevicesLayout } from "@/enums";
 import { EDITOR_ELEMENT_NAME } from "@/ui-editor/ui-editor";
 import { CIRCLE_STROKE_WIDTH_SEGMENTS, DOT_RADIUS, HOMEPAGE, ICON_PADDING, POWER_UNITS } from "@/const";
-import {
-  EnergyDistributionExtConfig,
-  AppearanceOptions,
-  EditorPages,
-  GlobalOptions,
-  FlowsOptions,
-  EnergyUnitsOptions,
-  EnergyUnitsConfig,
-  HomeOptions,
-  LowCarbonOptions,
-  NodeConfig
-} from "@/config";
+import { EnergyDistributionExtConfig, AppearanceOptions, EditorPages, GlobalOptions, FlowsOptions, EnergyUnitsOptions, EnergyUnitsConfig, HomeOptions, LowCarbonOptions, NodeConfig } from "@/config";
 import { getRangePresetName, renderDateRange } from "@/ui-helpers/date-fns";
 import { AnimationDurations, FlowLine } from "@/ui-helpers";
 import { mdiArrowDown, mdiArrowUp, mdiArrowLeft, mdiArrowRight } from "@mdi/js";
@@ -85,8 +74,13 @@ const DEVICE_CONTROL_2 = (value: number): number => 30 + value * 10;
 const FLOW_RATE_MIN: number = 1;
 const FLOW_RATE_MAX: number = 6;
 
-const NODE_SPACER: TemplateResult = html`<div class="node-spacer"></div>`;
-const HORIZ_SPACER: TemplateResult = html`<div class="horiz-spacer"></div>`;
+const NODE_SPACER: TemplateResult = html`
+  <div class="node-spacer"></div>
+`;
+
+const HORIZ_SPACER: TemplateResult = html`
+  <div class="horiz-spacer"></div>
+`;
 
 type NodeRenderFn = ((nodeClass: CssClass, states?: States, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes) => TemplateResult) | undefined;
 
@@ -142,10 +136,14 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
   private _dashboardLink!: string;
   private _dashboardLinkLabel!: string;
   private _dashboardLinkTitle: string | undefined = undefined;
+  private _refreshPeriod!: number;
+  private _lastRefresh: number = 0;
+  private _lastStates: States | undefined = undefined;
 
   private _inactiveFlowsCss: string = CssClass.Inactive;
   private _circleSize: number = CIRCLE_SIZE_MIN;
   private _devicesLayout: DevicesLayout = DevicesLayout.None;
+  private _previousAnimationDurations: object = {};
 
   //================================================================================================================================================================================//
 
@@ -173,7 +171,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
       throw new Error(localize("common.invalid_configuration"));
     }
 
-    this._render.clear();
+    this._clearCaches();
     this._config = config;
     this._configs = [config, DEFAULT_CONFIG];
     this.resetSubscriptions();
@@ -185,6 +183,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     this._dashboardLink = getConfigValue(appearanceConfig, AppearanceOptions.Dashboard_Link);
     this._dashboardLinkLabel = getConfigValue(appearanceConfig, AppearanceOptions.Dashboard_Link_Label);
     this._dashboardLinkTitle = undefined;
+    this._refreshPeriod = (getConfigValue(appearanceConfig, AppearanceOptions.Refresh_Period) as number) * 1000;
 
     const flowsConfig: FlowsOptions[] = getConfigObjects(this._configs, [EditorPages.Appearance, AppearanceOptions.Flows]);
     this._scale = getConfigValue(flowsConfig, FlowsOptions.Scale, value => checkEnumValue(value, Scale));
@@ -248,7 +247,9 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     const entityStates: EntityStates = this._entityStates;
 
     if (!this._config || !this.hass || !entityStates || !entityStates.isConfigPresent) {
-      return html`<ha-card style="padding: 2rem">${localize("common.initialising")}</ha-card>`;
+      return html`
+        <ha-card style="padding: 2rem">${localize("common.initialising")}</ha-card>
+      `;
     }
 
     const padding: number = this._getPropertyValue("ha-card", "--ha-space-4");
@@ -261,29 +262,41 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
       if (this._animationEnabled !== animationEnabled) {
         this._animationEnabled = animationEnabled;
-        this._render.clear();
+        this._clearCaches();
+      }
+    }
+
+    const now: number = Date.now();
+    let states: States | undefined = this._lastStates;
+
+    if (!states || now >= this._lastRefresh + this._refreshPeriod) {
+      const currentStates: States | undefined = entityStates.getStates();
+
+      if (!states || !equal(states, currentStates)) {
+        this._lastStates = currentStates;
+        this._lastRefresh = now;
+        states = currentStates;
       }
     }
 
     return html`
       <ha-card .header=${getConfigValue(this._configs, GlobalOptions.Title)}>
-        ${this._render(width, entityStates.getStates())}
+        ${this._render(width, states)}
 
-        <!-- dashboard link -->
         ${this._dashboardLink && (this._dashboardLinkLabel || this._dashboardLinkTitle)
-        ? html`
-          <div class="card-actions">
-            <a href=${this._dashboardLink}>
-              <mwc-button>
-                ${this._dashboardLinkLabel || localize("common.go_to_dashboard").replace("{title}", this._dashboardLinkTitle!)}
-              </mwc-button>
-            </a>
-          </div>
-        `
-        : nothing}
+          ? html`
+            <div class="card-actions">
+              <a href=${this._dashboardLink}>
+                <mwc-button>
+                  ${this._dashboardLinkLabel || localize("common.go_to_dashboard").replace("{title}", this._dashboardLinkTitle!)}
+                </mwc-button>
+              </a>
+            </div>
+          `
+          : nothing
+        }
       </ha-card>
 
-      <!--error overlays -->
       ${!entityStates.isDatePickerPresent && this._dateRange === DateRange.From_Date_Picker
         ? html`
           <div class="overlay">
@@ -300,7 +313,8 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
               <hr>
             </div>
           `
-          : nothing}
+          : nothing
+      }
     `;
   }
 
@@ -315,39 +329,28 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     return html`
       <div class="card-content" id=${name}>
-        <!-- date-range -->
         ${this._renderDateRange()}
-
-        <!-- flow lines -->
         ${this._renderFlowLines(states, animationDurations)}
-
-        <!-- nodes -->
         ${this._renderGrid(states, electricUnitPrefix, gasUnitPrefix)}
       </div>
     `;
-  },
-    (newInputs: unknown[], lastInputs: unknown[]): boolean => {
-      return this._layoutGrid.length !== 0 &&
-        newInputs[0] === lastInputs[0] &&
-        newInputs[1] !== undefined && equal(newInputs[1], lastInputs[1]);
-    }
-  );
+  });
 
   //================================================================================================================================================================================//
 
   private _renderGrid(states?: States, overrideElectricPrefix?: SIUnitPrefixes, overrideGasPrefix?: SIUnitPrefixes): TemplateResult {
     return html`
-      ${repeat(this._layoutGrid, _ => _, (row, rowIndex) => {
-      return html`
-        <div class="row">
-          ${repeat(row, _ => _, (nodeRenderFn, columnIndex) => {
-        const lastColumnIndex: number = row.length - 1;
-        const nodeClass: CssClass = rowIndex === 0 ? CssClass.Top_Row : rowIndex > 1 ? CssClass.Bottom_Row : CssClass.None;
-        return html`${nodeRenderFn ? nodeRenderFn(nodeClass, states, overrideElectricPrefix, overrideGasPrefix) : NODE_SPACER}${columnIndex === lastColumnIndex ? nothing : HORIZ_SPACER}`;
+      ${repeat(this._layoutGrid, (_, index) => index, (row, rowIndex) => {
+        return html`
+          <div class="row">
+            ${repeat(row, (_, index) => index, (nodeRenderFn, columnIndex) => {
+              const lastColumnIndex: number = row.length - 1;
+              const nodeClass: CssClass = rowIndex === 0 ? CssClass.Top_Row : rowIndex > 1 ? CssClass.Bottom_Row : CssClass.None;
+              return html`${nodeRenderFn ? nodeRenderFn(nodeClass, states, overrideElectricPrefix, overrideGasPrefix) : NODE_SPACER}${columnIndex === lastColumnIndex ? nothing : HORIZ_SPACER}`;
+            })}
+          </div>
+        `;
       })}
-        </div>
-      `;
-    })}
     `;
   }
 
@@ -395,6 +398,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     if (solar.isPresent) {
       lines.push({
+        id: "solarToHome",
         cssLine: CssClass.Solar,
         cssDot: CssClass.Solar,
         path: this._solarToHomePath,
@@ -405,6 +409,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     if (solar.isPresent && grid.firstExportEntity) {
       lines.push({
+        id: "solarToGrid",
         cssLine: CssClass.Grid_Export,
         cssDot: CssClass.Grid_Export,
         path: this._solarToGridPath,
@@ -415,6 +420,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     if (solar.isPresent && battery.firstExportEntity) {
       lines.push({
+        id: "solarToBattery",
         cssLine: CssClass.Battery_Export,
         cssDot: CssClass.Battery_Export,
         path: this._solarToBatteryPath,
@@ -434,6 +440,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
       }
 
       lines.push({
+        id: "gridToHome",
         cssLine: cssClass,
         cssDot: cssClass,
         path: this._gridToHomePath,
@@ -444,6 +451,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     if (battery.firstImportEntity) {
       lines.push({
+        id: "batteryToHome",
         cssLine: CssClass.Battery_Import,
         cssDot: CssClass.Battery_Import,
         path: this._batteryToHomePath,
@@ -455,6 +463,8 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     if (battery.isPresent && grid.isPresent) {
       this._renderBiDiFlowLine(
         lines,
+        "batteryToGrid",
+        "gridToBattery",
         this._batteryToGridPath,
         flows?.batteryToGrid,
         flows?.gridToBattery,
@@ -471,6 +481,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     if (entityStates.lowCarbon.isPresent && grid.firstImportEntity) {
       lines.push({
+        id: "lowCarbonToGrid",
         cssLine: CssClass.Low_Carbon,
         cssDot: CssClass.Low_Carbon,
         path: this._lowCarbonToGridPath,
@@ -481,6 +492,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     if (entityStates.gas.isPresent) {
       lines.push({
+        id: "gasToHome",
         cssLine: CssClass.Gas,
         cssDot: CssClass.Gas,
         path: this._gasToHomePath,
@@ -515,6 +527,8 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
           this._renderBiDiFlowLine(
             lines,
+            `device${index}ToHome`,
+            `device${index}FromHome`,
             this._devicePaths[index],
             flow1,
             flow2,
@@ -531,6 +545,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
         case EnergyDirection.Consumer_Only:
           lines.push({
+            id: `device${index}FromHome`,
             cssLine: cssExport,
             cssDot: cssExport,
             path: this._devicePaths[index],
@@ -541,6 +556,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
         case EnergyDirection.Producer_Only:
           lines.push({
+            id: `device${index}ToHome`,
             cssLine: cssImport,
             cssDot: cssImport,
             path: this._devicePaths[index],
@@ -552,35 +568,41 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     });
 
     return html`
-      <svg class="lines" xmlns="http://www.w3.org/2000/svg">
-      ${repeat(lines, _ => undefined, (_, index) => {
-      const line: FlowLine = lines[index];
-      let cssLine: string = line.cssLine;
+      ${repeat(lines, (_, index) => index, (_, index) => {
+        const line: FlowLine = lines[index];
+        const id: string = line.id;
+        let cssLine: string = line.cssLine;
 
-      if (!line.active && cssLine !== CssClass.Hidden_Path) {
-        cssLine += " " + this._inactiveFlowsCss;
-      }
+        if (!line.active && cssLine !== CssClass.Hidden_Path) {
+          cssLine += " " + this._inactiveFlowsCss;
+        }
 
-      return svg`<path class="${cssLine}" d="${line.path}" style="fill: none !important;"></path>`;
-    })}
+        const flowSvgElement: SVGSVGElement = this?.shadowRoot?.querySelector(`#${id}Flow`) as SVGSVGElement;
 
-      ${this._animationEnabled ?
-        repeat(lines, _ => undefined, (_, index) => {
-          const line: FlowLine = lines[index];
+        if (flowSvgElement && this._previousAnimationDurations[id] && this._previousAnimationDurations[id] !== line.animDuration) {
+          flowSvgElement.pauseAnimations();
+          flowSvgElement.setCurrentTime(flowSvgElement.getCurrentTime() * (line.animDuration / this._previousAnimationDurations[id]));
+          flowSvgElement.unpauseAnimations();
+        }
 
-          return svg`
-          ${line.active
-              ?
-              svg`
-              <circle r="${DOT_RADIUS}" class="${line.cssDot}">
-                <animateMotion path="${line.path}" dur="${Math.abs(line.animDuration)}s" repeatCount="indefinite" calcMode="linear" keyPoints="${line.animDuration < 0 ? '1;0' : '0;1'}" keyTimes="0; 1"></animateMotion>
-              </circle>
-            `
-              : nothing}
+        this._previousAnimationDurations[id] = line.animDuration;
+
+        return html`
+          <svg class="lines" xmlns="http://www.w3.org/2000/svg" id="${line.id}Flow">
+            <path id="flowline${index}" class="${cssLine}" d="${line.path}" style="fill: none !important;"></path>
+            ${this._animationEnabled && line.active
+              ? svg`
+                <circle r="${DOT_RADIUS}" class="${line.cssDot}">
+                  <animateMotion dur="${Math.abs(line.animDuration)}s" repeatCount="indefinite" calcMode="linear" keyPoints="${line.animDuration < 0 ? '1;0' : '0;1'}" keyTimes="0; 1">
+                    <mpath href="#flowline${index}"></mpath>
+                  </animateMotion>
+                </circle>
+              `
+              : nothing
+            }
+          </svg>
         `;
-        })
-        : nothing}
-      </svg>
+      })}
     `;
   }
 
@@ -588,6 +610,8 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
   private _renderBiDiFlowLine(
     lines: FlowLine[],
+    node1ToNode2Id: string,
+    node2ToNode1Id: string,
     path: string,
     flowNode1ToNode2: number = 0,
     flowNode2ToNode1: number = 0,
@@ -631,6 +655,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     if (css1To2Path && enabled1To2) {
       lines.push({
+        id: node1ToNode2Id,
         cssLine: css1To2Path,
         cssDot: css1To2Dot,
         path: path,
@@ -641,6 +666,7 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
 
     if (css2To1Path && enabled2To1) {
       lines.push({
+        id: node2ToNode1Id,
         cssLine: css2To1Path,
         cssDot: css2To1Dot,
         path: path,
@@ -1206,6 +1232,14 @@ export default class EnergyDistributionExt extends SubscribeMixin(LitElement) {
     style.setProperty("--row-spacing", rowSpacing + "px");
     style.setProperty("--col-spacing-max", colSpacing.max + "px");
     style.setProperty("--col-spacing-min", colSpacing.min + "px");
+  }
+
+  //================================================================================================================================================================================//
+
+  private _clearCaches(): void {
+    this._render.clear();
+    this._lastRefresh = 0;
+    this._lastStates = undefined;
   }
 
   //================================================================================================================================================================================//

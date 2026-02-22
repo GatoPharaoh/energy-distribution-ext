@@ -35,11 +35,13 @@ export abstract class Node<T> {
   public get name(): string {
     return this._name || this.defaultName;
   }
+
   private readonly _name?: string;
 
   public get icon(): string {
     return this._icon || this.defaultIcon;
   }
+
   private readonly _icon?: string;
 
   protected readonly cardConfigs: EnergyDistributionExtConfig[];
@@ -71,15 +73,15 @@ export abstract class Node<T> {
   //================================================================================================================================================================================//
 
   protected constructor(
-    hass: HomeAssistant,
-    cardConfig: EnergyDistributionExtConfig,
-    style: CSSStyleDeclaration,
-    node: EditorPages,
-    nodeClass: CssClass,
-    index: number | undefined = undefined,
-    deviceClasses: DeviceClasses[] = [],
-    hassImportEntities: string[] = [],
-    hassExportEntities: string[] = []) {
+      hass: HomeAssistant,
+      cardConfig: EnergyDistributionExtConfig,
+      style: CSSStyleDeclaration,
+      node: EditorPages,
+      nodeClass: CssClass,
+      index: number | undefined = undefined,
+      deviceClasses: DeviceClasses[] = [],
+      hassImportEntities: string[] = [],
+      hassExportEntities: string[] = []) {
 
     this.hass = hass;
     this.style = style;
@@ -208,7 +210,8 @@ export abstract class Node<T> {
 
     return html`
       <span class="secondary-info ${cssClass}" @click=${this._handleClick(target, entityId)} @keyDown=${(this._handleKeyDown(target, entityId))}>
-        ${secondary.icon ? html`<ha-icon class="secondary-info small ${cssClass}" .icon=${secondary.icon}></ha-icon>` : nothing}
+        ${secondary.icon ? html`
+          <ha-icon class="secondary-info small ${cssClass}" .icon=${secondary.icon}></ha-icon>` : nothing}
         ${this._renderSecondaryState(secondary.config, entityId, state)}
       </span>
     `;
@@ -272,36 +275,36 @@ export abstract class Node<T> {
     let length: number = 0;
 
     return html`
-    <svg>
-    ${repeat(
-      segmentGroups,
-      _ => undefined,
-      (_, groupIdx) => {
-        const group: SegmentGroup = segmentGroups[groupIdx];
-        let activeSegments: number = 0;
-        let stateTotal: number = 0;
+      <svg>
+        ${repeat(
+            segmentGroups,
+            (_, index) => index,
+            (_, groupIdx) => {
+              const group: SegmentGroup = segmentGroups[groupIdx];
+              let activeSegments: number = 0;
+              let stateTotal: number = 0;
 
-        group.segments.forEach(segment => {
-          if (segment.state > 0) {
-            stateTotal += this._scale === Scale.Linear ? segment.state : Math.log(segment.state);
-            activeSegments++;
-          }
-        });
+              group.segments.forEach(segment => {
+                if (segment.state > 0) {
+                  stateTotal += this._scale === Scale.Linear ? segment.state : Math.log(segment.state);
+                  activeSegments++;
+                }
+              });
 
-        if (activeSegments === 0) {
-          let cssFlow: string = group.inactiveCss;
+              if (activeSegments === 0) {
+                let cssFlow: string = group.inactiveCss;
 
-          switch (this._inactiveFlowsMode) {
-            case InactiveFlowsMode.Dimmed:
-              cssFlow += " " + CssClass.Dimmed;
-              break;
+                switch (this._inactiveFlowsMode) {
+                  case InactiveFlowsMode.Dimmed:
+                    cssFlow += " " + CssClass.Dimmed;
+                    break;
 
-            case InactiveFlowsMode.Greyed:
-              cssFlow = CssClass.Inactive;
-              break;
-          }
+                  case InactiveFlowsMode.Greyed:
+                    cssFlow = CssClass.Inactive;
+                    break;
+                }
 
-          return svg`
+                return svg`
           <circle
             class="${cssFlow}"
             cx = "${centre}"
@@ -312,31 +315,31 @@ export abstract class Node<T> {
             shape-rendering="geometricPrecision"
           />
         `;
-        }
+              }
 
-        const totalSegmentLengths: number = groupLength - (activeSegments === 1 ? 0 : (activeSegments - (segmentGroups.length === 1 ? 0 : 1)) * interSegmentLength);
-        let segmentToRender: number = 0;
+              const totalSegmentLengths: number = groupLength - (activeSegments === 1 ? 0 : (activeSegments - (segmentGroups.length === 1 ? 0 : 1)) * interSegmentLength);
+              let segmentToRender: number = 0;
 
-        return html`
-        ${repeat(
-          group.segments,
-          _ => undefined,
-          (_, segmentIdx) => {
-            const segment: Segment = group.segments[segmentIdx];
+              return html`
+                ${repeat(
+                    group.segments,
+                    (_, index) => index,
+                    (_, segmentIdx) => {
+                      const segment: Segment = group.segments[segmentIdx];
 
-            if (segmentIdx === 0) {
-              offset = groupIdx * (groupLength + interGroupLength) + startingOffset + interGroupLength;
-            }
+                      if (segmentIdx === 0) {
+                        offset = groupIdx * (groupLength + interGroupLength) + startingOffset + interGroupLength;
+                      }
 
-            if (segment.state === 0) {
-              return ``;
-            }
+                      if (segment.state === 0) {
+                        return ``;
+                      }
 
-            const interSegmentGap: number = segmentToRender++ > 0 || segmentGroups.length === 1 ? interSegmentLength : 0;
-            length = (this._scale === Scale.Linear ? segment.state : Math.log(segment.state)) / stateTotal * totalSegmentLengths;
-            offset += interSegmentGap + length;
+                      const interSegmentGap: number = segmentToRender++ > 0 || segmentGroups.length === 1 ? interSegmentLength : 0;
+                      length = (this._scale === Scale.Linear ? segment.state : Math.log(segment.state)) / stateTotal * totalSegmentLengths;
+                      offset += interSegmentGap + length;
 
-            return svg`
+                      return svg`
           <circle
             class="${segment.cssClass}"
             cx = "${centre}"
@@ -347,13 +350,13 @@ export abstract class Node<T> {
             shape-rendering="geometricPrecision"
           />
           `;
-          }
+                    }
+                )}
+              `;
+            }
         )}
-      `;
-      }
-    )}
-    </svg>
-  `;
+      </svg>
+    `;
   }
 
   //================================================================================================================================================================================//

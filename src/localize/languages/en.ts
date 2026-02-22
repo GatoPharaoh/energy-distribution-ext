@@ -47,6 +47,8 @@ export default {
     [AppearanceOptions.Energy_Units]: "Energy Units",
     [AppearanceOptions.Flows]: "Flows",
     [AppearanceOptions.Power_Units]: "Power Units",
+    [AppearanceOptions.Refresh_Period]: "Refresh Period",
+    [AppearanceOptions.Refresh_Period + HELPTEXT_SUFFIX]: "The minimum time between refreshes",
     [AppearanceOptions.Segment_Gaps]: "Show gaps between circle segments",
     [AppearanceOptions.Show_Zero_States]: "Show zero states",
     [AppearanceOptions.Use_HASS_Style]: "Use HASS-style layout and colors"

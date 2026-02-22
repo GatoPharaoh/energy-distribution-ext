@@ -16,6 +16,7 @@ export interface SegmentGroup {
 }
 
 export interface FlowLine {
+  id: string;
   cssLine: CssClass;
   cssDot: CssClass;
   path: string;

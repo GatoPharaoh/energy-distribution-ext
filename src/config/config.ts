@@ -179,7 +179,8 @@ export function getDefaultAppearanceConfig(): AppearanceConfig {
       [AppearanceOptions.Segment_Gaps]: false,
       [AppearanceOptions.Use_HASS_Style]: true,
       [AppearanceOptions.Dashboard_Link]: undefined,
-      [AppearanceOptions.Dashboard_Link_Label]: undefined
+      [AppearanceOptions.Dashboard_Link_Label]: undefined,
+      [AppearanceOptions.Refresh_Period]: 30
     },
     [AppearanceOptions.Energy_Units]: {
       [EnergyUnitsOptions.Electric_Units]: EnergyUnits.WattHours,

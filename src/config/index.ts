@@ -22,6 +22,7 @@ namespace ConfigKeys {
     Energy_Units: "units",
     Flows: "flows",
     Power_Units: "power_units",
+    Refresh_Period: "refresh_period",
     Segment_Gaps: "segment_gaps",
     Show_Zero_States: "show_zero_states",
     Use_HASS_Style: "use_hass_style"
@@ -218,6 +219,7 @@ export interface AppearanceOptionsConfig {
   [AppearanceOptions.Clickable_Entities]?: boolean;
   [AppearanceOptions.Segment_Gaps]?: boolean;
   [AppearanceOptions.Use_HASS_Style]?: boolean;
+  [AppearanceOptions.Refresh_Period]?: number;
 }
 
 export interface EnergyUnitsConfig {

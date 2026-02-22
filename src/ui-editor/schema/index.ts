@@ -78,7 +78,8 @@ const appearanceOptionsSchema = memoizeOne((): any[] => {
         { key: AppearanceOptions, name: AppearanceOptions.Show_Zero_States, selector: { boolean: {} } },
         { key: AppearanceOptions, name: AppearanceOptions.Clickable_Entities, selector: { boolean: {} } },
         { key: AppearanceOptions, name: AppearanceOptions.Segment_Gaps, selector: { boolean: {} } },
-        { key: AppearanceOptions, name: AppearanceOptions.Use_HASS_Style, selector: { boolean: {} } }
+        { key: AppearanceOptions, name: AppearanceOptions.Use_HASS_Style, selector: { boolean: {} } },
+        { key: AppearanceOptions, name: AppearanceOptions.Refresh_Period, selector: { number: { min: 1, unit_of_measurement: "seconds" } } }
       ]
     }
   ];
@@ -359,8 +360,8 @@ export const secondaryInfoSchema = memoizeOne((secondaryEntities: string[]): obj
 
 //================================================================================================================================================================================//
 
-const displayPrecisionSelector = memoizeOne((): object=> {
-  return { number: { mode: SelectorModes.Box, min: 0, max: 3, step: 1, unit_of_measurement: "dp" } };
+const displayPrecisionSelector = memoizeOne((): object => {
+  return { number: { mode: SelectorModes.Box, min: 0, max: 3, unit_of_measurement: "dp" } };
 });
 
 //================================================================================================================================================================================//
